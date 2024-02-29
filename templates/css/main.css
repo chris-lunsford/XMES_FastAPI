@@ -1,0 +1,232 @@
+/* index style*/
+
+
+* {
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    background-color: #535151;
+    border-bottom: 0px solid black;
+    color: #fff;
+    padding-left: 5px;
+    height: 50px;
+    width: 100%;
+    min-width: auto;
+}    
+
+.header figure img{
+    display: flex;
+    border: 0px solid black;
+    border-radius: 0%;
+    height: 50px;
+    align-items: center;
+}
+
+.container {
+    display: flex;
+    height: calc(100% - 50px); /* Adjust height to account for header */
+}
+.sidebar {
+    min-width: 170px;
+    background-color: #969191;
+    color: #fff;
+    margin: 0;
+    padding: 0px;
+    height: calc(100vh - 50px);
+    flex-basis: 200px;
+}
+
+.sidebar h2 {
+    padding: 0 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    margin: 0; /* Remove default margin from ul */
+    padding: 0; /* Remove default padding from ul */            
+}
+
+.sidebar a {
+    display: block;
+    color: black;
+    padding: 16px 20px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.sidebar a.active {
+    background-color: #0b2f92;
+    color: white;
+}
+
+.sidebar a:hover:not(.active) {
+    background-color: #1a3d80;
+    color: white;
+}
+
+.main-content {
+    width: calc(100% - 170px);
+    max-height: calc(100vh - 50px);
+    overflow-y: hidden;
+    flex-grow: 1;
+    background-color: #f4f4f4;
+}
+.content {
+    max-width: 100%;
+    padding: 0px;
+    overflow: auto;
+}
+
+
+/* Link1 style*/
+
+.wrapper-main {
+    max-width: calc(100% - 0px);
+    border: 0px solid black;
+    border-bottom: 1px solid black;
+    padding: 5px;
+}
+
+.form-container {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 40px; /* Adjust the gap between input groups as needed */
+    font-size: 14px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+#order_id, #workarea, #employeenumber {
+    width: 100px;
+    height: 25px;
+}
+
+#barcode {
+    width: 150px;
+    height: 25px;
+}
+
+textarea, input {
+    border: 1px solid black;
+}
+
+textarea:focus, input[type="text"]:focus {
+    outline: 1px solid black;
+}
+
+textarea {
+    width: 200px;
+    height: 50px;
+    resize: none;
+}
+
+input[type="radio"] {
+    appearance: radio;
+}
+
+input[type="checkbox"] {
+    appearance: checkbox;
+}
+
+select {    
+    border: 1px solid black;
+    width: 200px;
+    appearance: auto;
+}
+
+button {
+    background-color: #969191;
+    opacity: 100%;
+    width: 100px;
+    height: 30px;
+    line-height: 12px;
+    text-align: center;
+    font-size: 16px;
+    padding: 0;
+}
+
+input[type="text"], textarea, select, button {
+    padding: 10px;       
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #616060;
+    
+}
+
+.wrapper-results {
+    max-height: 100%; /* Adjust the height as needed */
+    overflow: auto; /* Add a scroll bar if the content exceeds the height */
+    max-width: 100%; /* Set the maximum width to 100% of the parent container */
+    overflow-x: auto; /* Add a horizontal scroll bar if the content exceeds the width */
+    border: 1px solid #ccc; /* Optional: add a border for the box */
+    padding: 10px; /* Optional: add some padding inside the box */
+}
+
+
+
+table {
+    table-layout: auto;
+    border-collapse: collapse;
+    width: auto;
+}
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.table-container {
+    max-width: 100%;
+    overflow-x: auto;  /* Horizontal scrollbar */
+    height: calc(100vh - 60px); /* Adjust the height based on your header and any other elements */      
+}
+
+
+.table-scroll {
+    height: 100%;
+    overflow-y: auto; /* Vertical scrollbar */
+}
+
+.table-scroll table {
+    min-width: 568px;
+   
+}
+
+.table-container table {
+    display: block;
+    height: calc(100% - 50px); /* Adjust the height to account for the scrollbar */
+    overflow-y: auto; /* Enable vertical scrolling within the table */
+}
+
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+        flex-shrink: 0;
+    }
+
+    .main-content {
+        flex-grow: 1;
+    }
+
+    .table-container {
+        max-width: 100%;
+    }
+}
