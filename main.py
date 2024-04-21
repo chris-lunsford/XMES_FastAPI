@@ -3,7 +3,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from sql_functions import fetch_order_data
+from work_stations import WORK_STATIONS
+from sql_functions import fetch_last_timestamp
 
 
 
@@ -22,9 +23,12 @@ async def index(request: Request):
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get('/link1')
-async def link1(request: Request):
-    return templates.TemplateResponse("Link1.html", {"request": request})
+@app.get('/production')
+async def production(request: Request):
+    return templates.TemplateResponse("production.html", {
+        "request": request, 
+        "work_stations": WORK_STATIONS
+    })
 
 @app.get('/link2')
 async def link2(request: Request):
@@ -34,11 +38,16 @@ async def link2(request: Request):
 async def link3(request: Request):
     return templates.TemplateResponse("Link3.html", {"request": request})
 
+@app.get("/api/machine-status")
+async def machine_status():
+    last_timestamps = fetch_last_timestamp()
+    return last_timestamps
 
-@app.post('/submit_form')
-async def submit_form(request: Request,
-                      order_id: str = Form(...)):
-    rows, columns = fetch_order_data(order_id)  # Use the function to fetch data
+
+# @app.post('/submit_form')
+# async def submit_form(request: Request,
+#                       order_id: str = Form(...)):
+#     rows, columns = fetch_order_data(order_id)  # Use the function to fetch data
 
     # Pass the fetched data to the results view
     return templates.TemplateResponse("results_fragment.html", {"request": request, "rows": rows, "columns": columns})

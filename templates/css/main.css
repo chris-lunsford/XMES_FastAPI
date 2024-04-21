@@ -5,14 +5,14 @@
     box-sizing: border-box;
 }
 
-body, html {
+.index-page body, html {
     margin: 0;
     padding: 0;
-    height: 100vh;
+    height: 100%;
     font-family: Arial, sans-serif;
 }
 
-.header {
+.index-page .header {
     background-color: #535151;
     border-bottom: 0px solid black;
     color: #fff;
@@ -20,21 +20,20 @@ body, html {
     height: 50px;
     width: 100%;
     min-width: auto;
+    display: flex;
+    justify-content: flex-start;
 }    
 
-.header figure img{
-    display: flex;
-    border: 0px solid black;
-    border-radius: 0%;
+.index-page .header figure img{    
     height: 50px;
-    align-items: center;
 }
 
-.container {
+.index-page .container {
     display: flex;
     height: calc(100% - 50px); /* Adjust height to account for header */
 }
-.sidebar {
+
+.index-page .sidebar {
     min-width: 170px;
     background-color: #969191;
     color: #fff;
@@ -44,17 +43,13 @@ body, html {
     flex-basis: 200px;
 }
 
-.sidebar h2 {
-    padding: 0 20px;
-}
-
-.sidebar ul {
+.index-page .sidebar ul {
     list-style: none;
     margin: 0; /* Remove default margin from ul */
     padding: 0; /* Remove default padding from ul */            
 }
 
-.sidebar a {
+.index-page .sidebar a {
     display: block;
     color: black;
     padding: 16px 20px;
@@ -62,27 +57,35 @@ body, html {
     text-align: center;
 }
 
-.sidebar a.active {
+.index-page .sidebar a.active {
     background-color: #0b2f92;
     color: white;
 }
 
-.sidebar a:hover:not(.active) {
+.index-page .sidebar a:hover:not(.active) {
     background-color: #1a3d80;
     color: white;
 }
 
-.main-content {
-    width: calc(100% - 170px);
-    max-height: calc(100vh - 50px);
-    overflow-y: hidden;
-    flex-grow: 1;
-    background-color: #f4f4f4;
+.index-page .sidebar a.active {
+    background-color: #1a3d80;
+    color: white;
 }
-.content {
+
+.index-page .main-content {
+    width: calc(100% - 170px);
+    max-height: 100%;
+    flex-grow: 1;
+    background-color: #c7c3c3;
+    overflow: auto;
+}
+.index-page .content {
     max-width: 100%;
     padding: 0px;
-    overflow: auto;
+}
+
+#content {
+    display: none; /* Hide the content area by default */
 }
 
 
@@ -230,3 +233,103 @@ th, td {
         max-width: 100%;
     }
 }
+
+/********* Machine Dashboard ************/
+
+/* .machining-dashboard {
+    display: flex;
+    flex-direction: column;
+}
+
+.machdash-date-selection{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;    
+    margin-top: 10px;
+    margin-bottom: 100px;
+    gap: 50px;
+    border-bottom: 1px solid #535151;
+    padding-bottom: 10px;
+}
+
+.machdash-date-selection .date-options,
+.machdash-date-selection .custom-date-range {
+    display: flex;
+    align-items: center;
+}
+
+.machdash-date-selection .date-options label{
+    cursor: pointer;
+    margin-right: 20px;
+    color: black;
+}
+
+.machdash-date-selection .date-range label{
+    cursor: pointer;
+    margin-right: 5px;
+    color: black;
+}
+
+.machdash-date-selection input{
+    cursor: pointer;
+    margin-right: 3px;
+}
+
+.machdash-data-display {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid red;
+    padding: 5px;
+    gap: 50px;
+}
+
+.machine-batch {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    border: 1px solid orange;
+    padding: 5px;
+    gap: 5px;
+}
+
+.machine-row {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid blue;
+    padding: 5px;
+    gap: 5px;
+}
+.machine-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 4px solid greenyellow;
+    padding: 0px;
+    gap: 5px;
+}
+
+.machine-container section {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid grey; 
+    padding: 5px;
+    gap: 20px; 
+}
+
+/* .psz-container, .trz-container, .prz-container, .ebz-container, .hdz-container, .hrz-container, .gmz-container, .scz-container {
+    display: flex;
+    flex-direction: column;
+    border: 3px solid yellow; 
+    gap: 20px; 
+    align-items: flex-start; 
+} */
+
+/* .machine-name, .part-count {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 20px;
+} */ 

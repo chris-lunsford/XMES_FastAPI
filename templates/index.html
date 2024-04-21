@@ -13,6 +13,7 @@
     
 <script>
     function loadContent(url) {
+    localStorage.setItem('lastLoadedContent', url);  // Save the current content URL to localStorage
     fetch(url)
         .then(response => response.text())
         .then(html => {
@@ -26,15 +27,48 @@
                 newScript.text = script.text;
                 document.head.appendChild(newScript).parentNode.removeChild(newScript);
             });
+
+            contentDiv.style.display = 'block'; // Show the content div after it's loaded
         })
         .catch(error => {
             console.error('Error loading content:', error);
+            contentDiv.style.display = 'block'; // Show the content div even if there's an error
         });
 }
 </script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    const lastContent = localStorage.getItem('lastLoadedContent');
+    const sidebarLinks = document.querySelectorAll('.sidebar a');
+
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            sidebarLinks.forEach(node => node.classList.remove('active'));
+            this.classList.add('active');
+            loadContent(this.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', ''));
+        });
+        // Set active class on reload
+        if (link.getAttribute('href').includes(lastContent)) {
+            link.classList.add('active');
+        }
+    });
+});6
+</script>
+
+<script>
+    function loadLastContent() {
+    const lastContent = localStorage.getItem('lastLoadedContent');
+    if (lastContent) {
+        loadContent(lastContent);
+    } else {
+        loadContent('/home'); // Default content if nothing is stored
+    }
+}
+</script>
+
 </head>
-<body>
+<body onload="loadLastContent('/home')" class ="index-page">
 <div class="header">
     <figure>
         <img src="/assets/XMES_Logo_380x100.png" alt="XMES Logo">
@@ -42,12 +76,11 @@
 </div>
 <div class="container">
     <div class="sidebar">
-        <!--<h2>Sidebar Menu</h2>-->
         <ul>
             <li><a href="javascript:loadContent('/home')">Home</a></li>
-            <li><a href="javascript:loadContent('/link1')">Production MES</a></li>
-            <!-- <li><a href="javascript:loadContent('/link2')">Link 2</a></li>
-            <li><a href="javascript:loadContent('/link3')">Link 3</a></li> -->
+            <li><a href="javascript:loadContent('/production')">Production</a></li>
+            <li><a href="javascript:loadContent('/link2')">Machine Dashboard</a></li>
+            <li><a href="javascript:loadContent('/link3')">Order Dashboard</a></li>
         </ul>
     </div>
     <div class="main-content">

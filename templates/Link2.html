@@ -3,12 +3,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/main.css">
+    <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
     <title>Document</title>
 </head>
-<body>
-    <div class="logo-display">
-        <p>Content for link 2.</p>
-    </div>
+<body class="machining-dashboard">
+    <section class="input-fields">
+        <form class="machdash-date-selection">            
+            <div class="date-options">
+                <input type="radio" id="today" name="date-range">
+                <label for="today">Today</label>
+
+                <input type="radio" id="week" name="date-range">
+                <label for="week">This Week</label>
+
+                <input type="radio" id="month" name="date-range">
+                <label for="month">This Month</label>
+            </div>
+            <div class="date-range">
+                <input type="radio" id="custom" name="date-range" value="custom">
+                <label for="custom">Date Range</label>
+
+                <input type="date" id="start-date" name="start-date">
+                <label for="date-range"> to </label>
+                <input type="date" id="end-date" name="end-date">
+            </div>
+        </form>
+    </section>
+    <section class="machdash-data-display">
+        <!-- Small Batch Machines -->
+        <section class="machine-batch">
+            <section class="machine-row">
+                <div class="machine-container psz" id="machine-PS4">
+                    <section class="psz-container">
+                        <div class="machine-name">
+                            <label>Panel Saw</label>
+                            <label>[PS4]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container trz" id="machine-TR3">
+                    <section class="trz-container">
+                        <div class="machine-name">
+                            <label>Table Router</label>
+                            <label>[TR3]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>
+            </section>
+           
+            <section class="machine-row">
+                <div class="machine-container ebz" id="machine-EB4">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <label>Edgebander</label>
+                            <label>[EB4]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>               
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container prz" id="machine-PR3">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <label>Pod Router</label>
+                            <label>[PR3]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container hrz" id="machine-HR1">
+                    <section class="hrz-container">
+                        <div class="machine-name">
+                            <label>Horizontal Router</label>
+                            <label>[HR1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>
+                <div class="machine-container hdz" id="machine-HD2">
+                    <section class="hdz-container">
+                        <div class="machine-name">
+                            <label>Horizontal Drill</label>
+                            <label>[HD2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container gmz" id="machine-GM1">
+                    <section class="gmz-container">
+                        <div class="machine-name">
+                            <label>General Mill</label>
+                            <label>[GM1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container scz" id="machine-SC2">
+                    <section class="scz-container">
+                        <div class="machine-name">
+                            <label>Shipping / Crating</label>
+                            <label>[SC2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>            
+            </section>
+        </section>
+
+        <!-- Large Batch Machines -->
+        <section class="machine-batch">
+            <section class="machine-row">
+                <div class="machine-container psz" id="machine-PS1">
+                    <section class="psz-container">
+                        <div class="machine-name">
+                            <label>Panel Saw</label>
+                            <label>[PS1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container psz" id="machine-PS2">
+                    <section class="psz-container">
+                        <div class="machine-name">
+                            <label>Panel Saw</label>
+                            <label>[PS2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container trz" id="machine-TR1">
+                    <section class="trz-container">
+                        <div class="machine-name">
+                            <label>Table Router</label>
+                            <label>[TR1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container trz" id="machine-TR2">
+                    <section class="trz-container">
+                        <div class="machine-name">
+                            <label>Table Router</label>
+                            <label>[TR2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>    
+                </div>
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container ebz" id="machine-EB1">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <label>Edgebander</label>
+                            <label>[EB1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container ebz" id="machine-EB2">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <label>Edgebander</label>
+                            <label>[EB2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container ebz" id="machine-EB3">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <label>Edgebander</label>
+                            <label>[EB3]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>                
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container prz" id="machine-PR1">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <label>Pod Router</label>
+                            <label>[PR1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container prz" id="machine-PR2">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <label>Pod Router</label>
+                            <label>[PR2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container hdz" id="machine-HD1">
+                    <section class="hdz-container">
+                        <div class="machine-name">
+                            <label>Horizontal Drill</label>
+                            <label>[HD1]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>
+            </section>
+
+            <section class="machine-row">                
+                <div class="machine-container gmz" id="machine-GM2">
+                    <section class="gmz-container">
+                        <div class="machine-name">
+                            <label>General Mill</label>
+                            <label>[GM2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>  
+                </div>            
+            </section>
+
+            <section class="machine-row">
+                <div class="machine-container scz" id="machine-SC2">
+                    <section class="scz-container">
+                        <div class="machine-name">
+                            <label>Shipping / Crating</label>
+                            <label>[SC2]</label>            
+                        </div>
+                        <div class="part-count">
+                            <label>Part Count:</label>
+                            <label>0</label>
+                        </div>  
+                    </section>
+                </div>                           
+            </section>
+        </section>               
+    </section>
+
+    <script>
+        // Function to update the date inputs
+    function updateDateInputs() {
+        var today = new Date().toISOString().substr(0, 10);
+        var startDate = new Date();
+        startDate.setFullYear(startDate.getFullYear() - 1); // Set start date to one month ago
+        var startDateInput = document.getElementById('start-date');
+        var endDateInput = document.getElementById('end-date');
+        
+        if (startDateInput && endDateInput) {
+            startDateInput.value = startDate.toISOString().substr(0, 10);
+            endDateInput.value = today;
+        }
+    }
+
+    // Check if the content is already there or observe changes
+    if (document.getElementById('start-date') && document.getElementById('end-date')) {
+        updateDateInputs(); // If already in DOM
+    } else {
+        // Create an observer instance linked to a callback function
+        var observer = new MutationObserver(function(mutations, observer) {
+            if (document.getElementById('start-date') && document.getElementById('end-date')) {
+                updateDateInputs(); // If elements are added to the DOM
+                observer.disconnect(); // Stop observing once updated
+            }
+        });
+
+        // Start observing the target node for configured mutations
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    </script>
+
+<script>
+    async function updateMachineBorders() {
+        const response = await fetch('/api/machine-status');
+        const data = await response.json();
+    
+        for (const [resource, lastScan] of Object.entries(data)) {
+            const machineElement = document.getElementById(`machine-${resource}`);
+            if (machineElement) {
+                const lastScanDate = new Date(lastScan);
+                const now = new Date();
+                const diffMinutes = (now - lastScanDate) / 60000; // convert milliseconds to minutes
+    
+                if (diffMinutes < 5) {
+                    machineElement.style.borderColor = 'green'; // less than 5 minutes ago
+                } else if (diffMinutes < 15) {
+                    machineElement.style.borderColor = 'yellow'; // more than 5 minutes but less than 15 minutes
+                } else {
+                    machineElement.style.borderColor = 'red'; // more than 15 minutes ago
+                }
+            }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', updateMachineBorders);
+    </script>
+    
 </body>
 </html>

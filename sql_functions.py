@@ -15,6 +15,38 @@ def connect_to_db():
     except Exception as e:
         print(f"Database connection failed: {str(e)}")
         return None  # Return None if connection failed
+    
+
+def fetch_last_timestamp():
+    conn = connect_to_db()
+    if conn is None:
+         print("Failed to connect to the database.")
+         return
+    
+    cursor = conn.cursor()
+
+    try:
+        query = f"""
+           SELECT Resource, MAX(TimeStamp) as LastScan
+           FROM DBA.XMesSimpleData
+           GROUP BY Resource; 
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()  # Fetch all rows returned by the SQL query
+        results = {row[0]: row[1] for row in rows}  # Create a dict with Resource as key and LastScan as value
+    except Exception as e:
+            print("Failed to load timestamps", e)
+            return {}
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return results
+
+
+
+
+
 
 
 def fetch_order_data(order_id):
