@@ -50,4 +50,4 @@ async def machine_status():
 #     rows, columns = fetch_order_data(order_id)  # Use the function to fetch data
 
     # Pass the fetched data to the results view
-    return templates.TemplateResponse("results_fragment.html", {"request": request, "rows": rows, "columns": columns})
+    # return templates.TemplateResponse("results_fragment.html", {"request": request, "rows": rows, "columns": columns})
