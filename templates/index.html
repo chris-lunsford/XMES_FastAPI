@@ -29,6 +29,15 @@
                 document.head.appendChild(newScript).parentNode.removeChild(newScript);
             });
 
+            // Specific call for updateMachineBorders if link2.html is loaded
+            if (url.includes('link2.html')) {
+                if (typeof updateMachineBorders === "function") {
+                    updateMachineBorders();  // Ensure this function is called here
+                } else {
+                    console.error('updateMachineBorders function not defined');
+                }
+            }
+
             contentDiv.style.display = 'block'; // Show the content div after it's loaded
         })
         .catch(error => {
