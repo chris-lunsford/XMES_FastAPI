@@ -44,7 +44,8 @@
 
                 // Check if loaded URL is for the Machine Dashboard
                 if (url.includes('/link2')) {
-                    updateMachineBorders();  // Call this function only when the Machine Dashboard link is clicked
+                    updateMachineBorders();  // Update borders on load
+                    initializeDateInputs();  // Initialize or update date inputs specifically for Machine Dashboard
                 }
                 
                 contentDiv.style.display = 'block';
@@ -103,7 +104,7 @@
     <div class="main-content">
         <div class="content" id="content">
             <h3>Content Body</h3>
-            <p>This is the content body section.</p>            
+            <p>This is the content of Index.</p>            
         </div>
     </div>
 </div>

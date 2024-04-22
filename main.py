@@ -43,6 +43,9 @@ async def machine_status():
     last_timestamps = fetch_last_timestamp()
     return last_timestamps
 
+@app.post('/api/dateForm')
+async def machine_part_counts():
+    pass
 
 # @app.post('/submit_form')
 # async def submit_form(request: Request,

@@ -3,63 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--<link rel="stylesheet" type="text/css" href="templates/css/reset.css">-->
-    <link rel="stylesheet" type="text/css" href="templates/css/main.css">
-    <title>Link 1</title>    
+    <title>Production</title>
 </head>
 <body>
-    <section class="wrapper-main">
-        <form action="/submit_form" method="post" class="form-container">
-            <div class="input-group">
-                <label for="order_id">Order Number:</label>
-                <input type="text" id="order_id" name="order_id" placeholder="">
-            </div>
-            <div class="input-group">
-                <button type="submit" value="submit">Submit</button>
-            </div>
-            <div class="input-group">
-                <label for="workarea">Work Area:</label>
-                <select name="workarea" id="workarea">
-                    <option value="test"></option>
-                    {% for area in work_stations %}
-                    <option value="{{ area }}"> {{ area }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="employeenumber">Employee Number:</label>
-                <input type="text" id="employeenumber" name="employeenumber" placeholder="">
-            </div>
-            <div class="input-group">
-                <label for="barcode">Barcode:</label>
-                <input type="text" id="barcode" name="barcode" placeholder="">
-            </div>                            
-            
-        </form>
-    </section>
-    <section class="wrapper-results" id="results-section">
-        <h2>Query Results</h2>
-        <!-- Results will be inserted here -->
-    </section>
-    <script>
-        document.querySelector('.form-container').addEventListener('submit', function(event) {
-            console.log('Form submitted'); // Log when the form is submitted
-            event.preventDefault();  // Prevent the default form submission
-
-            var formData = new FormData(this);  // Gather the form data
-            // Send the form data asynchronously using Fetch API
-            fetch('/submit_form', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())  // Convert the response to text
-            .then(html => {
-                console.log('Response received'); // Log when the response is received
-                // Update the results section with the response HTML
-                document.getElementById('results-section').innerHTML = html;
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
+    <h3></h3>
+<p>Content for Production</p>
 </body>
 </html>

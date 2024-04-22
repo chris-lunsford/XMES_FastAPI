@@ -36,3 +36,112 @@ async function updateMachineBorders() {
     }
 }
 document.addEventListener('DOMContentLoaded', updateMachineBorders);
+
+
+
+//**********************************/
+
+function initializeDateInputs() {
+    console.log('About to load dates');
+    var today = new Date().toISOString().substr(0, 10);
+    var startDate = new Date();
+    startDate.setFullYear(startDate.getFullYear() - 1); // Set start date to one year ago
+    var startDateInput = document.getElementById('start-date');
+    var endDateInput = document.getElementById('end-date');
+    
+    console.log('Start Date Input:', startDateInput);
+    console.log('End Date Input:', endDateInput);
+
+    if (startDateInput && endDateInput) {
+        startDateInput.value = startDate.toISOString().substr(0, 10);
+        endDateInput.value = today;
+        console.log('Date inputs updated.');
+    } else {
+        console.log('Date inputs not found.');
+    }
+}
+
+
+//**********************************/
+
+
+
+function handleFormSubmit(form) {
+    let selectedDateRange = form.querySelector('input[name="date-range"]:checked').value;
+    let startDate, endDate;
+
+    if (selectedDateRange === 'custom') {
+        startDate = document.getElementById('start-date').value;
+        endDate = document.getElementById('end-date').value;
+    } else {
+        startDate = document.getElementById('today-start-date').value;
+        endDate = document.getElementById('today-end-date').value;
+    }
+
+    const data = { dateRange: selectedDateRange, startDate: startDate, endDate: endDate };
+
+    fetch('/api/dateForm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        updatePartCounts(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function updateDateInputs(selectedOption) {
+    const startInput = document.getElementById('start-date');
+    const endInput = document.getElementById('end-date');
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    switch (selectedOption) {
+        case 'today':
+            setDateInputs(todayStr, todayStr);
+            disableDatePickers();
+            break;
+        case 'week':
+            // Calculate start and end dates for the week
+            disableDatePickers();
+            break;
+        case 'month':
+            // Calculate start and end dates for the month
+            disableDatePickers();
+            break;
+        case 'custom':
+            enableDatePickers();
+            break;
+    }
+}
+
+function setDateInputs(startDate, endDate) {
+    document.getElementById('today-start-date').value = startDate;
+    document.getElementById('today-end-date').value = endDate;
+    document.getElementById('start-date').value = startDate;
+    document.getElementById('end-date').value = endDate;
+}
+
+function disableDatePickers() {
+    document.getElementById('start-date').disabled = true;
+    document.getElementById('end-date').disabled = true;
+}
+
+function enableDatePickers() {
+    document.getElementById('start-date').disabled = false;
+    document.getElementById('end-date').disabled = false;
+}
+
+function updatePartCounts(data) {
+    Object.keys(data).forEach(machineId => {
+        const partCountElement = document.getElementById(`part-count-${machineId}`);
+        if (partCountElement) {
+            partCountElement.textContent = data[machineId];
+        }
+    });
+}

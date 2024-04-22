@@ -8,24 +8,33 @@
 </head>
 <body class="machining-dashboard">
     <section class="input-fields">
-        <form class="machdash-date-selection">            
+        <form class="machdash-date-selection" id="dateForm">            
             <div class="date-options">
-                <input type="radio" id="today" name="date-range">
+                <input type="radio" id="today" name="date-range" value="today" checked>
                 <label for="today">Today</label>
 
-                <input type="radio" id="week" name="date-range">
+                <input type="radio" id="week" name="date-range" value="week">
                 <label for="week">This Week</label>
 
-                <input type="radio" id="month" name="date-range">
+                <input type="radio" id="month" name="date-range" value="month">
                 <label for="month">This Month</label>
             </div>
             <div class="date-range">
                 <input type="radio" id="custom" name="date-range" value="custom">
                 <label for="custom">Date Range</label>
 
-                <input type="date" id="start-date" name="start-date">
-                <label for="date-range"> to </label>
-                <input type="date" id="end-date" name="end-date">
+                <!-- Hidden inputs for today's date -->
+                <input type="hidden" id="today-start-date" name="start-date">
+                <input type="hidden" id="today-end-date" name="end-date">
+
+                <!-- Visible inputs for custom date range -->
+
+                <input type="date" id="start-date" name="start-date" disabled>
+                <label for="start-date"> to </label>
+                <input type="date" id="end-date" name="end-date" disabled>
+            </div>
+            <div>
+                <button type="submit">Refresh</button>
             </div>
         </form>
     </section>
@@ -41,7 +50,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PS4">0</label>
                         </div>  
                     </section>
                 </div>
@@ -53,7 +62,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-TR3">0</label>
                         </div>  
                     </section>  
                 </div>
@@ -68,7 +77,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-EB4">0</label>
                         </div>  
                     </section>
                 </div>               
@@ -83,7 +92,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PR3">0</label>
                         </div>  
                     </section>
                 </div>
@@ -95,7 +104,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-HR1">0</label>
                         </div>  
                     </section>  
                 </div>
@@ -107,7 +116,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-HD2">0</label>
                         </div>  
                     </section>  
                 </div>
@@ -122,7 +131,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-GM1">0</label>
                         </div>  
                     </section>  
                 </div>
@@ -137,7 +146,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-SC2">0</label>
                         </div>  
                     </section>
                 </div>            
@@ -155,7 +164,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PS1">0</label>
                         </div>  
                     </section>
                 </div>
@@ -167,7 +176,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PS2">0</label>
                         </div>  
                     </section>
                 </div>
@@ -179,7 +188,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-TR1">0</label>
                         </div>  
                     </section>
                 </div>
@@ -191,7 +200,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-TR2">0</label>
                         </div>  
                     </section>    
                 </div>
@@ -206,7 +215,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-EB1">0</label>
                         </div>  
                     </section>
                 </div>
@@ -218,7 +227,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-EB2">0</label>
                         </div>  
                     </section>
                 </div>
@@ -230,7 +239,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-EB3">0</label>
                         </div>  
                     </section>
                 </div>                
@@ -245,7 +254,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PR1">0</label>
                         </div>  
                     </section>
                 </div>
@@ -257,7 +266,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-PR2">0</label>
                         </div>  
                     </section>
                 </div>
@@ -269,7 +278,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-HD1">0</label>
                         </div>  
                     </section>  
                 </div>
@@ -284,7 +293,7 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-GM2">0</label>
                         </div>  
                     </section>  
                 </div>            
@@ -299,90 +308,31 @@
                         </div>
                         <div class="part-count">
                             <label>Part Count:</label>
-                            <label>0</label>
+                            <label id="part-count-SC2">0</label>
                         </div>  
                     </section>
                 </div>                           
             </section>
         </section>               
     </section>
-
     <script>
-        // Function to update the date inputs
-    function updateDateInputs() {
-        console.log('About to load dates');
-        var today = new Date().toISOString().substr(0, 10);
-        var startDate = new Date();
-        startDate.setFullYear(startDate.getFullYear() - 1); // Set start date to one month ago
-        var startDateInput = document.getElementById('start-date');
-        var endDateInput = document.getElementById('end-date');
-        
-        if (startDateInput && endDateInput) {
-            startDateInput.value = startDate.toISOString().substr(0, 10);
-            endDateInput.value = today;
-        }
-    }
-
-    // Check if the content is already there or observe changes
-    if (document.getElementById('start-date') && document.getElementById('end-date')) {
-        updateDateInputs(); // If already in DOM
-    } else {
-        // Create an observer instance linked to a callback function
-        var observer = new MutationObserver(function(mutations, observer) {
-            if (document.getElementById('start-date') && document.getElementById('end-date')) {
-                updateDateInputs(); // If elements are added to the DOM
-                observer.disconnect(); // Stop observing once updated
-            }
-        });
-
-        // Start observing the target node for configured mutations
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-    </script>
-
-<script>
-    async function updateMachineBorders() {
-        try {
-            console.log('Making API call to update machine borders');
-            const response = await fetch('/api/machine-status');
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    
-            const data = await response.json();
-            
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // This strips time part, keeping only the date
-    
-            for (const [resource, lastScan] of Object.entries(data)) {
-                const machineElement = document.getElementById(`machine-${resource}`);
-                if (machineElement) {
-                    const lastScanDate = new Date(lastScan);
-                    const lastScanDay = new Date(lastScanDate.getFullYear(), lastScanDate.getMonth(), lastScanDate.getDate()); // This strips time part, keeping only the date
-    
-                    const diffMinutes = (now - lastScanDate) / 60000; // convert milliseconds to minutes
-    
-                    if (lastScanDay.getTime() === today.getTime()) { // Checks if the scan was today
-                        if (diffMinutes < 5) {
-                            machineElement.style.borderColor = 'green'; // Less than 5 minutes ago today
-                        } else if (diffMinutes < 15) {
-                            machineElement.style.borderColor = 'yellow'; // More than 5 minutes but less than 15 minutes ago today
-                        } else if (diffMinutes > 15) {
-                            machineElement.style.borderColor = 'red'; // More than 15 minutes ago today
-                        }
-                    } else {
-                        machineElement.style.borderColor = ''; // Default color if no scan today
-                    }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attach event listeners to the body which will handle events from dynamically loaded content
+            document.body.addEventListener('change', function(event) {
+                // Check if the event is coming from your date-range inputs
+                if (event.target.matches('input[name="date-range"]')) {
+                    updateDateInputs(event.target.value);
                 }
-            }
-        } catch (error) {
-            console.error('Failed to update machine borders:', error);
-            // Optionally handle the error more gracefully in the UI
-        }
-    }
-    document.addEventListener('DOMContentLoaded', updateMachineBorders);
-    </script>
+            });
 
+            document.body.addEventListener('submit', function(event) {
+                // Check if the form being submitted is your dateForm
+                if (event.target.id === 'dateForm') {
+                    event.preventDefault();
+                    handleFormSubmit(event.target);
+                }
+            });   
+        });
+    </script>  
 </body>
 </html>

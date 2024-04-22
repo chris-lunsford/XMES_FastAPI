@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import pymssql
 
-
+#########################################
 
 def connect_to_db():
     server = "cfx-azure-server.database.windows.net"
@@ -15,7 +15,8 @@ def connect_to_db():
     except Exception as e:
         print(f"Database connection failed: {str(e)}")
         return None  # Return None if connection failed
-    
+
+#########################################    
 
 def fetch_last_timestamp():
     conn = connect_to_db()
@@ -44,6 +45,91 @@ def fetch_last_timestamp():
     return results
 
 
+#########################################
+
+# def fetch_machine_part_counts():
+#     conn = connect_to_db()
+#     if conn is None:
+#          print("Failed to connect to the database.")
+#          return
+    
+#     cursor = conn.cursor()
+
+#     try:
+#         query=f"""
+#         SELECT Resource, COUNT(Barcode) AS ScanCount
+#         FROM DBA.XMesSimpleData
+#         GROUP BY Resource;
+#         """
+#         cursor.execute(query)
+#         rows = cursor.fetchall()
+#         results = {row[0]: row[1] for row in rows}
+#     except Exception as e:
+#             print("Failed to load scan counts", e)
+#             return {}
+#     finally:
+#         cursor.close()
+#         conn.close()
+
+#     return results
+
+
+
+
+
+#########################################
+
+
+
+def fetch_machine_part_counts(start_date=None, end_date=None):
+    conn = connect_to_db()
+    if conn is None:
+        print("Failed to connect to the database.")
+        return
+
+    cursor = conn.cursor()
+
+    try:
+        # Construct the base query
+        query = """
+        SELECT Resource, COUNT(Barcode) AS ScanCount
+        FROM DBA.XMesSimpleData
+        """
+
+        # Add conditions based on the provided dates
+        conditions = []
+        if start_date:
+            conditions.append(f"TimeStamp >= '{start_date}'")
+        if end_date:
+            conditions.append(f"TimeStamp <= '{end_date}'")
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+        query += " GROUP BY Resource;"
+
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        results = {row[0]: row[1] for row in rows}
+        return results
+    except Exception as e:
+        print("Failed to load scan counts", e)
+        return {}
+    finally:
+        cursor.close()
+        conn.close()
+    
+   
+
+
+
+
+
+
+
+
+
+############################################################
 
 
 
