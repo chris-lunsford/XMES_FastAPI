@@ -15,3 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });   
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Run updateMachineBorders initially when the page loads
+    updateMachineBorders();
+
+    // Set up the function to run every 5 minutes
+    setInterval(updateMachineBorders, 60000); // 60000 milliseconds = 1 minute
+    
+});
