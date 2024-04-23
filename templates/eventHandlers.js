@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateMachineBorders();
 
     // Set up the function to run every 5 minutes
-    setInterval(updateMachineBorders, 60000); // 60000 milliseconds = 1 minute
+    // setInterval(updateMachineBorders, 60000); // 60000 milliseconds = 1 minute
     
+    setInterval(autoSubmitForm, 60000);
 });

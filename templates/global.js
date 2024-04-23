@@ -157,10 +157,17 @@ function updatePartCounts(data) {
 //**********************************/
 
 
-function handleFormSubmit(form) {
-    const formData = new FormData(form);
-    let startDate = formData.get('start-date');
-    let endDate = formData.get('end-date');
+function handleFormSubmit(formDataOrEvent) {
+    let formData;
+    if (formDataOrEvent instanceof Event) {
+        formDataOrEvent.preventDefault();
+        formData = new FormData(formDataOrEvent.target);
+    } else {
+        formData = formDataOrEvent; // Already FormData instance
+    }
+
+    let startDate = document.getElementById('start-date').value;
+    let endDate = document.getElementById('end-date').value;
 
     if (!document.getElementById('start-date').disabled) {
         startDate = document.getElementById('start-date').value;
@@ -207,4 +214,13 @@ function resetPartCounts() {
     partCountElements.forEach(element => {
         element.textContent = "0"; // Reset each part count to "0"
     });
+}
+
+
+function autoSubmitForm() {
+    const form = document.getElementById('dateForm');
+    if (form) {
+        const formData = new FormData(form); // Gather form data
+        handleFormSubmit(formData); // Assuming this is your function that handles form submission
+    }
 }
