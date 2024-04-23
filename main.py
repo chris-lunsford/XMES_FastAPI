@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
+from typing import Optional
 
 from work_stations import WORK_STATIONS
-from sql_functions import fetch_last_timestamp
+from sql_functions import fetch_last_timestamp, fetch_machine_part_counts
 
 
 
@@ -14,6 +16,12 @@ templates  = Jinja2Templates(directory="templates")
 
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+
+
+class DateForm(BaseModel):
+    startDate: Optional[str]
+    endDate: Optional[str] 
+
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
@@ -44,13 +52,10 @@ async def machine_status():
     return last_timestamps
 
 @app.post('/api/dateForm')
-async def machine_part_counts():
-    pass
-
-# @app.post('/submit_form')
-# async def submit_form(request: Request,
-#                       order_id: str = Form(...)):
-#     rows, columns = fetch_order_data(order_id)  # Use the function to fetch data
-
-    # Pass the fetched data to the results view
-    # return templates.TemplateResponse("results_fragment.html", {"request": request, "rows": rows, "columns": columns})
+async def machine_part_counts(form_data: DateForm):
+    if form_data.startDate is None or form_data.endDate is None:
+        raise HTTPException(status_code=400, detail="Start date and end date are required.")
+    results = fetch_machine_part_counts(form_data.startDate, form_data.endDate)
+    if not results:
+        raise HTTPException(status_code=404, detail="No data found for given dates")
+    return results

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
+    
+    
     <title>Document</title>
 </head>
 <body class="machining-dashboard">
@@ -315,24 +317,7 @@
             </section>
         </section>               
     </section>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Attach event listeners to the body which will handle events from dynamically loaded content
-            document.body.addEventListener('change', function(event) {
-                // Check if the event is coming from your date-range inputs
-                if (event.target.matches('input[name="date-range"]')) {
-                    updateDateInputs(event.target.value);
-                }
-            });
-
-            document.body.addEventListener('submit', function(event) {
-                // Check if the form being submitted is your dateForm
-                if (event.target.id === 'dateForm') {
-                    event.preventDefault();
-                    handleFormSubmit(event.target);
-                }
-            });   
-        });
-    </script>  
+<script src="templates/global.js"></script>    
+<script src="templates/eventHandlers.js"></script>
 </body>
 </html>

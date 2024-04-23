@@ -10,81 +10,7 @@
   <link rel="icon" type="image/png" href="/assets/favicon.ico">
   <link rel="stylesheet" type="text/css" href="templates/css/reset.css">
   <link rel="stylesheet" type="text/css" href="templates/css/main.css">
-  <script src="templates/global.js"></script>
-    
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const sidebarLinks = document.querySelectorAll('.sidebar a');
-        sidebarLinks.forEach(link => {
-            link.removeEventListener('click', handleSidebarLinkClick);
-            link.addEventListener('click', handleSidebarLinkClick);
-        });
-
-        // Optionally load the last content or a default view, without highlighting any sidebar link
-        loadLastContent(false); // Pass false to indicate not to highlight the link
-    });
-
-    function loadContent(url, highlight = true) {
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = html;
-
-                // Update link highlight based on the 'highlight' flag
-                if (highlight) {
-                    const sidebarLinks = document.querySelectorAll('.sidebar a');
-                    sidebarLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href').includes(url.replace('/', ''))) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
-
-                // Check if loaded URL is for the Machine Dashboard
-                if (url.includes('/link2')) {
-                    updateMachineBorders();  // Update borders on load
-                    initializeDateInputs();  // Initialize or update date inputs specifically for Machine Dashboard
-                }
-                
-                contentDiv.style.display = 'block';
-            })
-            .catch(error => console.error('Error loading content:', error));
-    }
-
-    function handleSidebarLinkClick(event) {
-        event.preventDefault();
-        const href = event.currentTarget.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', '');
-        loadContent(href);
-        localStorage.setItem('lastLoadedContent', href);
-        sessionStorage.setItem('lastSessionTime', Date.now().toString());
-    }
-
-    function loadLastContent(highlight) {
-        const lastContent = localStorage.getItem('lastLoadedContent');
-        if (lastContent) {
-            loadContent(lastContent, highlight);
-        } else {
-            loadContent('/home', highlight);
-        }
-    }
-
-    function checkSession() {
-        const currentTime = Date.now();
-        const lastSessionTime = parseInt(sessionStorage.getItem('lastSessionTime') || 0);
-
-        if (!lastSessionTime || currentTime - lastSessionTime > 1800000) {
-            sessionStorage.clear();
-            sessionStorage.setItem('sessionActive', 'true');
-            loadContent('/home', false);  // Do not highlight on session timeout
-        } else {
-            loadLastContent(true); // Highlight since this is a continuation of a session
-        }
-        sessionStorage.setItem('lastSessionTime', currentTime.toString());
-    }
-  </script>
-
+ 
 </head>
 <body onload="loadLastContent()" class ="index-page">
 <div class="header">
@@ -108,5 +34,81 @@
         </div>
     </div>
 </div>
+
+<script src="templates/global.js"></script>
+<script src="templates/eventHandlers.js"></script>  
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const sidebarLinks = document.querySelectorAll('.sidebar a');
+      sidebarLinks.forEach(link => {
+          link.removeEventListener('click', handleSidebarLinkClick);
+          link.addEventListener('click', handleSidebarLinkClick);
+      });
+
+      // Optionally load the last content or a default view, without highlighting any sidebar link
+      loadLastContent(false); // Pass false to indicate not to highlight the link
+  });
+
+  function loadContent(url, highlight = true) {
+      fetch(url)
+          .then(response => response.text())
+          .then(html => {
+              const contentDiv = document.getElementById('content');
+              contentDiv.innerHTML = html;
+
+              // Update link highlight based on the 'highlight' flag
+              if (highlight) {
+                  const sidebarLinks = document.querySelectorAll('.sidebar a');
+                  sidebarLinks.forEach(link => {
+                      link.classList.remove('active');
+                      if (link.getAttribute('href').includes(url.replace('/', ''))) {
+                          link.classList.add('active');
+                      }
+                  });
+              }
+
+              // Check if loaded URL is for the Machine Dashboard
+              if (url.includes('/link2')) {
+                  updateMachineBorders();  // Update borders on load
+                  initializeDateInputs();  // Initialize or update date inputs specifically for Machine Dashboard
+              }
+              
+              contentDiv.style.display = 'block';
+          })
+          .catch(error => console.error('Error loading content:', error));
+  }
+
+  function handleSidebarLinkClick(event) {
+      event.preventDefault();
+      const href = event.currentTarget.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', '');
+      loadContent(href);
+      localStorage.setItem('lastLoadedContent', href);
+      sessionStorage.setItem('lastSessionTime', Date.now().toString());
+  }
+
+  function loadLastContent(highlight) {
+      const lastContent = localStorage.getItem('lastLoadedContent');
+      if (lastContent) {
+          loadContent(lastContent, highlight);
+      } else {
+          loadContent('/home', highlight);
+      }
+  }
+
+  function checkSession() {
+      const currentTime = Date.now();
+      const lastSessionTime = parseInt(sessionStorage.getItem('lastSessionTime') || 0);
+
+      if (!lastSessionTime || currentTime - lastSessionTime > 1800000) {
+          sessionStorage.clear();
+          sessionStorage.setItem('sessionActive', 'true');
+          loadContent('/home', false);  // Do not highlight on session timeout
+      } else {
+          loadLastContent(true); // Highlight since this is a continuation of a session
+      }
+      sessionStorage.setItem('lastSessionTime', currentTime.toString());
+  }
+</script>
+
 </body>
 </html>

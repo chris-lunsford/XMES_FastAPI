@@ -35,29 +35,37 @@ async function updateMachineBorders() {
         // Optionally handle the error more gracefully in the UI
     }
 }
-document.addEventListener('DOMContentLoaded', updateMachineBorders);
+// document.addEventListener('DOMContentLoaded', updateMachineBorders);
 
 
 
 //**********************************/
 
 function initializeDateInputs() {
-    console.log('About to load dates');
+    console.log('About to initialize dates');
     var today = new Date().toISOString().substr(0, 10);
+
     var startDate = new Date();
-    startDate.setFullYear(startDate.getFullYear() - 1); // Set start date to one year ago
+    startDate.setDate(startDate.getDate()); // Set start date to today
+
     var startDateInput = document.getElementById('start-date');
     var endDateInput = document.getElementById('end-date');
+    var hiddenStartDateInput = document.getElementById('today-start-date');
+    var hiddenEndDateInput = document.getElementById('today-end-date');
     
     console.log('Start Date Input:', startDateInput);
     console.log('End Date Input:', endDateInput);
 
-    if (startDateInput && endDateInput) {
-        startDateInput.value = startDate.toISOString().substr(0, 10);
+    if (startDateInput && endDateInput && hiddenStartDateInput && hiddenEndDateInput) {
+        startDateInput.value = today;
         endDateInput.value = today;
-        console.log('Date inputs updated.');
+        hiddenStartDateInput.value = today;
+        hiddenEndDateInput.value = today;
+
+        // Log to console for debugging
+        console.log('Date inputs initialized to:', today);
     } else {
-        console.log('Date inputs not found.');
+        console.error('One or more date inputs are missing.');
     }
 }
 
@@ -65,35 +73,6 @@ function initializeDateInputs() {
 //**********************************/
 
 
-
-function handleFormSubmit(form) {
-    let selectedDateRange = form.querySelector('input[name="date-range"]:checked').value;
-    let startDate, endDate;
-
-    if (selectedDateRange === 'custom') {
-        startDate = document.getElementById('start-date').value;
-        endDate = document.getElementById('end-date').value;
-    } else {
-        startDate = document.getElementById('today-start-date').value;
-        endDate = document.getElementById('today-end-date').value;
-    }
-
-    const data = { dateRange: selectedDateRange, startDate: startDate, endDate: endDate };
-
-    fetch('/api/dateForm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        updatePartCounts(data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
 
 function updateDateInputs(selectedOption) {
     const startInput = document.getElementById('start-date');
@@ -107,11 +86,17 @@ function updateDateInputs(selectedOption) {
             disableDatePickers();
             break;
         case 'week':
-            // Calculate start and end dates for the week
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - (today.getDay() || 7) + 1);  // Set to Monday of this week
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);  // Sunday of this week
+            setDateInputs(startOfWeek.toISOString().split('T')[0], endOfWeek.toISOString().split('T')[0]);
             disableDatePickers();
             break;
         case 'month':
-            // Calculate start and end dates for the month
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);  // Last day of the current month
+            setDateInputs(startOfMonth.toISOString().split('T')[0], endOfMonth.toISOString().split('T')[0]);
             disableDatePickers();
             break;
         case 'custom':
@@ -121,6 +106,7 @@ function updateDateInputs(selectedOption) {
 }
 
 function setDateInputs(startDate, endDate) {
+    console.log("Setting dates to:", startDate, endDate);
     document.getElementById('today-start-date').value = startDate;
     document.getElementById('today-end-date').value = endDate;
     document.getElementById('start-date').value = startDate;
@@ -133,15 +119,77 @@ function disableDatePickers() {
 }
 
 function enableDatePickers() {
-    document.getElementById('start-date').disabled = false;
-    document.getElementById('end-date').disabled = false;
+    const startDatePicker = document.getElementById('start-date');
+    const endDatePicker = document.getElementById('end-date');
+
+    // Check if the pickers have valid dates set; if not, initialize to today's date
+    const today = new Date().toISOString().split('T')[0];
+    if (!startDatePicker.value) startDatePicker.value = today;
+    if (!endDatePicker.value) endDatePicker.value = today;
+
+    startDatePicker.disabled = false;
+    endDatePicker.disabled = false;
 }
 
 function updatePartCounts(data) {
+    // First, reset all part count labels to "0"
+    const partCountElements = document.querySelectorAll('[id^="part-count-"]');
+    partCountElements.forEach(element => {
+        element.textContent = "0";
+    });
+
+    // Now, update the labels that have new data
     Object.keys(data).forEach(machineId => {
         const partCountElement = document.getElementById(`part-count-${machineId}`);
         if (partCountElement) {
             partCountElement.textContent = data[machineId];
         }
+    });
+}
+
+
+//**********************************/
+
+
+function handleFormSubmit(form) {
+    const formData = new FormData(form);
+    let startDate = formData.get('start-date');
+    let endDate = formData.get('end-date');
+
+    // Check if the dates are enabled and take those values, ensuring they're up-to-date
+    if (!document.getElementById('start-date').disabled) {
+        startDate = document.getElementById('start-date').value;
+    }
+    if (!document.getElementById('end-date').disabled) {
+        endDate = document.getElementById('end-date').value;
+    }
+
+    // Log and submit these dates
+    console.log('Submitting dates:', { startDate, endDate });
+
+    const data = {
+        startDate: startDate,
+        endDate: endDate
+    };
+
+    fetch('/api/dateForm', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        updatePartCounts(data); // Call to update the UI based on the received data
+    })
+    .catch(error => {
+        console.error('Error:', error);
     });
 }
