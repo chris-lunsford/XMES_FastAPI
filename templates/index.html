@@ -70,7 +70,8 @@
               // Check if loaded URL is for the Machine Dashboard
               if (url.includes('/link2')) {
                   updateMachineBorders();  // Update borders on load
-                  initializeDateInputs();  // Initialize or update date inputs specifically for Machine Dashboard
+                  initializeDateInputs(); // Initialize or update date inputs specifically for Machine Dashboard
+                  handleFormSubmit();
               }
               
               contentDiv.style.display = 'block';

@@ -43,10 +43,12 @@ async function updateMachineBorders() {
 
 function initializeDateInputs() {
     console.log('About to initialize dates');
-    var today = new Date().toISOString().substr(0, 10);
+    var today = new Date(); // Use the Date object to manipulate dates
+    var todayStr = today.toISOString().substr(0, 10);
 
-    var startDate = new Date();
-    startDate.setDate(startDate.getDate()); // Set start date to today
+    var tomorrow = new Date(today); // Create a new Date object for tomorrow
+    tomorrow.setDate(today.getDate() + 1); // Increment the day by one
+    var tomorrowStr = tomorrow.toISOString().substr(0, 10);
 
     var startDateInput = document.getElementById('start-date');
     var endDateInput = document.getElementById('end-date');
@@ -57,13 +59,13 @@ function initializeDateInputs() {
     console.log('End Date Input:', endDateInput);
 
     if (startDateInput && endDateInput && hiddenStartDateInput && hiddenEndDateInput) {
-        startDateInput.value = today;
-        endDateInput.value = today;
-        hiddenStartDateInput.value = today;
-        hiddenEndDateInput.value = today;
+        startDateInput.value = todayStr;
+        endDateInput.value = tomorrowStr;
+        hiddenStartDateInput.value = todayStr;
+        hiddenEndDateInput.value = tomorrowStr;
 
         // Log to console for debugging
-        console.log('Date inputs initialized to:', today);
+        console.log('Date inputs initialized. Start Date:', todayStr, 'End Date:', tomorrowStr);
     } else {
         console.error('One or more date inputs are missing.');
     }
@@ -80,9 +82,13 @@ function updateDateInputs(selectedOption) {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
 
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Add one day to today's date
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
     switch (selectedOption) {
         case 'today':
-            setDateInputs(todayStr, todayStr);
+            setDateInputs(todayStr, tomorrowStr);
             disableDatePickers();
             break;
         case 'week':
@@ -156,7 +162,6 @@ function handleFormSubmit(form) {
     let startDate = formData.get('start-date');
     let endDate = formData.get('end-date');
 
-    // Check if the dates are enabled and take those values, ensuring they're up-to-date
     if (!document.getElementById('start-date').disabled) {
         startDate = document.getElementById('start-date').value;
     }
@@ -164,20 +169,14 @@ function handleFormSubmit(form) {
         endDate = document.getElementById('end-date').value;
     }
 
-    // Log and submit these dates
     console.log('Submitting dates:', { startDate, endDate });
-
-    const data = {
-        startDate: startDate,
-        endDate: endDate
-    };
 
     fetch('/api/dateForm', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({startDate, endDate})
     })
     .then(response => {
         if (!response.ok) {
@@ -186,10 +185,26 @@ function handleFormSubmit(form) {
         return response.json();
     })
     .then(data => {
-        console.log('Success:', data);
-        updatePartCounts(data); // Call to update the UI based on the received data
+        if (data && Object.keys(data).length > 0) {
+            updatePartCounts(data); // Update UI with received data
+            updateMachineBorders(); // Update machine borders whenever the form is submitted
+        } else {
+            // If data is empty, explicitly reset part counts
+            resetPartCounts();
+            console.log('No data returned for the given date range.');
+        }
+        // updateMachineBorders(); // Update machine borders even if no new data
     })
     .catch(error => {
         console.error('Error:', error);
+        resetPartCounts(); // Resets part counts on error
+        updateMachineBorders(); // Update machine borders on error
+    });
+}
+
+function resetPartCounts() {
+    const partCountElements = document.querySelectorAll('[id^="part-count-"]');
+    partCountElements.forEach(element => {
+        element.textContent = "0"; // Reset each part count to "0"
     });
 }
