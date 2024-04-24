@@ -62,16 +62,16 @@ input[type="date"] {
     color: black;
     width: 100px;
     height: 28px;
-    border: 2px solid #969191;
+    border: 3px solid #969191;
     border-radius: 5px;
     cursor: pointer;
     /* font-weight: bold; */
 }
 
 #submit_button:hover:not(.active){
-    background-color: #535151;
+    background-color: #969191;
     color: black;
-    border: 2px solid #535151;
+    border: 3px solid #696969;
 }
 
 .machdash-data-display {
