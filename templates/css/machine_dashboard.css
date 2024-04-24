@@ -54,6 +54,26 @@ input[type="date"] {
     margin-right: 3px;
 }
 
+#submit_button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #969191;
+    color: #1a3d80;
+    width: 100px;
+    height: 28px;
+    border: 2px solid #969191;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#submit_button:hover:not(.active){
+    background-color: #535151;
+    color: black;
+    border: 2px solid #535151;
+}
+
 .machdash-data-display {
     display: flex;
     flex-direction: column;

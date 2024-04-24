@@ -57,10 +57,10 @@
     text-align: center;
 }
 
-.index-page .sidebar a.active {
+/* .index-page .sidebar a.active {
     background-color: #0b2f92;
     color: white;
-}
+} */
 
 .index-page .sidebar a:hover:not(.active) {
     background-color: #1a3d80;
