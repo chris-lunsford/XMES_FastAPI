@@ -1,0 +1,25 @@
+.input-fields {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+    /* border-bottom: 1px solid #535151; */
+}
+
+.data-submition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; 
+    margin-bottom: 15px;
+    gap: 10px 30px;
+    padding-bottom: 10px;
+}
+
+.data-submition input {
+    width: 100px;
+}
+
+.data-submition input, select{
+    border: 1px solid black;
+    border-radius: 3px;
+    appearance: auto;
+}

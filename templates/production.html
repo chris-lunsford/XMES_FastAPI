@@ -3,10 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/production.css">
+    
     <title>Production</title>
 </head>
-<body>
-    <h3></h3>
-<p>Content for Production</p>
+<body class="production-dashboard">
+    <section class="input-fields">
+        <form class="data-submition">
+            <div>
+                <label for="employee_id">Employee ID:</label>
+                <input type="text" name="scan_info" id="employee_id">
+            </div>    
+            <div>
+                <label for="work_area">Work Area:</label>
+                <select name="scan_info" id="work_area">
+                    <option value="None"></option>
+                    <option value="PSZ">PSZ</option>
+                    <option value="TRZ">TRZ</option>
+                    <option value="PRZ">PRZ</option>
+                    <option value="EBZ">EBZ</option>
+                </select>
+            </div>    
+            <div>
+                <label for="customer_id">Customer ID:</label>
+                <select name="scan_info" id="customer_id">
+                    <option value="None"></option>
+                    <option value="CFA">CFA</option>
+                    <option value="CFX">CFX</option>
+                    <option value="TPS">TPS</option>
+                    <option value="TTC">TTC</option>
+                </select>
+            </div>    
+            <div>
+                <label for="order_id">Order ID:</label>
+                <input type="text" name="scan_info" id="order_id">
+            </div>    
+            <div>
+                <label for="barcode">Barcode:</label>
+                <input type="text" name="scan_info" id="barcode">
+            </div>
+        </form>
+    </section>
+    <section class="">
+
+    </section>
 </body>
 </html>
