@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from work_stations import WORK_STATIONS
+from customer_ids import CUSTOMER_IDS
 from sql_functions import fetch_last_timestamp, fetch_machine_part_counts
 
 
@@ -33,10 +34,7 @@ async def home(request: Request):
 
 @app.get('/production')
 async def production(request: Request):
-    return templates.TemplateResponse("production.html", {
-        "request": request, 
-        "work_stations": WORK_STATIONS
-    })
+    return templates.TemplateResponse("production.html", {"request": request})
 
 @app.get('/link2')
 async def link2(request: Request):
@@ -45,6 +43,14 @@ async def link2(request: Request):
 @app.get('/link3')
 async def link3(request: Request):
     return templates.TemplateResponse("Link3.html", {"request": request})
+
+@app.get('/api/work-stations')
+async def get_work_stations():
+    return WORK_STATIONS
+
+@app.get('/api/customer-ids')
+async def get_customer_ids():
+    return CUSTOMER_IDS
 
 @app.get("/api/machine-status")
 async def machine_status():

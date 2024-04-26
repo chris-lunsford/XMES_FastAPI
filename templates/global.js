@@ -224,3 +224,46 @@ function autoSubmitForm() {
         handleFormSubmit(formData); // Assuming this is your function that handles form submission
     }
 }
+
+
+/**********************************************************/
+/* Production Dashboard */
+
+function populateCustomerIDs() {
+    fetch('/api/customer-ids')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('customer_id');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(customerId => {
+                    let option = new Option(customerId, customerId);
+                    select.add(option);
+                });
+            } else {
+                console.log('Customer ID select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching customer IDs:', error));
+}
+
+
+function populateWorkAreas() {
+    fetch('/api/work-stations')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('work_area');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(station => {
+                    let option = new Option(station, station);
+                    select.add(option);
+                });
+            } else {
+                console.log('Work area select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching work stations:', error));
+}

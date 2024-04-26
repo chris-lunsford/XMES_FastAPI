@@ -12,40 +12,32 @@
         <form class="data-submition">
             <div>
                 <label for="employee_id">Employee ID:</label>
-                <input type="text" name="scan_info" id="employee_id">
+                <input type="text" name="scan_info" id="employee_id" required>
             </div>    
             <div>
                 <label for="work_area">Work Area:</label>
-                <select name="scan_info" id="work_area">
-                    <option value="None"></option>
-                    <option value="PSZ">PSZ</option>
-                    <option value="TRZ">TRZ</option>
-                    <option value="PRZ">PRZ</option>
-                    <option value="EBZ">EBZ</option>
+                <select name="scan_info" id="work_area" required>
                 </select>
             </div>    
             <div>
                 <label for="customer_id">Customer ID:</label>
-                <select name="scan_info" id="customer_id">
-                    <option value="None"></option>
-                    <option value="CFA">CFA</option>
-                    <option value="CFX">CFX</option>
-                    <option value="TPS">TPS</option>
-                    <option value="TTC">TTC</option>
+                <select name="scan_info" id="customer_id" required>
                 </select>
             </div>    
             <div>
                 <label for="order_id">Order ID:</label>
-                <input type="text" name="scan_info" id="order_id">
+                <input type="text" name="scan_info" id="order_id" required>
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
-                <input type="text" name="scan_info" id="barcode">
+                <input type="text" name="scan_info" id="barcode" required>
             </div>
         </form>
     </section>
     <section class="">
 
     </section>
+    <script src="templates/global.js"></script>    
+    <script src="templates/eventHandlers.js"></script>
 </body>
 </html>

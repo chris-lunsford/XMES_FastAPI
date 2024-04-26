@@ -19,7 +19,7 @@ html, body {
     margin-top: 10px;
     margin-bottom: 50px;
     gap: 30px;
-    border-bottom: 1px solid #535151;
+    /* border-bottom: 1px solid #535151; */
     padding-bottom: 10px;
 }
 
