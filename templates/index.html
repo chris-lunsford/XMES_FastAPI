@@ -78,7 +78,11 @@
               // Additional condition to check if the loaded content requires customer IDs
                 if (url.includes('/production') || url.includes('/any-other-relevant-path')) {
                     populateCustomerIDs();  // Call the function to populate customer IDs
-                    populateWorkAreas();
+                }
+
+                // Additional condition to check if the loaded content is related to production or areas involving work stations
+                if (url.includes('/production') || url.includes('/settings') || url.includes('/any-other-section-that-needs-this')) {
+                    populateWorkAreas();  // Call the function to populate work areas
                 }
               
               contentDiv.style.display = 'block';
