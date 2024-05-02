@@ -39,7 +39,7 @@
     color: #fff;
     margin: 0;
     padding: 0px;
-    height: calc(100vh - 50px);
+    height: 100%;
     flex-basis: 200px;
 }
 
@@ -57,11 +57,6 @@
     text-align: center;
 }
 
-/* .index-page .sidebar a.active {
-    background-color: #0b2f92;
-    color: white;
-} */
-
 .index-page .sidebar a:hover:not(.active) {
     background-color: #1a3d80;
     color: white;
@@ -75,6 +70,7 @@
 
 .index-page .main-content {
     width: calc(100% - 170px);
+    min-width: 200px;
     max-height: 100%;
     flex-grow: 1;
     background-color: #e2e2e2;
@@ -82,6 +78,7 @@
 }
 .index-page .content {
     max-width: 100%;
+    max-height: 100%;
     padding: 0px;
 }
 
