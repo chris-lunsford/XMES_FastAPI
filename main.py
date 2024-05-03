@@ -92,3 +92,6 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
