@@ -7,7 +7,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
-from sql_functions import fetch_last_timestamp, fetch_machine_part_counts
+from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db
 
 
 
@@ -19,9 +19,6 @@ app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 
-class DateForm(BaseModel):
-    startDate: Optional[str]
-    endDate: Optional[str] 
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -57,6 +54,12 @@ async def machine_status():
     last_timestamps = fetch_last_timestamp()
     return last_timestamps
 
+
+
+class DateForm(BaseModel):
+    startDate: Optional[str]
+    endDate: Optional[str] 
+
 @app.post('/api/dateForm')
 async def machine_part_counts(form_data: DateForm):
     if form_data.startDate is None or form_data.endDate is None:
@@ -65,3 +68,27 @@ async def machine_part_counts(form_data: DateForm):
     if not results:
         raise HTTPException(status_code=404, detail="No data found for given dates")
     return results
+
+
+class BarcodeData(BaseModel):
+    Barcode: str
+    JobID: str
+    Timestamp: str
+    EmployeeID: str
+    Resource: str
+    CustomerID: str
+
+@app.post('/api/barcode-scan-Submit')
+async def handle_barcode_scan_to_db(data: BarcodeData):
+    try:
+        result = barcode_scan_to_db(
+            data.Barcode, 
+            data.JobID, 
+            data.Timestamp,
+            data.EmployeeID,
+            data.Resource,
+            data.CustomerID
+            )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

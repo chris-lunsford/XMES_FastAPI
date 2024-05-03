@@ -1,8 +1,27 @@
+html, body {
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
+
+.production-dashboard {
+    display: flex;
+    flex-direction: column;
+    border: 2px dotted purple;
+    padding: 10px;
+}
+
+
 .input-fields {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    margin: 20px;
-    /* border-bottom: 1px solid #535151; */
+    align-items: center;
+    margin: 0px;
+    border: 1px solid red;
+    padding: 10px;
+    min-height: 70px;
 }
 
 .data-submition {
@@ -22,4 +41,53 @@
     border: 1px solid black;
     border-radius: 3px;
     appearance: auto;
+}
+
+.data-submition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 50px;
+    border: 2px solid lime;
+    padding: 10px;
+}
+
+.data-submition div {
+    display: flex;
+    flex-direction: column; 
+    border: 2px dotted purple;
+    padding: 10px;
+}
+
+.display-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 50px;
+    border: 2px dotted orange;
+    padding: 10px;
+    height: 250px;
+}
+
+.notification-display {
+    border: 2px solid blue;
+    padding: 10px;
+    width: 50ch;
+}
+
+.data-display {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid blue;
+    padding: 10px;
+    width:  40ch;
+}
+
+.data-display div {
+    display: flex;
+    justify-content: left;
+    column-gap: 20px;
+    height: 50px;
+    border: 2px solid black;
 }

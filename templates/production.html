@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/production.css">
-    
+    <link rel="stylesheet" type="text/css" href="templates/css/production.css">    
     <title>Production</title>
 </head>
 <body class="production-dashboard">
@@ -12,29 +11,54 @@
         <form class="data-submition">
             <div>
                 <label for="employee_id">Employee ID:</label>
-                <input type="text" name="scan_info" id="employee_id" required>
+                <input type="text" name="scan_info" id="employee-id" required>
             </div>    
             <div>
                 <label for="work_area">Work Area:</label>
-                <select name="scan_info" id="work_area" required>
+                <select name="scan_info" id="work-area" required>
                 </select>
             </div>    
             <div>
                 <label for="customer_id">Customer ID:</label>
-                <select name="scan_info" id="customer_id" required>
+                <select name="scan_info" id="customer-id" required>
                 </select>
             </div>    
             <div>
                 <label for="order_id">Order ID:</label>
-                <input type="text" name="scan_info" id="order_id" required>
+                <input type="text" name="scan_info" id="order-id" required>
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
                 <input type="text" name="scan_info" id="barcode" required>
             </div>
         </form>
+        <div class="message-display">
+            <label>Messages:</label>
+            <label>Test Message</label>
+        </div>
     </section>
-    <section class="">
+    <section class="display-container">
+        <div class="notification-display">
+            <label>Notifications</label>
+            <div>
+                <label>Test notification</label>
+            </div>            
+        </div>
+        <div class="data-display">
+            <label for="">Data</label>
+            <div class="partcount-workarea">
+                <label>Parts scanned at WorkArea:</label>
+                <label id="partcount-area">0</label>
+            </div>            
+            <div class="partcount-employee">
+                <label>Parts scanned by Employee:</label>
+                <label id="partcount-emp">0</label>
+            </div>
+            <div class="last-scan">
+                <label>Last barcode scanned:</label>
+                <label id="last-scan">************</label>
+            </div>
+        </div>
 
     </section>
     <script src="templates/global.js"></script>    

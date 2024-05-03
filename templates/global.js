@@ -267,3 +267,35 @@ function populateWorkAreas() {
         })
         .catch(error => console.error('Error fetching work stations:', error));
 }
+
+
+function handleBarcodeScan_to_DB() {
+    let employeeID = document.getElementById('employee-id').value;
+    let workArea = document.getElementById('work-area').value;
+    let customerID = document.getElementById('customer-id').value;
+    let orderID = document.getElementById('order-id').value;
+    let barcode = document.getElementById('barcode').value;
+   
+    console.log('Submitting data:', { employeeID, workArea, customerID, orderID, barcode });
+
+    fetch('/api/barcode-scan-Submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            employeeID: employeeID,
+            workArea: workArea,
+            customerID: customerID,
+            orderID: orderID,
+            barcode: barcode
+        })
+    })
+    .then(reponse => reponse.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
