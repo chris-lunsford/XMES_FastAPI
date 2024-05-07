@@ -1,18 +1,30 @@
 /***** Production Dashboard *****/
 
-// Ensure that this script is only executed when the relevant content is present in the DOM
-document.addEventListener("DOMContentLoaded", function() {
-    // Check if production-specific elements exist
-    const barcodeInput = document.getElementById('barcode');
-    if (barcodeInput) {
-        barcodeInput.addEventListener('keypress', function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault(); // Prevent the default action to stop submitting the form
-                handleBarcodeScan_to_DB(); // Call the function that handles data submission
-            }
-        });
-    }
 
-    populateCustomerIDs(); // Call the function to populate customer IDs
-    populateWorkAreas(); // Call the function to populate work areas
-});
+// After this script loads, set its callback in scriptMap if necessary.
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/production'].callback = initializeProductionDashboard;
+}
+
+
+// Define the barcode scanning function outside to keep its reference
+function handleBarcodeKeyPress(event) {
+    if (event.target.id === 'barcode' && event.key === "Enter") {
+        console.log("Enter pressed on barcode input");
+        event.preventDefault();
+        handleBarcodeScan_to_DB();
+    }
+}
+
+function initializeProductionDashboard() {
+    // Initialize dashboard functionalities
+    populateCustomerIDs(); // Populate customer IDs
+    populateWorkAreas(); // Populate work areas
+
+    // Add event listener for barcode scanning
+    // Remove the listener first to ensure it's not added multiple times
+    document.body.removeEventListener('keypress', handleBarcodeKeyPress);
+    document.body.addEventListener('keypress', handleBarcodeKeyPress);
+}
+
+

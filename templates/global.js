@@ -138,6 +138,7 @@ function enableDatePickers() {
 }
 
 function updatePartCounts(data) {
+    console.log('Making API call to update part counts');
     // First, reset all part count labels to "0"
     const partCountElements = document.querySelectorAll('[id^="part-count-"]');
     partCountElements.forEach(element => {
@@ -226,6 +227,8 @@ function autoSubmitForm() {
 }
 
 
+
+
 /**********************************************************/
 /* Production Dashboard */
 
@@ -233,7 +236,7 @@ function populateCustomerIDs() {
     fetch('/api/customer-ids')
         .then(response => response.json())
         .then(data => {
-            const select = document.getElementById('customer_id');
+            const select = document.getElementById('customer-id');
             if (select) {
                 // Clear existing options before adding new ones
                 select.innerHTML = '';
@@ -253,7 +256,7 @@ function populateWorkAreas() {
     fetch('/api/work-stations')
         .then(response => response.json())
         .then(data => {
-            const select = document.getElementById('work_area');
+            const select = document.getElementById('work-area');
             if (select) {
                 // Clear existing options before adding new ones
                 select.innerHTML = '';
@@ -284,11 +287,11 @@ function handleBarcodeScan_to_DB() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            employeeID: employeeID,
-            workArea: workArea,
-            customerID: customerID,
-            orderID: orderID,
-            barcode: barcode
+            EmployeeID: employeeID,
+            Resource: workArea,
+            CustomerID: customerID,
+            JobID: orderID,
+            Barcode: barcode
         })
     })
     .then(reponse => reponse.json())

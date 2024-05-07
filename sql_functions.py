@@ -94,7 +94,6 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
 ############################################################
 
 
-
 def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, CustomerID):
     conn = connect_to_db()
     if conn is None:
@@ -104,31 +103,63 @@ def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, Customer
     cursor = conn.cursor()
 
     try:
-        if CustomerID !=  "TPS":
-            check_query = f"""
+        if CustomerID != "TPS":
+            check_query = """
                 SELECT * FROM dba.XMesSimpleData
-                WHERE Barcode = '{Barcode}'
-                AND Resource = '{Resource}'
-                AND JobID = '{JobID}'
-                """
-            cursor.execute(check_query)
+                WHERE Barcode = %s AND Resource = %s AND JobID = %s
+            """
+            cursor.execute(check_query, (Barcode, Resource, JobID))
             existing_entry = cursor.fetchone()
 
             if existing_entry:
                 raise ValueError("Duplicate barcode")
         
-        insert_query = f"""
+        insert_query = """
             INSERT INTO dba.XMesSimpleData (
                 Barcode, JobID, Timestamp, EmployeeID, Resource, Recut, CustomerID
-                )
-            VALUES (
-                '{Barcode}', '{JobID}', '{Timestamp}', '{EmployeeID}', '{Resource}', 0, '{CustomerID}'
-                )
-            """
-        cursor.execute(insert_query)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(insert_query, (Barcode, JobID, Timestamp, EmployeeID, Resource, 0, CustomerID))
         conn.commit()
     finally:
         conn.close()
+
+        
+
+# def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, CustomerID):
+#     conn = connect_to_db()
+#     if conn is None:
+#         print("Failed to connect to the database.")
+#         raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+
+#     cursor = conn.cursor()
+
+#     try:
+#         if CustomerID !=  "TPS":
+#             check_query = f"""
+#                 SELECT * FROM dba.XMesSimpleData
+#                 WHERE Barcode = '{Barcode}'
+#                 AND Resource = '{Resource}'
+#                 AND JobID = '{JobID}'
+#                 """
+#             cursor.execute(check_query)
+#             existing_entry = cursor.fetchone()
+
+#             if existing_entry:
+#                 raise ValueError("Duplicate barcode")
+        
+#         insert_query = f"""
+#             INSERT INTO dba.XMesSimpleData (
+#                 Barcode, JobID, Timestamp, EmployeeID, Resource, Recut, CustomerID
+#                 )
+#             VALUES (
+#                 '{Barcode}', '{JobID}', '{Timestamp}', '{EmployeeID}', '{Resource}', 0, '{CustomerID}'
+#                 )
+#             """
+#         cursor.execute(insert_query)
+#         conn.commit()
+#     finally:
+#         conn.close()
 
 
 

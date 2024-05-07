@@ -1,7 +1,11 @@
+from datetime import datetime
+import pytz
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional
 
@@ -18,7 +22,9 @@ templates  = Jinja2Templates(directory="templates")
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
-
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return PlainTextResponse(str(exc), status_code=400)
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -73,7 +79,6 @@ async def machine_part_counts(form_data: DateForm):
 class BarcodeData(BaseModel):
     Barcode: str
     JobID: str
-    Timestamp: str
     EmployeeID: str
     Resource: str
     CustomerID: str
@@ -81,17 +86,25 @@ class BarcodeData(BaseModel):
 @app.post('/api/barcode-scan-Submit')
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
+        Timestamp = datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-7]  # UTC timezone, or use your preferred timezone
         result = barcode_scan_to_db(
             data.Barcode, 
             data.JobID, 
-            data.Timestamp,
+            Timestamp,
             data.EmployeeID,
             data.Resource,
             data.CustomerID
             )
+        print(Timestamp)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# from datetime import datetime
+# import pytz
+# Timestamp = datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-7]
+# print(Timestamp)
 
 
 
