@@ -69,18 +69,6 @@ function loadContent(url, highlight = true) {
         });
 }
 
-// Correctly add event listener for the custom event
-// document.getElementById('content').addEventListener('contentLoaded', function(e) {
-//     if (e.detail.loadedUrl.includes('/link2')) {
-//         if (typeof initializeMachineDashboard === 'function') {
-//             initializeMachineDashboard();  // Call only if available
-//         }
-//     } else if (e.detail.loadedUrl.includes('/production')) {
-//         if (typeof initializeProductionDashboard === 'function') {
-//             initializeProductionDashboard();  // Call only if available
-//         }
-//     }
-// });
 
 
 function loadScript(url, callback) {
@@ -98,6 +86,7 @@ function loadScript(url, callback) {
     document.head.appendChild(script);
 }
 
+
 function handleSidebarLinkClick(event) {
     event.preventDefault();
     const href = event.currentTarget.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', '');
@@ -105,6 +94,7 @@ function handleSidebarLinkClick(event) {
     localStorage.setItem('lastLoadedContent', href);
     sessionStorage.setItem('lastSessionTime', Date.now().toString());
 }
+
 
 function loadLastContent(highlight) {
     const lastContent = localStorage.getItem('lastLoadedContent');
@@ -114,6 +104,7 @@ function loadLastContent(highlight) {
         loadContent('/home', highlight);
     }
 }
+
 
 function checkSession() {
     const currentTime = Date.now();
