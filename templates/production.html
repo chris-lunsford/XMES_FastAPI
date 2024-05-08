@@ -25,7 +25,7 @@
             </div>    
             <div>
                 <label for="order-id">Order ID:</label>
-                <input type="text" name="scan_info" id="order-id" required>
+                <input type="text" value="Auto-fill" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
@@ -33,8 +33,8 @@
             </div>
         </form>
         <div class="message-display">
-            <p>Messages:</p>
-            <p>Test Message</p>
+            <p>Messages:&nbsp</p>
+            <p id="status-message">Enter required fields and scan barcode.</p>
         </div>
     </section>
     <section class="display-container">

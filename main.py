@@ -11,7 +11,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
-from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db
+from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db, update_recut_in_db
 
 
 
@@ -76,6 +76,7 @@ async def machine_part_counts(form_data: DateForm):
     return results
 
 
+
 class BarcodeData(BaseModel):
     Barcode: str
     JobID: str
@@ -86,25 +87,51 @@ class BarcodeData(BaseModel):
 @app.post('/api/barcode-scan-Submit')
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
-        Timestamp = datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-7]  # UTC timezone, or use your preferred timezone
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+
+        # Get the current time in UTC
+        now_utc = datetime.now(pytz.utc)
+
+        # Convert the current time from UTC to Eastern Time
+        now_eastern = now_utc.astimezone(eastern)
+
+        # Format the timestamp as a string without timezone information, suitable for SQL Server
+        timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
         result = barcode_scan_to_db(
             data.Barcode, 
             data.JobID, 
-            Timestamp,
+            timestamp,
             data.EmployeeID,
             data.Resource,
             data.CustomerID
             )
-        print(Timestamp)
-        return result
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+    
+
+
+
+class BarcodeRecutData(BaseModel):
+    Barcode: str
+    JobID: str
+    Resource: str
+    Recut: int
+
+@app.post('/api/update-recut-status')
+async def update_recut_status(data: BarcodeRecutData):
+    try:
+        print("Received data for recut:", data)
+        result = update_recut_in_db(data.Barcode, data.JobID, data.Resource, data.Recut)
+        return {"message": "Recut status updated successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# from datetime import datetime
-# import pytz
-# Timestamp = datetime.now(pytz.utc).strftime('%Y-%m-%d %H:%M:%S.%f')[:-7]
-# print(Timestamp)
+
 
 
 

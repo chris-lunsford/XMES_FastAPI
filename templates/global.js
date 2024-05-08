@@ -278,6 +278,14 @@ function handleBarcodeScan_to_DB() {
     let customerID = document.getElementById('customer-id').value;
     let orderID = document.getElementById('order-id').value;
     let barcode = document.getElementById('barcode').value;
+    let statusMessage = document.getElementById('status-message');
+
+    // Check if all required fields are filled
+    if (!employeeID || !workArea || !customerID || !orderID || !barcode) {
+        statusMessage.textContent = 'All fields must be filled out!';
+        statusMessage.style.color = 'red';
+        return;
+    }
    
     console.log('Submitting data:', { employeeID, workArea, customerID, orderID, barcode });
 
@@ -294,11 +302,72 @@ function handleBarcodeScan_to_DB() {
             Barcode: barcode
         })
     })
-    .then(reponse => reponse.json())
-    .then(data => {
-        console.log('Success:', data);
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(result => {
+        if (result.status >= 400) {  // Check for errors
+            throw new Error(result.body.detail);  // Assuming the server sends back an error in 'detail'
+        }
+        console.log('Success:', result.body);
+        statusMessage.textContent = 'Barcode scan successful!';
+        statusMessage.style.color = 'green';
     })
     .catch((error) => {
-        console.error('Error:', error);
+        if (error.message.includes('Duplicate barcode')) {
+            if (confirm("This barcode has been scanned before. Is this part a recut?")) {
+                // If user confirms it's a recut, send another request to update the recut status
+                updateRecutStatus(barcode, orderID, workArea);
+            } else {
+                // Handle the case where it's not a recut
+                console.error("Duplicate barcode and not a recut.");
+                document.getElementById('status-message').textContent = "Duplicate barcode error!";
+                document.getElementById('status-message').style.color = 'red';
+            }
+        } else {
+            console.error('Error:', error);
+            document.getElementById('status-message').textContent = 'Error scanning barcode: ' + error.message;
+            document.getElementById('status-message').style.color = 'red';
+        }
     });
+}
+
+
+function updateRecutStatus(barcode, orderID, workArea) {
+    const payload = JSON.stringify({
+        Barcode: barcode,
+        JobID: orderID,
+        Resource: workArea,
+        Recut: 1  // Assuming Recut is an integer and is a required field
+    });
+    
+    console.log("Sending payload:", payload);
+    
+    fetch('/api/update-recut-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: payload
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to update recut status: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Recut status updated:', data);
+        document.getElementById('status-message').textContent = 'Barcode updated as a recut!';
+        document.getElementById('status-message').style.color = 'green';
+    })
+    .catch(error => {
+        console.error('Error updating recut status:', error);
+        document.getElementById('status-message').textContent = 'Failed to update recut status.';
+        document.getElementById('status-message').style.color = 'red';
+    });
+}
+
+
+function enableEditing(element) {
+    element.removeAttribute('readonly');  // Removes the readonly attribute when the field is focused
+    element.style.backgroundColor = "#FFFFFF";  // Optional: change the background color to indicate editability
 }

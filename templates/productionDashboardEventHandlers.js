@@ -21,6 +21,10 @@ function initializeProductionDashboard() {
     populateCustomerIDs(); // Populate customer IDs
     populateWorkAreas(); // Populate work areas
 
+    // Only initialize once
+    if (window.productionDashboardInitialized) return;
+    window.productionDashboardInitialized = true;
+
     // Add event listener for barcode scanning
     // Remove the listener first to ensure it's not added multiple times
     document.body.removeEventListener('keypress', handleBarcodeKeyPress);
@@ -28,3 +32,14 @@ function initializeProductionDashboard() {
 }
 
 
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('input', function(event) {
+        if (event.target.id === 'barcode') {
+            let orderIDField = document.getElementById('order-id');
+            if (event.target.value.length >= 8) {
+                orderIDField.value = event.target.value.substring(0, 8);
+            }
+        }
+    });
+});

@@ -70,17 +70,17 @@ function loadContent(url, highlight = true) {
 }
 
 // Correctly add event listener for the custom event
-document.getElementById('content').addEventListener('contentLoaded', function(e) {
-    if (e.detail.loadedUrl.includes('/link2')) {
-        if (typeof initializeMachineDashboard === 'function') {
-            initializeMachineDashboard();  // Call only if available
-        }
-    } else if (e.detail.loadedUrl.includes('/production')) {
-        if (typeof initializeProductionDashboard === 'function') {
-            initializeProductionDashboard();  // Call only if available
-        }
-    }
-});
+// document.getElementById('content').addEventListener('contentLoaded', function(e) {
+//     if (e.detail.loadedUrl.includes('/link2')) {
+//         if (typeof initializeMachineDashboard === 'function') {
+//             initializeMachineDashboard();  // Call only if available
+//         }
+//     } else if (e.detail.loadedUrl.includes('/production')) {
+//         if (typeof initializeProductionDashboard === 'function') {
+//             initializeProductionDashboard();  // Call only if available
+//         }
+//     }
+// });
 
 
 function loadScript(url, callback) {

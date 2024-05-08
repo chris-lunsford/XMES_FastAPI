@@ -124,42 +124,57 @@ def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, Customer
     finally:
         conn.close()
 
-        
 
-# def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, CustomerID):
-#     conn = connect_to_db()
-#     if conn is None:
-#         print("Failed to connect to the database.")
-#         raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+############################################################
 
-#     cursor = conn.cursor()
 
-#     try:
-#         if CustomerID !=  "TPS":
-#             check_query = f"""
-#                 SELECT * FROM dba.XMesSimpleData
-#                 WHERE Barcode = '{Barcode}'
-#                 AND Resource = '{Resource}'
-#                 AND JobID = '{JobID}'
-#                 """
-#             cursor.execute(check_query)
-#             existing_entry = cursor.fetchone()
+def update_recut_in_db(Barcode, JobID, Resource, Recut):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            # First, fetch the current Recut value
+            select_query = """
+            SELECT Recut FROM dba.XMesSimpleData
+            WHERE Barcode = %s AND JobID = %s AND Resource = %s
+            """
+            cursor.execute(select_query, (Barcode, JobID, Resource))
+            result = cursor.fetchone()
+            if result:
+                current_recut = result[0]
+                new_recut = current_recut + 1
 
-#             if existing_entry:
-#                 raise ValueError("Duplicate barcode")
-        
-#         insert_query = f"""
-#             INSERT INTO dba.XMesSimpleData (
-#                 Barcode, JobID, Timestamp, EmployeeID, Resource, Recut, CustomerID
-#                 )
-#             VALUES (
-#                 '{Barcode}', '{JobID}', '{Timestamp}', '{EmployeeID}', '{Resource}', 0, '{CustomerID}'
-#                 )
-#             """
-#         cursor.execute(insert_query)
-#         conn.commit()
-#     finally:
-#         conn.close()
+                # Now, update the Recut value
+                update_query = """
+                UPDATE dba.XMesSimpleData
+                SET Recut = %s
+                WHERE Barcode = %s AND JobID = %s AND Resource = %s
+                """
+                cursor.execute(update_query, (new_recut, Barcode, JobID, Resource))
+                conn.commit()
+            else:
+                raise ValueError("Barcode not found in database.")
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+
+############################################################
+
+
+
+
+
+
+
+
+
+
+
 
 
 
