@@ -1,13 +1,17 @@
+from datetime import datetime
+import pytz
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
-from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db
+from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db, update_recut_in_db
 
 
 
@@ -18,7 +22,9 @@ templates  = Jinja2Templates(directory="templates")
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
-
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return PlainTextResponse(str(exc), status_code=400)
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -70,10 +76,10 @@ async def machine_part_counts(form_data: DateForm):
     return results
 
 
+
 class BarcodeData(BaseModel):
     Barcode: str
     JobID: str
-    Timestamp: str
     EmployeeID: str
     Resource: str
     CustomerID: str
@@ -81,14 +87,51 @@ class BarcodeData(BaseModel):
 @app.post('/api/barcode-scan-Submit')
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+
+        # Get the current time in UTC
+        now_utc = datetime.now(pytz.utc)
+
+        # Convert the current time from UTC to Eastern Time
+        now_eastern = now_utc.astimezone(eastern)
+
+        # Format the timestamp as a string without timezone information, suitable for SQL Server
+        timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
         result = barcode_scan_to_db(
             data.Barcode, 
             data.JobID, 
-            data.Timestamp,
+            timestamp,
             data.EmployeeID,
             data.Resource,
             data.CustomerID
             )
-        return result
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+    
+
+
+
+class BarcodeRecutData(BaseModel):
+    Barcode: str
+    JobID: str
+    Resource: str
+    Recut: int
+
+@app.post('/api/update-recut-status')
+async def update_recut_status(data: BarcodeRecutData):
+    try:
+        print("Received data for recut:", data)
+        result = update_recut_in_db(data.Barcode, data.JobID, data.Resource, data.Recut)
+        return {"message": "Recut status updated successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+
+

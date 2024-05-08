@@ -8,7 +8,7 @@ html, body {
 .production-dashboard {
     display: flex;
     flex-direction: column;
-    border: 2px dotted purple;
+    /* border: 2px dotted purple; */
     padding: 10px;
 }
 
@@ -19,7 +19,7 @@ html, body {
     justify-content: center;
     align-items: center;
     margin: 0px;
-    border: 1px solid red;
+    /* border: 1px solid red; */
     padding: 10px;
     min-height: 70px;
 }
@@ -37,6 +37,10 @@ html, body {
     width: 100px;
 }
 
+#barcode {
+    width: 125px;
+}
+
 .data-submition input, select{
     border: 1px solid black;
     border-radius: 3px;
@@ -49,15 +53,19 @@ html, body {
     justify-content: center;
     align-items: center;
     gap: 10px 50px;
-    border: 2px solid lime;
+    /* border: 2px solid lime; */
     padding: 10px;
 }
 
 .data-submition div {
     display: flex;
     flex-direction: column; 
-    border: 2px dotted purple;
+    /* border: 2px dotted purple; */
     padding: 10px;
+}
+
+.message-display {
+    display: flex;
 }
 
 .display-container {
@@ -65,23 +73,27 @@ html, body {
     flex-wrap: wrap;
     justify-content: center;
     column-gap: 50px;
-    border: 2px dotted orange;
+    /* border: 2px dotted orange; */
     padding: 10px;
-    height: 250px;
+    height: 300px;
 }
 
 .notification-display {
-    border: 2px solid blue;
+    display: flex;
+    flex-direction: column;
+    border: 1px dotted black;
     padding: 10px;
     width: 50ch;
+    row-gap: 20px;
 }
 
 .data-display {
     display: flex;
     flex-direction: column;
-    border: 2px solid blue;
+    border: 1px dotted black;
     padding: 10px;
     width:  40ch;
+    row-gap: 20px;
 }
 
 .data-display div {
@@ -89,5 +101,9 @@ html, body {
     justify-content: left;
     column-gap: 20px;
     height: 50px;
-    border: 2px solid black;
+    /* border: 1px solid black; */
+}
+
+.data-display p {
+    margin: 0px;
 }

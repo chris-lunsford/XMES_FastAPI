@@ -10,22 +10,22 @@
     <section class="input-fields">
         <form class="data-submition">
             <div>
-                <label for="employee_id">Employee ID:</label>
+                <label for="employee-id">Employee ID:</label>
                 <input type="text" name="scan_info" id="employee-id" required>
             </div>    
             <div>
-                <label for="work_area">Work Area:</label>
+                <label for="work-area">Work Area:</label>
                 <select name="scan_info" id="work-area" required>
                 </select>
             </div>    
             <div>
-                <label for="customer_id">Customer ID:</label>
+                <label for="customer-id">Customer ID:</label>
                 <select name="scan_info" id="customer-id" required>
                 </select>
             </div>    
             <div>
-                <label for="order_id">Order ID:</label>
-                <input type="text" name="scan_info" id="order-id" required>
+                <label for="order-id">Order ID:</label>
+                <input type="text" value="Auto-fill" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
@@ -33,35 +33,34 @@
             </div>
         </form>
         <div class="message-display">
-            <label>Messages:</label>
-            <label>Test Message</label>
+            <p>Messages:&nbsp</p>
+            <p id="status-message">Enter required fields and scan barcode.</p>
         </div>
     </section>
     <section class="display-container">
         <div class="notification-display">
-            <label>Notifications</label>
+            <p>Notifications</p>
             <div>
-                <label>Test notification</label>
+                <p>Test notification</p>
             </div>            
         </div>
         <div class="data-display">
-            <label for="">Data</label>
+            <p>Data</p>
             <div class="partcount-workarea">
-                <label>Parts scanned at WorkArea:</label>
-                <label id="partcount-area">0</label>
+                <p>Parts scanned at WorkArea:</p>
+                <p id="partcount-area">0</p>
             </div>            
             <div class="partcount-employee">
-                <label>Parts scanned by Employee:</label>
-                <label id="partcount-emp">0</label>
+                <p>Parts scanned by Employee:</p>
+                <p id="partcount-emp">0</p>
             </div>
             <div class="last-scan">
-                <label>Last barcode scanned:</label>
-                <label id="last-scan">************</label>
+                <p>Last barcode scanned:</p>
+                <p id="last-scan">************</labelp>
             </div>
         </div>
 
     </section>
     <script src="templates/global.js"></script>    
-    <script src="templates/eventHandlers.js"></script>
 </body>
 </html>
