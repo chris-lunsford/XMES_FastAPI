@@ -13,6 +13,8 @@ function handleBarcodeKeyPress(event) {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
         handleBarcodeScan_to_DB();
+        updatePartCountsOnScan();
+        updateEEJobListDay()
     }
 }
 
@@ -43,47 +45,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Handle employee-id input
-        if (event.target.id === 'employee-id') {
-            const employeeID = event.target.value;
+        // Listen for changes in either the 'employee-id' or 'work-area' elements
+        if (event.target.id === 'employee-id' || event.target.id === 'work-area') {
+            const employeeID = document.getElementById('employee-id').value;
             const workAreaSelect = document.getElementById('work-area');
             if (workAreaSelect) {
                 const workArea = workAreaSelect.value;
+
+                // Update part count for area and total for day
                 if (employeeID.length === 4 && workArea) {
-                    fetchPartsCount(employeeID, workArea);
+                    fetchAreaPartsCount(employeeID, workArea);
+                    fetchEETotalPartsCount(employeeID);
+                    fetchEEJobListDay(employeeID)
+                }
+                // Update only total for day
+                if (employeeID.length === 4 && !workArea) {
+                    fetchEETotalPartsCount(employeeID);
+                    fetchEEJobListDay(employeeID)
+                }
+                // Reset area part count if no work area selected
+                if (!workArea) {
+                    document.getElementById('partcount-area').textContent = 0;
                 }
             }
-        }   
-    });
-
-        // Safely attach event listener to work area select
-        setTimeout(() => {
-        const workAreaSelect = document.getElementById('work-area');
-        if (workAreaSelect) {
-            workAreaSelect.addEventListener('change', function() {
-                const employeeID = document.getElementById('employee-id').value;
-                const workArea = this.value;
-
-                // Ensure the employee ID is exactly 4 digits before making the API call
-                if (employeeID.length === 4 && workArea) {
-                    fetchPartsCount(employeeID, workArea);
-                }
-            });
-        } else {
-            console.warn('Work area select element not found!');
         }
-    }, 500); // Delay of 1000 ms (1 second)
+    });
 });
 
 
-
-function attemptFetchPartsCount() {
+function updatePartCountsOnScan() {
     const employeeID = document.getElementById('employee-id').value;
     const workAreaSelect = document.getElementById('work-area');
     const workArea = workAreaSelect.value;
+    fetchAreaPartsCount(employeeID, workArea);
+    fetchEETotalPartsCount(employeeID);
 
-    // Ensure the employee ID is exactly 4 digits and work area is selected before making the API call
-    if (employeeID.length === 4 && workArea) {
-        fetchPartsCount(employeeID, workArea);
-    }
+}
+
+function updateEEJobListDay() {
+    const employeeID = document.getElementById('employee-id').value;
+    fetchEEJobListDay(employeeID)
 }

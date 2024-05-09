@@ -166,7 +166,7 @@ def update_recut_in_db(Barcode, JobID, Resource, Recut):
 ############################################################
 
 
-def get_employee_part_count(EmployeeID, Resource):
+def get_employee_areaparts_count(EmployeeID, Resource):
     today = date.today()
     formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
 
@@ -180,10 +180,83 @@ def get_employee_part_count(EmployeeID, Resource):
             FROM dba.XMesSimpleData
             WHERE EmployeeID = %s AND Resource = %s AND CONVERT(date, Timestamp) = %s
             """
-
             cursor.execute(select_query, (EmployeeID, Resource, formatted_date))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+def get_employee_totalparts_count(EmployeeID):
+    today = date.today()
+    formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
+
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT COUNT(Barcode)
+            FROM dba.XMesSimpleData
+            WHERE EmployeeID = %s AND CONVERT(date, Timestamp) = %s
+            """
+            cursor.execute(select_query, (EmployeeID, formatted_date))
+            (count,) = cursor.fetchone()
+            return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+def get_employee_joblist_day(EmployeeID):
+    today = date.today()
+    formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
+
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT DISTINCT JobID
+            FROM dba.XMesSimpleData
+            WHERE EmployeeID = %s and CONVERT(date, Timestamp) = %s
+            """
+            cursor.execute(select_query, (EmployeeID, formatted_date))
+            result = cursor.fetchall()
+            job_list = [job[0] for job in result]  # Extract JobID from each tuple
+            return job_list
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+
+############################################################
+
+
+def get_jobid_notifications(JobID):
+    OrderID = JobID
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query="""
+            SELECT DateSubmitted, RowID, NotificationType, OrderNotification
+            FROM dba.Fact_XMesNotifications
+            WHERE OrderID = %s
+            ORDER BY DateSubmitted DESC
+            """
+            cursor.execute(select_query, (OrderID))
+            result = cursor.fetchall()
+            notification_list = [notification for notification in result]
+            return notification_list
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
     finally:
