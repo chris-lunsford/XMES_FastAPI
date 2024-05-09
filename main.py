@@ -11,7 +11,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
-from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db, update_recut_in_db
+from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db, update_recut_in_db, get_employee_part_count
 
 
 
@@ -127,6 +127,14 @@ async def update_recut_status(data: BarcodeRecutData):
         print("Received data for recut:", data)
         result = update_recut_in_db(data.Barcode, data.JobID, data.Resource, data.Recut)
         return {"message": "Recut status updated successfully", "result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get('/api/employee-parts-count')
+async def employee_parts_count(EmployeeID, Resource):
+    try:
+        count = get_employee_part_count(EmployeeID, Resource)
+        return {"count": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

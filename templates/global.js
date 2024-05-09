@@ -371,3 +371,41 @@ function enableEditing(element) {
     element.removeAttribute('readonly');  // Removes the readonly attribute when the field is focused
     element.style.backgroundColor = "#FFFFFF";  // Optional: change the background color to indicate editability
 }
+
+
+function fetchPartsCount(employeeID, workArea) {
+    if (!employeeID || !workArea) {
+        console.error('Employee ID and Work Area are required.');
+        return;
+    }
+    console.log('Submitting data:', { employeeID, workArea});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        EmployeeID: employeeID, // Ensure the parameter names match the server's expected names
+        Resource: workArea
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/employee-parts-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('partcount-emp').textContent = data.count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+
+
+
