@@ -440,7 +440,7 @@ function fetchEETotalPartsCount(employeeID) {
 
 function fetchEEJobListDay(employeeID) {
     // Define the API URL with the employee ID as a query parameter
-    const url = `/api/employee_joblist_day/?EmployeeID=${employeeID}`;
+    const url = `/api/employee-joblist-day/?EmployeeID=${employeeID}`;
 
     fetch(url)
         .then(response => {
@@ -480,3 +480,44 @@ function fetchEEJobListDay(employeeID) {
         });
 }
 
+
+
+function fetchJobNotifications(JobID) {
+    const url = `/api/jobid-notifications?JobID=${JobID}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications from the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const notificationListElement = document.getElementById('notification-list');
+            notificationListElement.innerHTML = ''; // Clear existing notifications
+
+            const ul = document.createElement('ul'); // Create a single <ul>
+
+            if (data.notification_list && data.notification_list.length > 0) {
+                data.notification_list.forEach(notification => {
+                    const li = document.createElement('li');
+                    const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
+                    li.innerHTML = `
+                        Date: ${dateOnly}<br>
+                        ID: ${notification[1]}<br>
+                        Type: ${notification[2]}<br><br>
+                        ${notification[3]}
+                    `;
+                    ul.appendChild(li); // Append each <li> to the single <ul>
+                });
+            } else {
+                ul.innerHTML = '<li>No notifications found.</li>';
+            }
+
+            notificationListElement.appendChild(ul);
+        })
+        .catch(error => {
+            console.error('Error fetching notifications:', error);
+            document.getElementById('notification-list').innerHTML = '<ul><li>Error loading notifications.</li></ul>';
+        });
+}

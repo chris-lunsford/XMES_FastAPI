@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let orderIDField = document.getElementById('order-id');
             if (event.target.value.length >= 8) {
                 orderIDField.value = event.target.value.substring(0, 8);
+
+                 // Directly call the function to fetch notifications
+                fetchJobNotifications(orderIDField.value);
             }
         }
 
@@ -67,6 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!workArea) {
                     document.getElementById('partcount-area').textContent = 0;
                 }
+            }
+        }
+
+         // Handle OrderID input
+         if (event.target.id === 'order-id') {
+            const JobID = document.getElementById('order-id').value;
+            if (event.target.value.length == 8) {
+                fetchJobNotifications(JobID)
             }
         }
     });

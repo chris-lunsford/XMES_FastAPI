@@ -147,7 +147,7 @@ async def employee_totalparts_count(EmployeeID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/employee_joblist_day/')
+@app.get('/api/employee-joblist-day/')
 async def employee_joblist_day(EmployeeID):
     try:
         job_list = get_employee_joblist_day(EmployeeID)
