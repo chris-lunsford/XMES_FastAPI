@@ -13,6 +13,8 @@ function handleBarcodeKeyPress(event) {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
         handleBarcodeScan_to_DB();
+        updatePartCountsOnScan();
+        updateEEJobListDay()
     }
 }
 
@@ -35,11 +37,63 @@ function initializeProductionDashboard() {
 
 document.addEventListener('DOMContentLoaded', function() {
     document.body.addEventListener('input', function(event) {
+        // Handle barcode input
         if (event.target.id === 'barcode') {
             let orderIDField = document.getElementById('order-id');
             if (event.target.value.length >= 8) {
                 orderIDField.value = event.target.value.substring(0, 8);
+
+                 // Directly call the function to fetch notifications
+                fetchJobNotifications(orderIDField.value);
+            }
+        }
+
+        // Listen for changes in either the 'employee-id' or 'work-area' elements
+        if (event.target.id === 'employee-id' || event.target.id === 'work-area') {
+            const employeeID = document.getElementById('employee-id').value;
+            const workAreaSelect = document.getElementById('work-area');
+            if (workAreaSelect) {
+                const workArea = workAreaSelect.value;
+
+                // Update part count for area and total for day
+                if (employeeID.length === 4 && workArea) {
+                    fetchAreaPartsCount(employeeID, workArea);
+                    fetchEETotalPartsCount(employeeID);
+                    fetchEEJobListDay(employeeID)
+                }
+                // Update only total for day
+                if (employeeID.length === 4 && !workArea) {
+                    fetchEETotalPartsCount(employeeID);
+                    fetchEEJobListDay(employeeID)
+                }
+                // Reset area part count if no work area selected
+                if (!workArea) {
+                    document.getElementById('partcount-area').textContent = 0;
+                }
+            }
+        }
+
+         // Handle OrderID input
+         if (event.target.id === 'order-id') {
+            const JobID = document.getElementById('order-id').value;
+            if (event.target.value.length == 8) {
+                fetchJobNotifications(JobID)
             }
         }
     });
 });
+
+
+function updatePartCountsOnScan() {
+    const employeeID = document.getElementById('employee-id').value;
+    const workAreaSelect = document.getElementById('work-area');
+    const workArea = workAreaSelect.value;
+    fetchAreaPartsCount(employeeID, workArea);
+    fetchEETotalPartsCount(employeeID);
+
+}
+
+function updateEEJobListDay() {
+    const employeeID = document.getElementById('employee-id').value;
+    fetchEEJobListDay(employeeID)
+}

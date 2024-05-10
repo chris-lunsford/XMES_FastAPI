@@ -11,7 +11,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
-from sql_functions import fetch_last_timestamp, fetch_machine_part_counts, barcode_scan_to_db, update_recut_in_db
+from sql_functions import *
 
 
 
@@ -129,6 +129,41 @@ async def update_recut_status(data: BarcodeRecutData):
         return {"message": "Recut status updated successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get('/api/employee-areaparts-count')
+async def employee_areaparts_count(EmployeeID, Resource):
+    try:
+        count = get_employee_areaparts_count(EmployeeID, Resource)
+        return {"area_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get('/api/employee-totalparts-count')
+async def employee_totalparts_count(EmployeeID):
+    try:
+        count = get_employee_totalparts_count(EmployeeID)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/employee-joblist-day/')
+async def employee_joblist_day(EmployeeID):
+    try:
+        job_list = get_employee_joblist_day(EmployeeID)
+        return {"job_list": job_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/jobid-notifications')
+async def jobid_notifications(JobID):
+    try:
+        notification_list = get_jobid_notifications(JobID)
+        return {"notification_list": notification_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
     
 
 

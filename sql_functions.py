@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import pymssql
 
 ######################################################
@@ -166,7 +166,101 @@ def update_recut_in_db(Barcode, JobID, Resource, Recut):
 ############################################################
 
 
+def get_employee_areaparts_count(EmployeeID, Resource):
+    today = date.today()
+    formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
 
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT COUNT(Barcode)
+            FROM dba.XMesSimpleData
+            WHERE EmployeeID = %s AND Resource = %s AND CONVERT(date, Timestamp) = %s
+            """
+            cursor.execute(select_query, (EmployeeID, Resource, formatted_date))
+            (count,) = cursor.fetchone()
+            return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+def get_employee_totalparts_count(EmployeeID):
+    today = date.today()
+    formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
+
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT COUNT(Barcode)
+            FROM dba.XMesSimpleData
+            WHERE EmployeeID = %s AND CONVERT(date, Timestamp) = %s
+            """
+            cursor.execute(select_query, (EmployeeID, formatted_date))
+            (count,) = cursor.fetchone()
+            return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+def get_employee_joblist_day(EmployeeID):
+    today = date.today()
+    formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
+
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT DISTINCT JobID
+            FROM dba.XMesSimpleData
+            WHERE EmployeeID = %s and CONVERT(date, Timestamp) = %s
+            """
+            cursor.execute(select_query, (EmployeeID, formatted_date))
+            result = cursor.fetchall()
+            job_list = [job[0] for job in result]  # Extract JobID from each tuple
+            return job_list
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+
+############################################################
+
+
+def get_jobid_notifications(JobID):
+    OrderID = JobID
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query="""
+            SELECT DateSubmitted, RowID, NotificationType, OrderNotification
+            FROM dba.Fact_XMesNotifications
+            WHERE OrderID = %s
+            ORDER BY DateSubmitted DESC
+            """
+            cursor.execute(select_query, (OrderID))
+            result = cursor.fetchall()
+            notification_list = [notification for notification in result]
+            return notification_list
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
 
 
 
@@ -197,221 +291,221 @@ def update_recut_in_db(Barcode, JobID, Resource, Recut):
 
 
 
-def fetch_order_data(order_id):
-    conn = connect_to_db()
-    if conn is None:
-        print("Failed to connect to the database.")
-        return [], []  # Return empty lists for rows and column names
+# def fetch_order_data(order_id):
+#     conn = connect_to_db()
+#     if conn is None:
+#         print("Failed to connect to the database.")
+#         return [], []  # Return empty lists for rows and column names
 
-    cursor = conn.cursor()
+#     cursor = conn.cursor()
     
-    try:
-        cursor.execute("SELECT * FROM DBA.XMesProductionForm WHERE BaseID LIKE %s", ('%' + order_id + '%',))
-        columns = [column[0] for column in cursor.description]  # Get column names
-        rows = cursor.fetchall()
-        return rows, columns
-    except Exception as e:
-        print(f"Failed to fetch order data: {e}")
-        return [], []  # Return empty lists for rows and column names
-    finally:
-        conn.close()
+#     try:
+#         cursor.execute("SELECT * FROM DBA.XMesProductionForm WHERE BaseID LIKE %s", ('%' + order_id + '%',))
+#         columns = [column[0] for column in cursor.description]  # Get column names
+#         rows = cursor.fetchall()
+#         return rows, columns
+#     except Exception as e:
+#         print(f"Failed to fetch order data: {e}")
+#         return [], []  # Return empty lists for rows and column names
+#     finally:
+#         conn.close()
 
 
-def update_sql(resource, barcode, employee_id):
-    conn = None
-    try:
-        conn = connect_to_db()
+# def update_sql(resource, barcode, employee_id):
+#     conn = None
+#     try:
+#         conn = connect_to_db()
 
-        parts = barcode.split('-')
-        if len(parts) < 3:
-            raise ValueError("Barcode format error: Expected at least two hyphens.")
+#         parts = barcode.split('-')
+#         if len(parts) < 3:
+#             raise ValueError("Barcode format error: Expected at least two hyphens.")
        
-        base_id = '-'.join(parts[:-1])  
-        part_id = parts[-1] 
+#         base_id = '-'.join(parts[:-1])  
+#         part_id = parts[-1] 
 
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        resource_col = f"{resource}"
-        emp_id_col = f"{resource}EmpID"
+#         resource_col = f"{resource}"
+#         emp_id_col = f"{resource}EmpID"
 
-        debug_query = f"""
-        UPDATE DBA.XMesProductionForm
-        SET {resource_col} = '{timestamp}', {emp_id_col} = '{employee_id}'
-        WHERE BaseID = '{base_id}' AND PartID = '{part_id}'
-        """
-        print("Debug SQL Query:", debug_query)
+#         debug_query = f"""
+#         UPDATE DBA.XMesProductionForm
+#         SET {resource_col} = '{timestamp}', {emp_id_col} = '{employee_id}'
+#         WHERE BaseID = '{base_id}' AND PartID = '{part_id}'
+#         """
+#         print("Debug SQL Query:", debug_query)
         
-        query = f"""
-        UPDATE DBA.XMesProductionForm
-        SET {resource_col} = %s, {emp_id_col} = %s
-        WHERE BaseID = %s AND PartID = %s
-        """
-        cursor = conn.cursor()
-        cursor.execute(query, (timestamp, employee_id, base_id, part_id))
-        conn.commit()
+#         query = f"""
+#         UPDATE DBA.XMesProductionForm
+#         SET {resource_col} = %s, {emp_id_col} = %s
+#         WHERE BaseID = %s AND PartID = %s
+#         """
+#         cursor = conn.cursor()
+#         cursor.execute(query, (timestamp, employee_id, base_id, part_id))
+#         conn.commit()
 
-    except Exception as e:
-        print(f"Error updating the database: {str(e)}")
-        if conn:
-            conn.rollback()  # Rollback the transaction in case of an error
-        raise
+#     except Exception as e:
+#         print(f"Error updating the database: {str(e)}")
+#         if conn:
+#             conn.rollback()  # Rollback the transaction in case of an error
+#         raise
 
-    finally:
-        if conn:
-            conn.close()  # Always close the connection
-
-
-def get_part_count(self):
-        # Connect to the database
-        conn = connect_to_db()
-        cursor = conn.cursor()
-
-        # Get the current date
-        current_date = datetime.now().date()
-
-        # Determine the date range based on the selected radio button
-        if self.radioButton_today.isChecked():
-            date_range_start = current_date
-            date_range_end = current_date
-        elif self.radioButton_week.isChecked():
-            date_range_start = current_date - timedelta(days=current_date.weekday())
-            date_range_end = date_range_start + timedelta(days=6)
-        elif self.radioButton_month.isChecked():
-            date_range_start = current_date.replace(day=1)
-            date_range_end = current_date.replace(day=1).replace(month=current_date.month % 12 + 1) - timedelta(days=1)
-
-        # Query the database for count of PS1 within the date range
-        query = '''
-                SELECT COUNT(*)
-                FROM your_table_name
-                WHERE DATE(PS1) BETWEEN ? AND ?
-                '''
-        cursor.execute(query, (date_range_start, date_range_end))
-        count = cursor.fetchone()[0]
-
-        # Close the connection
-        conn.close()
-
-        return count
+#     finally:
+#         if conn:
+#             conn.close()  # Always close the connection
 
 
-def fetch_notifications(order_id):
-    conn = connect_to_db()
-    cursor = conn.cursor()
+# def get_part_count(self):
+#         # Connect to the database
+#         conn = connect_to_db()
+#         cursor = conn.cursor()
 
-    # Debug: print the order_id and query
-    print("Order ID:", order_id)
+#         # Get the current date
+#         current_date = datetime.now().date()
 
-    current_date = datetime.now().date()
+#         # Determine the date range based on the selected radio button
+#         if self.radioButton_today.isChecked():
+#             date_range_start = current_date
+#             date_range_end = current_date
+#         elif self.radioButton_week.isChecked():
+#             date_range_start = current_date - timedelta(days=current_date.weekday())
+#             date_range_end = date_range_start + timedelta(days=6)
+#         elif self.radioButton_month.isChecked():
+#             date_range_start = current_date.replace(day=1)
+#             date_range_end = current_date.replace(day=1).replace(month=current_date.month % 12 + 1) - timedelta(days=1)
 
-     # Initialize query
-    query = '''            
-            SELECT TOP 1 NotificationType
-            FROM DBA.Fact_XMESNotifications
-            WHERE OrderID LIKE %s
-            AND NotificationType IS NOT NULL
-            ORDER BY DateSubmitted DESC
-            '''
+#         # Query the database for count of PS1 within the date range
+#         query = '''
+#                 SELECT COUNT(*)
+#                 FROM your_table_name
+#                 WHERE DATE(PS1) BETWEEN ? AND ?
+#                 '''
+#         cursor.execute(query, (date_range_start, date_range_end))
+#         count = cursor.fetchone()[0]
 
-    cursor.execute(query, ('%' + order_id + '%',))
-    result = cursor.fetchone()
+#         # Close the connection
+#         conn.close()
 
-    # Debug: print the raw result of the fetch
-    print("Raw fetch result:", result)
-
-     # Close the connection
-    cursor.close() 
-    conn.close()
-
-    if result:
-        notification = result[0]
-        print("Notification:", notification)  # Debug: print the notification
-        return notification
-    else:
-        return "No notifications."
+#         return count
 
 
-def submit_notification(order_id, notification_detail, notification_type, employee_name):
-    conn = None
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    try:
-        conn = connect_to_db()
+# def fetch_notifications(order_id):
+#     conn = connect_to_db()
+#     cursor = conn.cursor()
 
-        OrderID_col = f"OrderID"
-        NotificationType_col = f"NotificationType"
-        OrderNotification_col = f"OrderNotification"
-        DateSubmitted_col = f"DateSubmitted"
-        SubmittedBy_col = f"SubmittedBy"
+#     # Debug: print the order_id and query
+#     print("Order ID:", order_id)
+
+#     current_date = datetime.now().date()
+
+#      # Initialize query
+#     query = '''            
+#             SELECT TOP 1 NotificationType
+#             FROM DBA.Fact_XMESNotifications
+#             WHERE OrderID LIKE %s
+#             AND NotificationType IS NOT NULL
+#             ORDER BY DateSubmitted DESC
+#             '''
+
+#     cursor.execute(query, ('%' + order_id + '%',))
+#     result = cursor.fetchone()
+
+#     # Debug: print the raw result of the fetch
+#     print("Raw fetch result:", result)
+
+#      # Close the connection
+#     cursor.close() 
+#     conn.close()
+
+#     if result:
+#         notification = result[0]
+#         print("Notification:", notification)  # Debug: print the notification
+#         return notification
+#     else:
+#         return "No notifications."
+
+
+# def submit_notification(order_id, notification_detail, notification_type, employee_name):
+#     conn = None
+#     current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+#     try:
+#         conn = connect_to_db()
+
+#         OrderID_col = f"OrderID"
+#         NotificationType_col = f"NotificationType"
+#         OrderNotification_col = f"OrderNotification"
+#         DateSubmitted_col = f"DateSubmitted"
+#         SubmittedBy_col = f"SubmittedBy"
     
-        query = f"""
-        INSERT INTO DBA.Fact_XMESNotifications
-        (OrderID, NotificationType, OrderNotification, DateSubmitted, SubmittedBy)
-        VALUES (%s, %s, %s, %s, %s)
-        """
-        cursor = conn.cursor()
-        cursor.execute(query, (order_id, notification_detail, notification_type, current_date, employee_name))
-        conn.commit()
+#         query = f"""
+#         INSERT INTO DBA.Fact_XMESNotifications
+#         (OrderID, NotificationType, OrderNotification, DateSubmitted, SubmittedBy)
+#         VALUES (%s, %s, %s, %s, %s)
+#         """
+#         cursor = conn.cursor()
+#         cursor.execute(query, (order_id, notification_detail, notification_type, current_date, employee_name))
+#         conn.commit()
 
-    except Exception as e:
-        print(f"Error updating the database: {str(e)}")
-        if conn:
-            conn.rollback()  # Rollback the transaction in case of an error
-        raise
+#     except Exception as e:
+#         print(f"Error updating the database: {str(e)}")
+#         if conn:
+#             conn.rollback()  # Rollback the transaction in case of an error
+#         raise
 
-    finally:
-        if conn:
-            conn.close()  # Always close the connection
+#     finally:
+#         if conn:
+#             conn.close()  # Always close the connection
  
 
 
 
-def fetch_part_count_by_machine(order_id, machine_codes):
-    conn = None
-    total_part_count = 0
-    try:
-        conn = connect_to_db()
+# def fetch_part_count_by_machine(order_id, machine_codes):
+#     conn = None
+#     total_part_count = 0
+#     try:
+#         conn = connect_to_db()
 
-        with conn.cursor() as cursor:
-            for machine_code in machine_codes:
-                query = """
-                SELECT COUNT(*)
-                FROM DBA.XMesProductionForm 
-                WHERE OrderID = %s AND PartRouting LIKE %s
-                """
-                machine_code_pattern = f"%{machine_code}%"
-                cursor.execute(query, (order_id, machine_code_pattern))
-                part_count = cursor.fetchone()[0]
-                total_part_count += part_count  # Sum the counts for each machine code
-    except Exception as e:
-        print(f"Error fetching part count for {machine_codes}: {str(e)}")
-    finally:
-        if conn:
-            conn.close()  # Make sure to close the connection
-    return total_part_count
+#         with conn.cursor() as cursor:
+#             for machine_code in machine_codes:
+#                 query = """
+#                 SELECT COUNT(*)
+#                 FROM DBA.XMesProductionForm 
+#                 WHERE OrderID = %s AND PartRouting LIKE %s
+#                 """
+#                 machine_code_pattern = f"%{machine_code}%"
+#                 cursor.execute(query, (order_id, machine_code_pattern))
+#                 part_count = cursor.fetchone()[0]
+#                 total_part_count += part_count  # Sum the counts for each machine code
+#     except Exception as e:
+#         print(f"Error fetching part count for {machine_codes}: {str(e)}")
+#     finally:
+#         if conn:
+#             conn.close()  # Make sure to close the connection
+#     return total_part_count
 
 
-def fetch_scanned_part_count(order_id, resource_codes):
-    conn = None
-    total_scanned_part_count = 0
-    try:
-        conn = connect_to_db()  # Make sure this function is properly defined to establish a connection to your database
+# def fetch_scanned_part_count(order_id, resource_codes):
+#     conn = None
+#     total_scanned_part_count = 0
+#     try:
+#         conn = connect_to_db()  # Make sure this function is properly defined to establish a connection to your database
 
-        with conn.cursor() as cursor:
-            # Build a dynamic query based on the resource codes
-            query_parts = []
-            for resource_code in resource_codes:
-                query_parts.append(f"SUM(CASE WHEN {resource_code} IS NOT NULL AND {resource_code} != '' THEN 1 ELSE 0 END)")
-            query_select = " + ".join(query_parts)
-            query = f"""
-                SELECT {query_select}
-                FROM DBA.XMesProductionForm  
-                WHERE OrderID = %s
-                """
-            cursor.execute(query, (order_id,))
-            total_scanned_part_count = cursor.fetchone()[0]
-    except Exception as e:
-        print(f"Error fetching scanned part count for {resource_codes}: {str(e)}")
-    finally:
-        if conn:
-            conn.close()  # Always close the connection.
-    return total_scanned_part_count
+#         with conn.cursor() as cursor:
+#             # Build a dynamic query based on the resource codes
+#             query_parts = []
+#             for resource_code in resource_codes:
+#                 query_parts.append(f"SUM(CASE WHEN {resource_code} IS NOT NULL AND {resource_code} != '' THEN 1 ELSE 0 END)")
+#             query_select = " + ".join(query_parts)
+#             query = f"""
+#                 SELECT {query_select}
+#                 FROM DBA.XMesProductionForm  
+#                 WHERE OrderID = %s
+#                 """
+#             cursor.execute(query, (order_id,))
+#             total_scanned_part_count = cursor.fetchone()[0]
+#     except Exception as e:
+#         print(f"Error fetching scanned part count for {resource_codes}: {str(e)}")
+#     finally:
+#         if conn:
+#             conn.close()  # Always close the connection.
+#     return total_scanned_part_count

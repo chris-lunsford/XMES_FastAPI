@@ -371,3 +371,153 @@ function enableEditing(element) {
     element.removeAttribute('readonly');  // Removes the readonly attribute when the field is focused
     element.style.backgroundColor = "#FFFFFF";  // Optional: change the background color to indicate editability
 }
+
+
+function fetchAreaPartsCount(employeeID, workArea) {
+    if (!employeeID || !workArea) {
+        console.error('Employee ID and Work Area are required.');
+        return;
+    }
+    console.log('Submitting data:', { employeeID, workArea});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        EmployeeID: employeeID, // Ensure the parameter names match the server's expected names
+        Resource: workArea
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/employee-areaparts-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('partcount-area').textContent = data.area_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+function fetchEETotalPartsCount(employeeID) {
+    if (!employeeID) {
+        console.error('Employee ID required.');
+        return;
+    }
+    console.log('Submitting data:', { employeeID});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        EmployeeID: employeeID
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/employee-totalparts-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('partcount-emp').textContent = data.total_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+function fetchEEJobListDay(employeeID) {
+    // Define the API URL with the employee ID as a query parameter
+    const url = `/api/employee-joblist-day/?EmployeeID=${employeeID}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch job list from the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const jobListContainer = document.querySelector('.job-list');
+            // Clear existing list items regardless of whether new ones are to be added
+            jobListContainer.innerHTML = '';
+
+            // Check if the job list is empty and handle accordingly
+            if (data.job_list && data.job_list.length > 0) {
+                // Append new list items for each job ID
+                data.job_list.forEach(jobID => {
+                    const listItem = document.createElement('ul');
+                    listItem.textContent = jobID;
+                    jobListContainer.appendChild(listItem);
+                });
+            } else {
+                // Optionally, you can append a message saying no jobs found
+                const noJobsMessage = document.createElement('ul');
+                noJobsMessage.textContent = 'No jobs found.';
+                jobListContainer.appendChild(noJobsMessage);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching job list:', error);
+            // Optionally handle errors, e.g., show an error message in the UI
+            const jobListContainer = document.querySelector('.job-list');
+            jobListContainer.innerHTML = ''; // Ensure the list is cleared on error
+            const errorMessage = document.createElement('ul');
+            errorMessage.textContent = 'Error loading jobs.';
+            jobListContainer.appendChild(errorMessage);
+        });
+}
+
+
+
+function fetchJobNotifications(JobID) {
+    const url = `/api/jobid-notifications?JobID=${JobID}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications from the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const notificationListElement = document.getElementById('notification-list');
+            notificationListElement.innerHTML = ''; // Clear existing notifications
+
+            const ul = document.createElement('ul'); // Create a single <ul>
+
+            if (data.notification_list && data.notification_list.length > 0) {
+                data.notification_list.forEach(notification => {
+                    const li = document.createElement('li');
+                    const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
+                    li.innerHTML = `
+                        Date: ${dateOnly}<br>
+                        ID: ${notification[1]}<br>
+                        Type: ${notification[2]}<br><br>
+                        ${notification[3]}
+                    `;
+                    ul.appendChild(li); // Append each <li> to the single <ul>
+                });
+            } else {
+                ul.innerHTML = '<li>No notifications found.</li>';
+            }
+
+            notificationListElement.appendChild(ul);
+        })
+        .catch(error => {
+            console.error('Error fetching notifications:', error);
+            document.getElementById('notification-list').innerHTML = '<ul><li>Error loading notifications.</li></ul>';
+        });
+}

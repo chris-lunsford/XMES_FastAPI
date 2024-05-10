@@ -83,8 +83,28 @@ html, body {
     flex-direction: column;
     border: 1px dotted black;
     padding: 10px;
-    width: 40ch;
-    row-gap: 30px;
+    width: 30ch;
+    row-gap: 10px;
+}
+
+#notification-list ul {
+    padding: 10px; /** Provides padding around the list **/
+    
+    border-radius: 8px; /** Rounded corners**/
+}
+
+#notification-list li {
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px; /** Space between rows**/
+    padding: 5px; /** Padding inside each list item**/
+    /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    margin-bottom: 15px; /**Margin at the bottom of each item**/
+    background: #f4f4f4; /** Light grey background**/
+}
+
+#notification-list li:last-child {
+    border-bottom: none; /**Removes border from the last item**/
 }
 
 .data-display {
