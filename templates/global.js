@@ -502,8 +502,9 @@ function fetchJobNotifications(JobID) {
                 data.notification_list.forEach(notification => {
                     const li = document.createElement('li');
                     const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
+                    const reformattedDate = formatDate(dateOnly); // Call function to reformat the date
                     li.innerHTML = `
-                        Date: ${dateOnly}<br>
+                        Date: ${reformattedDate}<br>
                         ID: ${notification[1]}<br>
                         Type: ${notification[2]}<br><br>
                         ${notification[3]}
@@ -520,4 +521,9 @@ function fetchJobNotifications(JobID) {
             console.error('Error fetching notifications:', error);
             document.getElementById('notification-list').innerHTML = '<ul><li>Error loading notifications.</li></ul>';
         });
+}
+
+function formatDate(dateStr) {
+    const dateParts = dateStr.split('-'); // Split the date into parts
+    return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`; // Reformat to MM-DD-YYYY
 }

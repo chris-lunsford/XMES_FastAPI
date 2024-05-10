@@ -14,7 +14,7 @@ function handleBarcodeKeyPress(event) {
         event.preventDefault();
         handleBarcodeScan_to_DB();
         updatePartCountsOnScan();
-        updateEEJobListDay()
+        updateEEJobListDay();
     }
 }
 
@@ -97,3 +97,4 @@ function updateEEJobListDay() {
     const employeeID = document.getElementById('employee-id').value;
     fetchEEJobListDay(employeeID)
 }
+

@@ -164,6 +164,29 @@ async def jobid_notifications(JobID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+class NotificationData(BaseModel):
+    JobID: str
+    NotificationType: str
+    OrderNotification: str
+    SubmittedBy: str
+
+
+@app.post('/api/submit_order_notification')
+async def handle_submit_order_notification(data: NotificationData):
+    try:
+        result = submit_order_notification(
+            data.JobID, 
+            data.NotificationType, 
+            data.OrderNotification, 
+            data.SubmittedBy)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
     
 
 
