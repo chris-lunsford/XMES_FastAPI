@@ -504,9 +504,9 @@ function fetchJobNotifications(JobID) {
                     const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
                     const reformattedDate = formatDate(dateOnly); // Call function to reformat the date
                     li.innerHTML = `
-                        Date: ${reformattedDate}<br>
-                        ID: ${notification[1]}<br>
-                        Type: ${notification[2]}<br><br>
+                        Type: ${notification[2]}<br>
+                        Date: ${reformattedDate}<br>                       
+                        ID: ${notification[1]}<br><br>
                         ${notification[3]}
                     `;
                     ul.appendChild(li); // Append each <li> to the single <ul>
