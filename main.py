@@ -39,12 +39,12 @@ async def home(request: Request):
 async def production(request: Request):
     return templates.TemplateResponse("production.html", {"request": request})
 
-@app.get('/link2')
-async def link2(request: Request):
-    return templates.TemplateResponse("Link2.html", {"request": request})
+@app.get('/machine-dashboard')
+async def machine_dashboard(request: Request):
+    return templates.TemplateResponse("machinedashboard.html", {"request": request})
 
 @app.get('/notification')
-async def link3(request: Request):
+async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/api/work-stations')

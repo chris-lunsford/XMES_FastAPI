@@ -8,24 +8,26 @@
 </head>
 <body class="notification-dashboard">
     <section class="input-fields">
-        <form class="data-submition">
+        <form class="data-submission">
             <section class="notification-header">
-                <div>
-                    <label for="employee-id">Employee ID:</label>
-                    <input type="text" name="scan_info" id="employee-id" required>
-                </div>               
-                <div>
-                    <label for="order-id">Order ID:</label>
-                    <input type="text" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
-                </div>    
-                <div>
-                    <label for="type">Type:</label>
-                    <input type="text" name="scan_info" id="type" required>
+                <div class="input-boxes">                                 
+                    <div>
+                        <label for="order-id">Order ID:</label>
+                        <input type="text" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
+                    </div>    
+                    <div>
+                        <label for="type">Notification Type:</label>
+                        <input type="text" name="scan_info" id="type" required>
+                    </div>
+                    <div>
+                        <label for="employee-id">Employee ID:</label>
+                        <input type="text" name="scan_info" id="employee-id" required>
+                    </div>  
                 </div>
             </section>
             <section class="notification-body">
                 <div>
-                    <label for="notification-detail">Notification details:</label>
+                    <label for="notification-detail">Notification to display:</label>
                     <textarea name="" id="notification-detail" cols="50" rows="10"></textarea>
                     <input type="submit">
                 </div>
