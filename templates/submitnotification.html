@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/submitnotification.css">    
+    <title>Notification</title>
+</head>
+<body class="notification-dashboard">
+    <section class="input-fields">
+        <form class="data-submition">
+            <section class="notification-header">
+                <div>
+                    <label for="employee-id">Employee ID:</label>
+                    <input type="text" name="scan_info" id="employee-id" required>
+                </div>               
+                <div>
+                    <label for="order-id">Order ID:</label>
+                    <input type="text" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
+                </div>    
+                <div>
+                    <label for="type">Type:</label>
+                    <input type="text" name="scan_info" id="type" required>
+                </div>
+            </section>
+            <section class="notification-body">
+                <div>
+                    <label for="notification-detail">Notification details:</label>
+                    <textarea name="" id="notification-detail" cols="50" rows="10"></textarea>
+                    <input type="submit">
+                </div>
+            </section>
+        </form>
+        <div class="message-display">
+            <p>Messages:&nbsp</p>
+            <p id="status-message">Enter notification details and submit.</p>
+        </div>
+    </section>
+</body>
+</html>

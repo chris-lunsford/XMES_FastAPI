@@ -1,0 +1,46 @@
+html, body {
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
+
+.notification-dashboard {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.notification-header {
+    display: flex;
+    flex-direction: column;
+    flex-basis: auto;
+    border: 1px solid blue;
+}
+
+.notification-header div {
+    display: flex;
+}
+
+.notification-body {
+    display: flex;
+    justify-content: center;
+}
+
+.notification-body div{
+    display: flex;
+    flex-direction: column;
+    flex-basis: content;
+    justify-content: center;
+    border: 1px solid red;
+}    
+
+#notification-detail {
+    width: 50ch;
+    background-color: white;
+}
+
+.message-display {
+    display: flex;
+    justify-content: center;
+}

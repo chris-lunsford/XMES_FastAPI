@@ -43,9 +43,9 @@ async def production(request: Request):
 async def link2(request: Request):
     return templates.TemplateResponse("Link2.html", {"request": request})
 
-@app.get('/link3')
+@app.get('/notification')
 async def link3(request: Request):
-    return templates.TemplateResponse("Link3.html", {"request": request})
+    return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/api/work-stations')
 async def get_work_stations():
