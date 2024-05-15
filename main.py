@@ -11,6 +11,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
+from notification_types import NOTIFICATION_TYPES
 from sql_functions import *
 
 
@@ -165,18 +166,23 @@ async def jobid_notifications(JobID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.get('/api/notification-types')
+async def get_notification_types():
+    return NOTIFICATION_TYPES
+
+
 class NotificationData(BaseModel):
-    JobID: str
+    OrderID: str
     NotificationType: str
     OrderNotification: str
     SubmittedBy: str
 
 
-@app.post('/api/submit_order_notification')
+@app.post('/api/submit-order-notification')
 async def handle_submit_order_notification(data: NotificationData):
     try:
         result = submit_order_notification(
-            data.JobID, 
+            data.OrderID, 
             data.NotificationType, 
             data.OrderNotification, 
             data.SubmittedBy)
@@ -185,11 +191,6 @@ async def handle_submit_order_notification(data: NotificationData):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail=str(e))
-
-
     
 
-
-
-
-
+    

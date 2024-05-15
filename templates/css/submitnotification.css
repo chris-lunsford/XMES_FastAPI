@@ -7,12 +7,14 @@ html, body {
 
 .notification-dashboard {
     padding: 10px;
+    margin: 10px;
 }
 
 .input-fields {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    padding: 20px;
 }
 
 .data-submission {
@@ -23,7 +25,15 @@ html, body {
 
 .data-submission div input {
     border: 1px solid darkgray;
+    border-radius: 3px;
     background-color: white;
+}
+
+.data-submission div select {
+    border: 1px solid darkgray;
+    background-color: white;
+    border-radius: 3px;
+    appearance: auto;
 }
 
 .notification-header {
@@ -34,14 +44,34 @@ html, body {
 
 .notification-header div {
     display: flex;
-    justify-content: right;
     /* border: 2px dotted black; */
 }
 
 .input-boxes {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    width: 45ch;
+    /* border: 1px solid red;  */
+    gap: 12px; 
+}
+
+.input-boxes > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    /* border: 1px solid blue; */
+}
+
+.input-boxes div label {
+    text-align: center;
+    /* border: 1px dotted black; */
+}  
+
+.input-boxes div input,
+.input-boxes div select {
+    min-width: 25ch;
+    width: auto; 
 }
 
 .notification-body {
@@ -58,9 +88,32 @@ html, body {
 }    
 
 #notification-detail {
-    width: 50ch;
+    width: 45ch;
+    min-width: 25ch;
     border: 1px solid darkgray;
     background-color: white;
+}
+
+/* Styles for the submit button */
+.notification-body button {
+    background-color: #969191; /* Bright blue background */
+    color: black;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block; /* Makes the button block-level to take up full width */
+    width: 100%;
+    margin-top: 15px; /* Adds space between textarea and button */
+    transition: background-color 0.3s,  color 0.3s; /* Smooth transition for hover effect */
+    text-align: center; /* Ensures text is centered horizontally */
+    line-height: normal; /* Default line height to ensure vertical centering */
+}
+
+.notification-body button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
 }
 
 .message-display {

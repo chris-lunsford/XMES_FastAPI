@@ -275,7 +275,7 @@ def get_jobid_notifications(JobID):
 
 
 
-def submit_order_notification(JobID, NotificationType, OrderNotification, SubmittedBy):
+def submit_order_notification(OrderID, NotificationType, OrderNotification, SubmittedBy):
     current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = connect_to_db()
     if conn is None:
@@ -287,7 +287,7 @@ def submit_order_notification(JobID, NotificationType, OrderNotification, Submit
             (OrderID, NotificationType, OrderNotification, DateSubmitted, SubmittedBy)
             VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(submit_query, (JobID, NotificationType, OrderNotification, current_date, SubmittedBy))
+            cursor.execute(submit_query, (OrderID, NotificationType, OrderNotification, current_date, SubmittedBy))
             conn.commit()
             return "Success"
     except Exception as e:

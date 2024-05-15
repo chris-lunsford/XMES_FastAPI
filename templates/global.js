@@ -527,3 +527,29 @@ function formatDate(dateStr) {
     const dateParts = dateStr.split('-'); // Split the date into parts
     return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`; // Reformat to MM-DD-YYYY
 }
+
+
+
+/**********************************************************/
+/* Notification Dashboard */
+
+
+
+function populateNotificationTypes() {
+    fetch('/api/notification-types')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('notification-type');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(notificationType => {
+                    let option = new Option(notificationType, notificationType);
+                    select.add(option);
+                });
+            } else {
+                console.log('Notification Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching Notification Types:', error));
+}
