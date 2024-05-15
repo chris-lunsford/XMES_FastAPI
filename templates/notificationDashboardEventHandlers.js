@@ -42,7 +42,7 @@ function setupEventHandlers() {
 }
 
 
-const EventHandler = {    
+window.EventHandler = window.EventHandler || {  
     handleNotificationSubmit: function(event) {
         event.preventDefault();
         const orderID = document.getElementById('order-id-notificationpage').value;
