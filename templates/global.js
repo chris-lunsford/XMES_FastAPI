@@ -483,7 +483,7 @@ function fetchEEJobListDay(employeeID) {
 
 
 function fetchJobNotifications(JobID) {
-    const url = `/api/jobid-notifications?JobID=${JobID}`;
+    const url = `/api/jobid-notifications?OrderID=${JobID}`;
 
     fetch(url)
         .then(response => {

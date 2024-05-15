@@ -89,17 +89,19 @@ html, body {
 }
 
 #notification-list ul {
-    padding: 10px; /** Provides padding around the list **/
-    
-    border-radius: 8px; /** Rounded corners**/
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    padding: 10px; /** Provides padding around the list **/      
 }
 
 #notification-list li {
     display: flex;
     flex-direction: column;
     row-gap: 0px; /** Space between rows**/
-    padding: 0px; /** Padding inside each list item**/
+    padding: 5px; /** Padding inside each list item**/
     /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    border-radius: 5px; /** Rounded corners**/
     margin-bottom:0px; /**Margin at the bottom of each item**/
     background: #f4f4f4; /** Light grey background**/
 }

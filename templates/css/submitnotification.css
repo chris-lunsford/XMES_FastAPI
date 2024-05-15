@@ -145,16 +145,15 @@ html, body {
     display: flex;
     flex-direction: column;
     row-gap: 15px;
-    padding: 10px; /** Provides padding around the list **/
+    padding: 10px; /** Provides padding around the list **/   
     
-    border-radius: 8px; /** Rounded corners**/
 }
 
 #notification-list li {
     display: flex;
     flex-direction: column;
     row-gap: 0px; /** Space between rows**/
-    padding: 5px; /** Padding inside each list item**/
+    padding: 8px; /** Padding inside each list item**/
     /* border-bottom: 1px solid red;*/ /* Divider between items* */
     border-radius: 5px;
     margin-bottom: 5px; /**Margin at the bottom of each item**/

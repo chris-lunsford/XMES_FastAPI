@@ -11,12 +11,15 @@ if (typeof scriptMap !== 'undefined') {
 function initializeNotificationDashboard() {
     console.log("Initializing Notification Dashboard");
 
-    if (window.notificationDashboardInitialized) {
-        console.log("Notification Dashboard already initialized. Clearing old listeners and reinitializing.");
-        listenerManager.removeListeners();  // Ensure cleanup if already initialized
-    } else {
+    if (!window.notificationDashboardInitialized) {
         window.notificationDashboardInitialized = true;
+        setupEventHandlers();
+    } else {
+        console.log("Notification Dashboard already initialized.");
+        listenerManager.removeListeners(); // Clean up first
+        setupEventHandlers(); // Re-setup handlers
     }
+
     // Initialize dashboard functionalities
     populateNotificationTypes(); // Populate notification types
     // Setup event handlers at initialization
