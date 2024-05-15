@@ -97,16 +97,18 @@ html, body {
 #notification-list li {
     display: flex;
     flex-direction: column;
-    row-gap: 10px; /** Space between rows**/
-    padding: 5px; /** Padding inside each list item**/
+    row-gap: 0px; /** Space between rows**/
+    padding: 0px; /** Padding inside each list item**/
     /* border-bottom: 1px solid red;*/ /* Divider between items* */
-    margin-bottom: 15px; /**Margin at the bottom of each item**/
+    margin-bottom:0px; /**Margin at the bottom of each item**/
     background: #f4f4f4; /** Light grey background**/
 }
 
 #notification-list li:last-child {
     border-bottom: none; /**Removes border from the last item**/
 }
+
+
 
 /* .data-display {
     display: flex;

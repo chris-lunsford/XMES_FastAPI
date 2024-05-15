@@ -7,7 +7,6 @@ if (typeof scriptMap !== 'undefined') {
 }
 
 
-
 // Initialize machine dashboard with checks to prevent multiple initializations
 function initializeNotificationDashboard() {
     console.log("Initializing Notification Dashboard");
@@ -29,30 +28,16 @@ function setupEventHandlers() {
     console.log("Setting up event handlers");
     const form = document.querySelector('.data-submission');
     form.removeEventListener('submit', EventHandler.handleNotificationSubmit);
-    console.log("Event listener removed");
-    form.addEventListener('submit', EventHandler.handleNotificationSubmit);
-    console.log("Event listener added");
-}
+    form.addEventListener('submit', EventHandler.handleNotificationSubmit);    
 
-function handleNotificationSubmit(event) {
-    event.preventDefault();
-    const orderID = document.getElementById('order-id-notificationpage').value;
-    const notificationType = document.getElementById('notification-type').value;
-    const notificationDetail = document.getElementById('notification-detail').value;
-    const employeeID = document.getElementById('employee-id').value;
-
-    const data = {
-        OrderID: orderID,
-        NotificationType: notificationType,
-        OrderNotification: notificationDetail,
-        SubmittedBy: employeeID
-    };
-
-    submitFormData(data);
+    const orderInput = document.getElementById('order-id-notificationpage');
+    orderInput.removeEventListener('input', EventHandler.handleOrderInput);
+    orderInput.addEventListener('input', EventHandler.handleOrderInput);
+    
 }
 
 
-const EventHandler = {
+const EventHandler = {    
     handleNotificationSubmit: function(event) {
         event.preventDefault();
         const orderID = document.getElementById('order-id-notificationpage').value;
@@ -93,5 +78,12 @@ const EventHandler = {
         } finally {
             document.getElementById('submit-button').disabled = false; // Re-enable the submit button
         }
-    }
+    },
+
+    handleOrderInput: function(event) {
+        const orderID = event.target.value;
+        if (orderID.length === 8) {
+            fetchJobNotifications(orderID);
+        }
+    }    
 };

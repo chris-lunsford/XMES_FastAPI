@@ -120,3 +120,47 @@ html, body {
     display: flex;
     justify-content: center;
 }
+
+.notification-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    /* border: 2px dotted orange; */
+    padding: 10px;
+    min-height: 300px;
+}
+
+.notification-display {
+    display: flex;
+    flex-direction: column;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width: 45ch;
+    row-gap: 10px;
+}
+
+#notification-list ul {
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    padding: 10px; /** Provides padding around the list **/
+    
+    border-radius: 8px; /** Rounded corners**/
+}
+
+#notification-list li {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0px; /** Space between rows**/
+    padding: 5px; /** Padding inside each list item**/
+    /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    margin-bottom: 5px; /**Margin at the bottom of each item**/
+    background: #f4f4f4; /** Light grey background**/
+}
+
+#notification-list li p:last-child {
+    margin-top: 10px;
+    /* border-bottom:1px solid red; *Removes border from the last item* */
+}
