@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/submitnotification.css">    
+    <title>Notification</title>
+</head>
+<body class="notification-dashboard">
+    <section class="input-fields">
+        <form class="data-submission" method="post">
+            <section class="notification-header">
+                <div class="input-boxes">                                 
+                    <div>
+                        <label for="order-id-notificationpage">Order ID:</label>
+                        <input type="text" name="notification_info" id="order-id-notificationpage" required>
+                    </div>    
+                    <div>
+                        <label for="notification-type">Notification Type:</label>
+                        <select name="notification_info" id="notification-type" required>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="employee-id">Employee ID:</label>
+                        <input type="text" name="notification_info" id="employee-id" required>
+                    </div>  
+                </div>
+            </section>
+            <section class="notification-body">
+                <div>
+                    <label for="notification-detail">Notification to display:</label>
+                    <textarea name="" id="notification-detail" cols="50" rows="10"></textarea>
+                    <button type="submit" id="submit-button">Submit Notification</button>
+                </div>
+            </section>
+        </form>
+        <div class="message-display">
+            <p>Messages:&nbsp</p>
+            <p id="status-message">Enter notification details and submit.</p>
+        </div>
+    </section>    
+    <section class="notification-container">
+        <div class="notification-display">
+            <p>Existing Notifications:</p>
+            <div id="notification-list">
+                 <!-- <ul>Dynamically created by JS</ul>-->
+            </div>            
+        </div>
+    </section>
+    <script src="templates/global.js"></script>   
+</body>
+</html>

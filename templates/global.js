@@ -483,7 +483,7 @@ function fetchEEJobListDay(employeeID) {
 
 
 function fetchJobNotifications(JobID) {
-    const url = `/api/jobid-notifications?JobID=${JobID}`;
+    const url = `/api/jobid-notifications?OrderID=${JobID}`;
 
     fetch(url)
         .then(response => {
@@ -504,10 +504,10 @@ function fetchJobNotifications(JobID) {
                     const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
                     const reformattedDate = formatDate(dateOnly); // Call function to reformat the date
                     li.innerHTML = `
-                        Type: ${notification[2]}<br>
-                        Date: ${reformattedDate}<br>                       
-                        ID: ${notification[1]}<br><br>
-                        ${notification[3]}
+                        <p>Type: ${notification[2]}</p>
+                        <p>Date: ${reformattedDate}</p>                     
+                        <p>ID: ${notification[1]}</p>
+                        <p>-${notification[3]}</p>
                     `;
                     ul.appendChild(li); // Append each <li> to the single <ul>
                 });
@@ -526,4 +526,106 @@ function fetchJobNotifications(JobID) {
 function formatDate(dateStr) {
     const dateParts = dateStr.split('-'); // Split the date into parts
     return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`; // Reformat to MM-DD-YYYY
+}
+
+
+
+/**********************************************************/
+/* Notification Dashboard */
+
+
+
+function populateNotificationTypes() {
+    fetch('/api/notification-types')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('notification-type');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(notificationType => {
+                    let option = new Option(notificationType, notificationType);
+                    select.add(option);
+                });
+            } else {
+                console.log('Notification Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching Notification Types:', error));
+}
+
+function fetchExistingJobNotifications(OrderID) {
+    const url = `/api/jobid-notifications?OrderID=${OrderID}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications from the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const notificationListElement = document.getElementById('notification-list');
+            notificationListElement.innerHTML = ''; // Clear existing notifications
+
+            const ul = document.createElement('ul'); // Create a single <ul>
+
+            if (data.notification_list && data.notification_list.length > 0) {
+                data.notification_list.forEach(notification => {
+                    const li = document.createElement('li');
+                    const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
+                    const reformattedDate = formatDate(dateOnly); // Call function to reformat the date
+                    li.innerHTML = `
+                        <p>Type: ${notification[2]}</p>
+                        <p>Date: ${reformattedDate}</p> 
+                        <p>-${notification[3]}</p>
+                    `;
+                    li.setAttribute('data-id', notification[1]); // Store the ID in a data attribute
+
+                    li.addEventListener('click', function() {
+                        const confirmed = confirm("Do you want to delete this notification?");
+                        if (confirmed) {
+                            console.log("Trying to delete notification")
+                            deleteNotification(notification[1]); // Assuming notification[1] is the ID
+                        }
+                    });
+                    ul.appendChild(li); // Append each <li> to the single <ul>
+                });
+            } else {
+                ul.innerHTML = '<li>No notifications found.</li>';
+            }
+
+            notificationListElement.appendChild(ul);
+        })
+        .catch(error => {
+            console.error('Error fetching notifications:', error);
+            document.getElementById('notification-list').innerHTML = '<ul><li>Error loading notifications.</li></ul>';
+        });
+}
+
+function deleteNotification(notificationID) {
+    const jobIdElement = document.getElementById('order-id-notificationpage');
+    if (!jobIdElement || jobIdElement.value === "") {
+        console.error("JobID element is missing or empty");
+        return; // Exit the function if no JobID found
+    }
+
+    const OrderID = jobIdElement.value;
+    fetch(`/api/delete-order-notification?notificationID=${notificationID}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to delete the notification');
+        }
+        return response.json();
+    })
+    .then(data => {
+        alert('Notification deleted successfully!');
+        fetchExistingJobNotifications(OrderID); // Refresh the list or handle the UI update here
+    })
+    .catch(error => {
+        console.error('Error deleting notification:', error);
+        alert('Error deleting notification.');
+    });
 }

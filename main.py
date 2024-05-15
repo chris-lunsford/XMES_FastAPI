@@ -11,6 +11,7 @@ from typing import Optional
 
 from work_stations import WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
+from notification_types import NOTIFICATION_TYPES
 from sql_functions import *
 
 
@@ -39,13 +40,13 @@ async def home(request: Request):
 async def production(request: Request):
     return templates.TemplateResponse("production.html", {"request": request})
 
-@app.get('/link2')
-async def link2(request: Request):
-    return templates.TemplateResponse("Link2.html", {"request": request})
+@app.get('/machine-dashboard')
+async def machine_dashboard(request: Request):
+    return templates.TemplateResponse("machinedashboard.html", {"request": request})
 
-@app.get('/link3')
-async def link3(request: Request):
-    return templates.TemplateResponse("Link3.html", {"request": request})
+@app.get('/notification')
+async def notification(request: Request):
+    return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/api/work-stations')
 async def get_work_stations():
@@ -157,26 +158,31 @@ async def employee_joblist_day(EmployeeID):
     
 
 @app.get('/api/jobid-notifications')
-async def jobid_notifications(JobID):
+async def jobid_notifications(OrderID):
     try:
-        notification_list = get_jobid_notifications(JobID)
+        notification_list = get_jobid_notifications(OrderID)
         return {"notification_list": notification_list}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.get('/api/notification-types')
+async def get_notification_types():
+    return NOTIFICATION_TYPES
+
+
 class NotificationData(BaseModel):
-    JobID: str
+    OrderID: str
     NotificationType: str
     OrderNotification: str
     SubmittedBy: str
 
 
-@app.post('/api/submit_order_notification')
+@app.post('/api/submit-order-notification')
 async def handle_submit_order_notification(data: NotificationData):
     try:
         result = submit_order_notification(
-            data.JobID, 
+            data.OrderID, 
             data.NotificationType, 
             data.OrderNotification, 
             data.SubmittedBy)
@@ -185,11 +191,14 @@ async def handle_submit_order_notification(data: NotificationData):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail=str(e))
-
-
     
 
-
-
-
-
+@app.delete('/api/delete-order-notification')
+async def handle_delete_order_notificatino(notificationID: int):
+    try:
+        result = delete_order_notification(notificationID)
+        return {"message": result}
+    except ConnectionError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))

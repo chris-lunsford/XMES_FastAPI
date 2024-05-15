@@ -3,7 +3,7 @@
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/link2'].callback = initializeMachineDashboard;
+    scriptMap['/machine-dashboard'].callback = initializeMachineDashboard;
 }
 
 
@@ -34,17 +34,18 @@ function handleSubmit(event) {
 
 // Initialize machine dashboard with checks to prevent multiple initializations
 function initializeMachineDashboard() {
+    // First, clear all managed listeners
+    listenerManager.removeListeners();
     initializeDateInputs();
     autoSubmitForm();
 
+    
+    // Now add new listeners as needed
+    listenerManager.addListener(document.body, 'change', handleInputChange);
+    listenerManager.addListener(document.body, 'submit', handleSubmit);
+
     if (window.machineDashboardInitialized) return;
     window.machineDashboardInitialized = true;
-
-    // These only need to be set once since they should not change
-    document.body.removeEventListener('change', handleInputChange);
-    document.body.addEventListener('change', handleInputChange);
-    document.body.removeEventListener('submit', handleSubmit);
-    document.body.addEventListener('submit', handleSubmit);
 
     // Set interval if it has not been set before
     if (!window.autoSubmitIntervalSet) {

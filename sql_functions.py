@@ -248,8 +248,7 @@ def get_employee_joblist_day(EmployeeID):
 ############################################################
 
 
-def get_jobid_notifications(JobID):
-    OrderID = JobID
+def get_jobid_notifications(OrderID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -275,7 +274,7 @@ def get_jobid_notifications(JobID):
 
 
 
-def submit_order_notification(JobID, NotificationType, OrderNotification, SubmittedBy):
+def submit_order_notification(OrderID, NotificationType, OrderNotification, SubmittedBy):
     current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = connect_to_db()
     if conn is None:
@@ -287,7 +286,7 @@ def submit_order_notification(JobID, NotificationType, OrderNotification, Submit
             (OrderID, NotificationType, OrderNotification, DateSubmitted, SubmittedBy)
             VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(submit_query, (JobID, NotificationType, OrderNotification, current_date, SubmittedBy))
+            cursor.execute(submit_query, (OrderID, NotificationType, OrderNotification, current_date, SubmittedBy))
             conn.commit()
             return "Success"
     except Exception as e:
@@ -302,3 +301,28 @@ def submit_order_notification(JobID, NotificationType, OrderNotification, Submit
 from datetime import datetime
 current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 print(current_date)
+
+
+
+############################################################
+
+
+
+def delete_order_notification(notificationID):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query="""
+            DELETE FROM dba.Fact_XMesNotifications
+            WHERE RowID = %s
+            """
+            cursor.execute(select_query, (notificationID))
+            conn.commit()
+            return "Success"
+    except Exception as e:
+        conn.rollback()  # Ensure to rollback in case of failure
+        raise RuntimeError(f"Database query failed: {e}")  # More specific exception for runtime errors
+    finally:
+        conn.close()

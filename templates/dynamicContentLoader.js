@@ -1,10 +1,14 @@
 const scriptMap = {
-    '/link2': {
+    '/machine-dashboard': {
         path: 'templates/machineDashboardEventHandlers.js',
         callback: null  // Set to null initially
     },
     '/production': {
         path: 'templates/productionDashboardEventHandlers.js',
+        callback: null  // Set to null initially
+    },
+    '/notification': {
+        path: 'templates/notificationDashboardEventHandlers.js',
         callback: null  // Set to null initially
     }
 };

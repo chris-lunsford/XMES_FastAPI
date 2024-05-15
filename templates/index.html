@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XMES</title>
+  <script src="templates/EventListenerManager.js"></script> <!-- Load this first -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="/assets/favicon.ico">
   <link rel="stylesheet" type="text/css" href="templates/css/reset.css">
@@ -13,7 +14,7 @@
   <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
  
 </head>
-<body onload="loadLastContent()" class ="index-page">
+<body class ="index-page">
 <div class="header">
     <figure>
         <img src="/assets/XMES_Logo_380x100.png" alt="XMES Logo">
@@ -24,8 +25,8 @@
         <ul>
             <!-- <li><a href="javascript:loadContent('/home')">Home</a></li> -->
             <li><a href="javascript:loadContent('/production')">Production</a></li>
-            <li><a href="javascript:loadContent('/link2')">Machine Dashboard</a></li>
-            <li><a href="javascript:loadContent('/link3')">Submit Notification<br>WIP</a></li>
+            <li><a href="javascript:loadContent('/machine-dashboard')">Machine Dashboard</a></li>
+            <li><a href="javascript:loadContent('/notification')">Submit Notification</a></li>
         </ul>
     </div>
     <div class="main-content">
@@ -35,9 +36,7 @@
         </div>
     </div>
 </div>
-    <script src="templates/global.js"></script>     
-    <script src="templates/machineDashboardEventHandlers.js"></script>
-    <script src="templates/productionDashboardEventHandlers.js"></script>
+    <script src="templates/global.js"></script>
     <script src="templates/dynamicContentLoader.js"></script>
 </body>
 </html>
