@@ -24,15 +24,17 @@ function initializeNotificationDashboard() {
 }
 
 // Setup event handlers using the singleton pattern
-function setupEventHandlers() {
+function setupEventHandlers() {  
     console.log("Setting up event handlers");
     const form = document.querySelector('.data-submission');
     form.removeEventListener('submit', EventHandler.handleNotificationSubmit);
-    form.addEventListener('submit', EventHandler.handleNotificationSubmit);    
+    form.addEventListener('submit', EventHandler.handleNotificationSubmit);
+    console.log("Added submit eventhandler");    
 
     const orderInput = document.getElementById('order-id-notificationpage');
     orderInput.removeEventListener('input', EventHandler.handleOrderInput);
     orderInput.addEventListener('input', EventHandler.handleOrderInput);
+    console.log("Added input eventhandler");
     
 }
 
@@ -70,6 +72,9 @@ const EventHandler = {
             const result = await response.json();
             if (response.ok) {
                 document.getElementById('status-message').textContent = "Notification submitted successfully: " + result.message;
+                // Clear fields except for order-id-notificationpage
+                this.clearFormFieldsExceptOrderId();
+                fetchExistingJobNotifications(data.OrderID);
             } else {
                 throw new Error(result.detail || "Unknown error occurred");
             }
@@ -80,10 +85,21 @@ const EventHandler = {
         }
     },
 
+    clearFormFieldsExceptOrderId: function() {
+    const notificationType = document.getElementById('notification-type');
+    const notificationDetail = document.getElementById('notification-detail');
+    const employeeID = document.getElementById('employee-id');
+
+    // Reset these fields to their default values
+    if (notificationType) notificationType.value = ''; // Assuming it's a select, might set to default or first option
+    if (notificationDetail) notificationDetail.value = '';
+    if (employeeID) employeeID.value = '';
+},
+
     handleOrderInput: function(event) {
         const orderID = event.target.value;
         if (orderID.length === 8) {
-            fetchJobNotifications(orderID);
+            fetchExistingJobNotifications(orderID);
         }
     }    
 };

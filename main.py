@@ -158,9 +158,9 @@ async def employee_joblist_day(EmployeeID):
     
 
 @app.get('/api/jobid-notifications')
-async def jobid_notifications(JobID):
+async def jobid_notifications(OrderID):
     try:
-        notification_list = get_jobid_notifications(JobID)
+        notification_list = get_jobid_notifications(OrderID)
         return {"notification_list": notification_list}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -193,4 +193,12 @@ async def handle_submit_order_notification(data: NotificationData):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-    
+@app.delete('/api/delete-order-notification')
+async def handle_delete_order_notificatino(notificationID: int):
+    try:
+        result = delete_order_notification(notificationID)
+        return {"message": result}
+    except ConnectionError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))

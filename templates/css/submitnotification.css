@@ -156,8 +156,16 @@ html, body {
     row-gap: 0px; /** Space between rows**/
     padding: 5px; /** Padding inside each list item**/
     /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    border-radius: 5px;
     margin-bottom: 5px; /**Margin at the bottom of each item**/
     background: #f4f4f4; /** Light grey background**/
+
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#notification-list li:hover {
+    background-color: #c2c0c0;  /* Light grey background on hover */
 }
 
 #notification-list li p:last-child {
