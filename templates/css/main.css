@@ -49,6 +49,10 @@
     padding: 0; /* Remove default padding from ul */            
 }
 
+.index-page .sidebar li {
+    cursor: pointer;
+}
+
 .index-page .sidebar a {
     display: block;
     color: black;
