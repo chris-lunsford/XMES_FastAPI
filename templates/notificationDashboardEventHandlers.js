@@ -23,7 +23,7 @@ function initializeNotificationDashboard() {
     // Initialize dashboard functionalities
     populateNotificationTypes(); // Populate notification types
     // Setup event handlers at initialization
-    setupEventHandlers();   
+    // setupEventHandlers();   
 }
 
 // Setup event handlers using the singleton pattern

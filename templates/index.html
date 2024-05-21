@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XMES</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <script src="templates/EventListenerManager.js"></script> <!-- Load this first -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="/assets/favicon.ico">
@@ -18,15 +19,46 @@
 <div class="header">
     <figure>
         <img src="/assets/XMES_Logo_380x100.png" alt="XMES Logo">
-    </figure>    
+    </figure>   
 </div>
 <div class="container">
     <div class="sidebar">
+        <div class="top">
+            <div class="logo">
+                <i class="bx bxl-codepen"></i>
+                <span>Navigation</span>
+            </div>
+            <i class="bx bx-menu" id="btn"></i>
+        </div>
         <ul>
-            <!-- <li><a href="javascript:loadContent('/home')">Home</a></li> -->
-            <li><a href="javascript:loadContent('/production')">Production</a></li>
-            <li><a href="javascript:loadContent('/machine-dashboard')">Machine Dashboard</a></li>
-            <li><a href="javascript:loadContent('/notification')">Submit Notification</a></li>
+            <li>
+                <a href="javascript:loadContent('/home')">
+                    <i class='bx bx-home-alt-2' ></i>
+                    <span class="nav-item">Home</span>
+                </a>
+                <span class="tooltip">Home</span>
+            </li>
+            <li>
+                <a href="javascript:loadContent('/production')">
+                    <i class='bx bx-clipboard'></i>
+                    <span class="nav-item">Production</span>
+                </a>
+                <span class="tooltip">Production</span>
+            </li>
+            <li>
+                <a href="javascript:loadContent('/machine-dashboard')">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                    <span class="nav-item">Machine Status</span>
+                </a>
+                <span class="tooltip">Machine Status</span>
+            </li>
+            <li>
+                <a href="javascript:loadContent('/notification')">
+                    <i class='bx bx-message-alt-edit'></i>
+                    <span class="nav-item">Notifications</span>                    
+                </a>
+                <span class="tooltip">Notifications</span>
+            </li>
         </ul>
     </div>
     <div class="main-content">
@@ -39,4 +71,12 @@
     <script src="templates/global.js"></script>
     <script src="templates/dynamicContentLoader.js"></script>
 </body>
+<script>
+    let btn = document.querySelector('#btn')
+    let sidebar = document.querySelector('.sidebar')
+    
+    btn.onclick = function () {
+        sidebar.classList.toggle('active')
+    };
+</script>
 </html>

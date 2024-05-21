@@ -9,6 +9,11 @@
     <title>Document</title>
 </head>
 <body class="machining-dashboard">
+    <section class="title-info">
+        <div class="page-name">
+            <span>Machine Status</span>
+        </div>        
+    </section>
     <section class="input-fields">
         <form class="machdash-date-selection" id="dateForm">            
             <div class="date-options">
@@ -41,10 +46,29 @@
                 <label for="start-date"> to </label>
                 <input type="date" id="end-date" name="end-date" disabled>
             </div>
-            <!-- <div class="submit-dates">
-                <button type="submit" id="submit_button" >Reload</button>
-            </div> -->
+            <div class="legend">
+                <div class="green-box">
+                    <span>0-5 minutes</span>
+                </div>
+                <div class="yellow-box">
+                    <span>5-15 minutes</span>
+                </div>
+                <div class="red-box">
+                    <span>15+ minutes</span>
+                </div>            
+            </div>
         </form>
+        <!-- <div class="legend">
+            <div class="green-box">
+                <span>0-5 minutes</span>
+            </div>
+            <div class="yellow-box">
+                <span>5-15 minutes</span>
+            </div>
+            <div class="red-box">
+                <span>15+ minutes</span>
+            </div>            
+        </div> -->
     </section>
     <section class="machdash-data-display">
     <!-- Small Batch Machines -->

@@ -12,15 +12,63 @@ html, body {
     flex-direction: column;
 }
 
+.title-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.page-name {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 2rem;
+    text-align: center;
+    /* border: 1px dotted black; */
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px 15px;
+    margin: 30px;
+    /* border: 1px dotted black; */
+}
+
+.green-box {
+    text-align: center;
+    align-content: center;
+    width: 120px;
+    height: 30px;
+    border: 2px solid green;
+    border-radius: 3px; 
+}
+
+.yellow-box {
+    text-align: center;
+    align-content: center;
+    width: 120px;
+    height: 30px;
+    border: 2px solid yellow;
+    border-radius: 3px; 
+}
+
+.red-box {
+    text-align: center;
+    align-content: center;
+    width: 120px;
+    height: 30px;
+    border: 2px solid red;
+    border-radius: 3px;  
+}
+
 .machdash-date-selection{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;    
     margin-top: 10px;
-    margin-bottom: 50px;
+    margin-bottom: 10px;
     gap: 30px;
-    /* border-bottom: 1px solid #535151; */
+    /* border: 1px dotted black; */
     padding-bottom: 10px;
 }
 
