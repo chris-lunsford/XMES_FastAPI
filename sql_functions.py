@@ -80,7 +80,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
         cursor.execute(query)
         rows = cursor.fetchall()
         results = {row[0]: row[1] for row in rows}
-        return results
+        return results or 0
     except Exception as e:
         print("Failed to load scan counts", e)
         return {}
@@ -262,6 +262,40 @@ def get_order_total_count(OrderID):
             cursor.execute(select_query, (OrderID))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
+
+def get_order_part_counts(OrderID):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT
+                COUNT(CASE WHEN INFO2 LIKE '%PSZ%' THEN BARCODE END) AS PSZ,
+                COUNT(CASE WHEN INFO2 LIKE '%TRZ%' THEN BARCODE END) AS TRZ,
+                COUNT(CASE WHEN INFO2 LIKE '%EBZ%' THEN BARCODE END) AS EBZ,
+                COUNT(CASE WHEN INFO2 LIKE '%PRZ%' THEN BARCODE END) AS PRZ,
+                COUNT(CASE WHEN INFO2 LIKE '%HRZ%' THEN BARCODE END) AS HRZ,
+                COUNT(CASE WHEN INFO2 LIKE '%HDZ%' THEN BARCODE END) AS HDZ,
+                COUNT(CASE WHEN INFO2 LIKE '%GMZ%' THEN BARCODE END) AS GMZ,
+                COUNT(DISTINCT BARCODE) AS Total
+            FROM dbo.View_WIP
+            WHERE OrderID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+            """
+            cursor.execute(select_query, (OrderID))
+            result = cursor.fetchone()
+            keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'Total']
+            counts = {key: result[i] for i, key in enumerate(keys)}
+            counts['SCZ'] = counts['Total']  # Set SCZ count as the total count
+            return counts
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
     finally:

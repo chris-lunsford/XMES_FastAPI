@@ -230,3 +230,13 @@ async def handle_delete_order_notificatino(notificationID: int):
         raise HTTPException(status_code=500, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+
+@app.get('/api/order-part-counts')
+async def handle_order_part_counts(OrderID):
+    try:
+        counts = get_order_part_counts(OrderID)
+        return counts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -15,6 +15,7 @@ html, body {
 .title-info {
     display: flex;
     flex-direction: column;
+    margin-bottom: 40px;
 }
 
 .page-name {
@@ -24,19 +25,30 @@ html, body {
     /* border: 1px dotted black; */
 }
 
+.input-fields {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
 .order-input input {
     border: 1px solid black;
     border-radius: 3px;
+    width: 15ch;
     /* background-color: white; */
 }
 
-
+.total-row {
+    display: flex;
+    justify-content: center;
+}
 
 .data-display {
     display: flex;
     flex-direction: column;
     justify-content: center;
     border: 1px solid red;
+    margin: 10px;
     padding: 5px;
     gap: 75px;
 }
@@ -66,9 +78,18 @@ html, body {
     flex-direction: column;
     justify-content: center;
     border-radius: 5%;
-    border: 4px solid grey;
+    border: 3px solid grey;
     padding: 0px;
     gap: 5px;
+}
+
+.machine-container.has-parts {
+    border: 3px solid  black;
+    background-color: #969191;  /* Or any color you prefer */
+}
+
+.hidden {
+    display: none;
 }
 
 .machine-container section {

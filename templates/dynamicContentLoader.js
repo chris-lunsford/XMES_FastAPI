@@ -10,6 +10,10 @@ const scriptMap = {
     '/notification': {
         path: 'templates/notificationDashboardEventHandlers.js',
         callback: null  // Set to null initially
+    },
+    '/order-dashboard': {
+        path: 'templates/orderDashboardEventHandlers.js',
+        callback: null  // Set to null initially
     }
 };
 

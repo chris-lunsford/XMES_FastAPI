@@ -20,9 +20,24 @@
             <input type="text" name="order-info" id="order-id">
         </form>
     </section>
+    <section class="total-row">
+        <section class="machine-row">                
+            <div class="machine-container hrz" id="machine-HRZ">
+                <section class="hrz-container">
+                    <div class="machine-name">
+                        <p>All parts for order</p>            
+                    </div>
+                    <div class="part-count">
+                        <p>Total count:</p>
+                        <p id="part-count-Total">0</p>
+                    </div>  
+                </section>  
+            </div>             
+        </section> 
+    </section>
     <section class="data-display">
     <!-- Machines -->
-        <section class="machine-group">
+        <section class="machine-group">            
             <section class="machine-row">
                 <div class="machine-container psz" id="machine-PSZ">
                     <section class="psz-container">
@@ -74,8 +89,7 @@
                 </div>
             </section>
 
-            <section class="machine-row">
-                
+            <section class="machine-row">                
                 <div class="machine-container hrz" id="machine-HRZ">
                     <section class="hrz-container">
                         <div class="machine-name">
@@ -120,17 +134,15 @@
                         </div>
                         <div class="part-count">
                             <p>Part Count:</p>
-                            <p id="part-count-SC2">0</p>
+                            <p id="part-count-SCZ">0</p>
                         </div>  
                     </section>
                 </div>
-            </section>           
-        </section>
-
-                
+            </section>                        
+        </section>                
     </section>
 <script src="templates/global.js"></script>    
-<script src="templates/machineDashboardEventHandlers.js"></script>
+<script src="templates/orderDashboardEventHandlers.js"></script>
 
 </body>
 </html>
