@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from work_stations import WORK_STATIONS
+from work_station_groups import WORK_STATION_GROUPS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
 from sql_functions import *
@@ -48,6 +49,14 @@ async def machine_dashboard(request: Request):
 async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
+@app.get('/order-dashboard')
+async def notification(request: Request):
+    return templates.TemplateResponse("orderdashboard.html", {"request": request})
+
+def get_resource_group(Resource):
+    """Return the group for a given work area, or the work area itself if no group is defined."""
+    return WORK_STATION_GROUPS.get(Resource, Resource)
+
 @app.get('/api/work-stations')
 async def get_work_stations():
     return WORK_STATIONS
@@ -80,7 +89,7 @@ async def machine_part_counts(form_data: DateForm):
 
 class BarcodeData(BaseModel):
     Barcode: str
-    JobID: str
+    OrderID: str
     EmployeeID: str
     Resource: str
     CustomerID: str
@@ -101,7 +110,7 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
         timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
         result = barcode_scan_to_db(
             data.Barcode, 
-            data.JobID, 
+            data.OrderID, 
             timestamp,
             data.EmployeeID,
             data.Resource,
@@ -118,7 +127,7 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
 
 class BarcodeRecutData(BaseModel):
     Barcode: str
-    JobID: str
+    OrderID: str
     Resource: str
     Recut: int
 
@@ -126,7 +135,7 @@ class BarcodeRecutData(BaseModel):
 async def update_recut_status(data: BarcodeRecutData):
     try:
         print("Received data for recut:", data)
-        result = update_recut_in_db(data.Barcode, data.JobID, data.Resource, data.Recut)
+        result = update_recut_in_db(data.Barcode, data.OrderID, data.Resource, data.Recut)
         return {"message": "Recut status updated successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -147,6 +156,25 @@ async def employee_totalparts_count(EmployeeID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+@app.get('/api/order-total-area-count')
+async def order_totalarea_count(OrderID, Resource):
+    Resource_Group = get_resource_group(Resource)
+    try:
+        count = get_order_totalarea_count(OrderID, Resource_Group)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/order-total-count')
+async def order_total_count(OrderID):
+    try:
+        count = get_order_total_count(OrderID)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get('/api/employee-joblist-day/')
 async def employee_joblist_day(EmployeeID):

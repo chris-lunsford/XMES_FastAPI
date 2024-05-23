@@ -6,7 +6,12 @@
     <link rel="stylesheet" type="text/css" href="templates/css/production.css">    
     <title>Production</title>
 </head>
-<body class="production-dashboard">    
+<body class="production-dashboard"> 
+    <section class="title-info">
+        <div class="page-name">
+            <span>Production</span>
+        </div>        
+    </section>   
     <section class="input-fields">
         <form class="data-submition">
             <div>
@@ -44,12 +49,31 @@
                  <!-- <ul>Dynamically created by JS</ul>-->
             </div>            
         </div>
+        <div class="order-data-display">
+            <div class="order-data-container">
+                <p>Current order:</p>
+                <div class="order-data-types">
+                    <div class="ordercount-area">
+                        <p id="ordercount-area-label">Parts scanned:</p>
+                        <p id="ordercount-area">0</p>
+                    </div>            
+                    <div class="ordercount-total-area">
+                        <p>Parts for work area:</p>
+                        <p id="ordercount-total-area">N/A</p>
+                    </div>
+                    <div class="ordercount-total-order">
+                        <p>Total for order:</p>
+                        <p id="ordercount-total-order">N/A</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="data-display">
             <div class="data-type-container">
-                <p>Data for current day:</p>
+                <p>Scans for current day:</p>
                 <div class="data-types">
                     <div class="partcount-workarea">
-                        <p id="partcount-area-label">Parts at WorkArea:</p>
+                        <p id="partcount-area-label">Work Area:</p>
                         <p id="partcount-area">0</p>
                     </div>            
                     <div class="partcount-employee">
@@ -57,14 +81,14 @@
                         <p id="partcount-emp">0</p>
                     </div>
                     <div class="past-scans">
-                        <div>Jobs scanned:</div>
+                        <div>Jobs:</div>
                         <div class="job-list">
                             <!-- <ul>Dynamically created by JS</ul>-->
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>      
 
     </section>
     <script src="templates/global.js"></script>    

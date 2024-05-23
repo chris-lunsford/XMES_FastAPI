@@ -29,7 +29,7 @@ def fetch_last_timestamp():
     try:
         query = f"""
            SELECT Resource, MAX(TimeStamp) as LastScan
-           FROM DBA.XMesSimpleData
+           FROM DBA.Fact_WIP
            GROUP BY Resource; 
         """
         cursor.execute(query)
@@ -62,7 +62,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
         # Construct the base query
         query = """
         SELECT Resource, COUNT(Barcode) AS ScanCount
-        FROM DBA.XMesSimpleData
+        FROM DBA.Fact_WIP
         """
 
         # Add conditions based on the provided dates
@@ -94,7 +94,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
 ############################################################
 
 
-def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, CustomerID):
+def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, CustomerID):
     conn = connect_to_db()
     if conn is None:
         print("Failed to connect to the database.")
@@ -105,21 +105,21 @@ def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, Customer
     try:
         if CustomerID != "TPS":
             check_query = """
-                SELECT * FROM dba.XMesSimpleData
-                WHERE Barcode = %s AND Resource = %s AND JobID = %s
+                SELECT * FROM DBA.Fact_WIP
+                WHERE Barcode = %s AND Resource = %s AND OrderID = %s
             """
-            cursor.execute(check_query, (Barcode, Resource, JobID))
+            cursor.execute(check_query, (Barcode, Resource, OrderID))
             existing_entry = cursor.fetchone()
 
             if existing_entry:
                 raise ValueError("Duplicate barcode")
         
         insert_query = """
-            INSERT INTO dba.XMesSimpleData (
-                Barcode, JobID, Timestamp, EmployeeID, Resource, Recut, CustomerID
+            INSERT INTO DBA.Fact_WIP (
+                Barcode, OrderID, Timestamp, EmployeeID, Resource, Recut, CustomerID
             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(insert_query, (Barcode, JobID, Timestamp, EmployeeID, Resource, 0, CustomerID))
+        cursor.execute(insert_query, (Barcode, OrderID, Timestamp, EmployeeID, Resource, 0, CustomerID))
         conn.commit()
     finally:
         conn.close()
@@ -128,7 +128,7 @@ def barcode_scan_to_db(Barcode, JobID, Timestamp, EmployeeID, Resource, Customer
 ############################################################
 
 
-def update_recut_in_db(Barcode, JobID, Resource, Recut):
+def update_recut_in_db(Barcode, OrderID, Resource, Recut):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -136,10 +136,10 @@ def update_recut_in_db(Barcode, JobID, Resource, Recut):
         with conn.cursor() as cursor:
             # First, fetch the current Recut value
             select_query = """
-            SELECT Recut FROM dba.XMesSimpleData
-            WHERE Barcode = %s AND JobID = %s AND Resource = %s
+            SELECT Recut FROM DBA.Fact_WIP
+            WHERE Barcode = %s AND OrderID = %s AND Resource = %s
             """
-            cursor.execute(select_query, (Barcode, JobID, Resource))
+            cursor.execute(select_query, (Barcode, OrderID, Resource))
             result = cursor.fetchone()
             if result:
                 current_recut = result[0]
@@ -147,11 +147,11 @@ def update_recut_in_db(Barcode, JobID, Resource, Recut):
 
                 # Now, update the Recut value
                 update_query = """
-                UPDATE dba.XMesSimpleData
+                UPDATE DBA.Fact_WIP
                 SET Recut = %s
-                WHERE Barcode = %s AND JobID = %s AND Resource = %s
+                WHERE Barcode = %s AND OrderID = %s AND Resource = %s
                 """
-                cursor.execute(update_query, (new_recut, Barcode, JobID, Resource))
+                cursor.execute(update_query, (new_recut, Barcode, OrderID, Resource))
                 conn.commit()
             else:
                 raise ValueError("Barcode not found in database.")
@@ -177,7 +177,7 @@ def get_employee_areaparts_count(EmployeeID, Resource):
         with conn.cursor() as cursor:
             select_query= """
             SELECT COUNT(Barcode)
-            FROM dba.XMesSimpleData
+            FROM DBA.Fact_WIP
             WHERE EmployeeID = %s AND Resource = %s AND CONVERT(date, Timestamp) = %s
             """
             cursor.execute(select_query, (EmployeeID, Resource, formatted_date))
@@ -204,10 +204,62 @@ def get_employee_totalparts_count(EmployeeID):
         with conn.cursor() as cursor:
             select_query= """
             SELECT COUNT(Barcode)
-            FROM dba.XMesSimpleData
+            FROM DBA.Fact_WIP
             WHERE EmployeeID = %s AND CONVERT(date, Timestamp) = %s
             """
             cursor.execute(select_query, (EmployeeID, formatted_date))
+            (count,) = cursor.fetchone()
+            return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
+
+
+def get_order_totalarea_count(OrderID, Resource):
+    Formatted_Resource = f'%{Resource}%'
+
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT COUNT(BARCODE)
+            FROM dbo.View_WIP
+            WHERE OrderID = %s AND INFO2 LIKE %s
+            AND CNC_BARCODE1 <> ''
+            """
+            cursor.execute(select_query, (OrderID, Formatted_Resource))
+            (count,) = cursor.fetchone()
+            return count or 0 # Return 0 if count is None
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
+
+
+def get_order_total_count(OrderID):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query= """
+            SELECT COUNT(BARCODE)
+            FROM dbo.View_WIP
+            WHERE OrderID = %s 
+            AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+            """
+            cursor.execute(select_query, (OrderID))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
     except Exception as e:
@@ -230,8 +282,8 @@ def get_employee_joblist_day(EmployeeID):
     try:
         with conn.cursor() as cursor:
             select_query= """
-            SELECT DISTINCT JobID
-            FROM dba.XMesSimpleData
+            SELECT DISTINCT OrderID
+            FROM DBA.Fact_WIP
             WHERE EmployeeID = %s and CONVERT(date, Timestamp) = %s
             """
             cursor.execute(select_query, (EmployeeID, formatted_date))

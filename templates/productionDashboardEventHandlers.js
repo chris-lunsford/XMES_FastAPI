@@ -49,27 +49,46 @@ function setupEventHandlers() {
 
 // Handles dynamic inputs and changes specific to the production dashboard
 function handleDynamicInputs(event) {
+    // This ensures the correct handling of the orderID value
+    const orderIDField = document.getElementById('order-id');
+    const workAreaSelect = document.getElementById('work-area');
+    const employeeIDField = document.getElementById('employee-id');
+
+    const orderID = orderIDField ? orderIDField.value : null;
+    const workArea = workAreaSelect ? workAreaSelect.value : null;
+    const employeeID = employeeIDField ? employeeIDField.value : null;
+
     // Handle barcode input
     if (event.target.id === 'barcode' && event.target.value.length >= 8) {
-        let orderIDField = document.getElementById('order-id');
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
     }
 
     // Listen for changes in 'employee-id' or 'work-area' elements
     if (event.target.id === 'employee-id' || event.target.id === 'work-area') {
-        const employeeID = document.getElementById('employee-id').value;
-        const workAreaSelect = document.getElementById('work-area');
-        const workArea = workAreaSelect ? workAreaSelect.value : null;
-        
         updatePartCountsOnInputs(employeeID, workArea);
+
+        // Additionally, check if the orderID is valid and run fetchOrderTotalAreaCount if both are valid
+        if (orderID && orderID.length === 8 && workArea && workArea !== "") {
+            fetchOrderTotalAreaCount(orderID, workArea);
+        }
     }
 
-    // Handle OrderID input
-    if (event.target.id === 'order-id' && event.target.value.length == 8) {
-        fetchJobNotifications(event.target.value);
+    // Handle OrderID input and Resource & Order input together for proper validation
+    if (event.target.id === 'order-id' && orderID.length === 8) {
+        fetchJobNotifications(orderID);
+        fetchOrderTotalCount(orderID);
+
+        // Verify that the work area has a valid selection
+        if (workArea && workArea !== "") {
+            fetchOrderTotalAreaCount(orderID, workArea);
+        } else {
+            console.log("Order ID or Work Area is not properly selected.");
+            // Optionally, alert the user or handle the error in the UI
+        }
     }
 }
+
 
 function updatePartCountsOnInputs(employeeID, workArea) {
     if (employeeID.length === 4) {
