@@ -701,7 +701,7 @@ function deleteNotification(notificationID) {
 
 
 /**********************************************************/
-/* Notification Dashboard */
+/* Order Dashboard */
 
 
 
@@ -733,13 +733,48 @@ function fetchOrderPartCounts(orderID) {
                     partCountElement.textContent = count;
                     // Update border color based on count
                     const machineContainer = partCountElement.closest('.machine-container');
+                    console.log(`Element found, updating: ${partCountElementId}`);
                     if (count > 0) {
                         machineContainer.classList.add('has-parts');
-                        machineContainer.classList.remove('hidden'); // Make visible if parts count is more than 0
+                        machineContainer.classList.remove('hidden'); // Ensure it's visible
                     } else {
                         machineContainer.classList.remove('has-parts');
                         machineContainer.classList.add('hidden'); // Hide if no parts
                     }
+                } else {
+                    console.error('Element not found:', partCountElementId);
+                }
+            });
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+function fetchScannedOrderPartCounts(orderID) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', { orderID });
+    
+    const queryParams = new URLSearchParams({ OrderID: orderID });
+    const url = `/api/scanned-order-part-counts?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url);
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            Object.entries(data).forEach(([machineCode, count]) => {
+                const partCountElementId = `current-count-${machineCode}`;
+                const partCountElement = document.getElementById(partCountElementId);
+                if (partCountElement) {
+                    partCountElement.textContent = count;                    
                 } else {
                     console.error('Element not found:', partCountElementId);
                 }

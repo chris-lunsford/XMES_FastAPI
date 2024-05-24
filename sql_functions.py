@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
+from work_station_groups import WORK_STATION_GROUPS
 import pymssql
 
 ######################################################
@@ -228,15 +229,29 @@ def get_order_totalarea_count(OrderID, Resource):
         raise Exception("Failed to connect to the database.")
     try:
         with conn.cursor() as cursor:
-            select_query= """
-            SELECT COUNT(BARCODE)
-            FROM dbo.View_WIP
-            WHERE OrderID = %s AND INFO2 LIKE %s
-            AND CNC_BARCODE1 <> ''
-            """
-            cursor.execute(select_query, (OrderID, Formatted_Resource))
+            # Check if the Resource is 'SCZ' and modify the behavior
+            if Resource == 'SCZ':
+                # For SCZ, count all barcodes regardless of CNC_BARCODE1
+                select_query = """
+                SELECT COUNT(BARCODE)
+                FROM dbo.View_WIP
+                WHERE OrderID = %s
+                AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+                """
+                cursor.execute(select_query, (OrderID,))
+            else:
+                # For other resources, use the original query
+                Formatted_Resource = f'%{Resource}%'
+                select_query = """
+                SELECT COUNT(BARCODE)
+                FROM dbo.View_WIP
+                WHERE OrderID = %s AND INFO2 LIKE %s
+                AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+                """
+                cursor.execute(select_query, (OrderID, Formatted_Resource))
+            
             (count,) = cursor.fetchone()
-            return count or 0 # Return 0 if count is None
+            return count or 0  # Return 0 if count is None
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
     finally:
@@ -300,6 +315,35 @@ def get_order_part_counts(OrderID):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+
+
+############################################################
+
+
+
+
+def fetch_scanned_order_part_counts_data(order_id):
+    conn = connect_to_db()
+    if conn is not None:
+        try:
+            with conn.cursor(as_dict=True) as cursor:
+                cursor.execute("SELECT Barcode, Resource FROM DBA.Fact_WIP WHERE OrderID = %s", (order_id,))
+                return cursor.fetchall()
+        finally:
+            conn.close()
+    else:
+        raise Exception("Failed to connect to the database")
+
+def process_scanned_order_part_counts_data(data):
+    grouped_counts = {}
+    for row in data:
+        barcode = row['Barcode']
+        resource = row['Resource']
+        group = WORK_STATION_GROUPS.get(resource, "Unknown")
+        if group not in grouped_counts:
+            grouped_counts[group] = set()
+        grouped_counts[group].add(barcode)
+    return {group: len(barcodes) for group, barcodes in grouped_counts.items()}
 
 
 ############################################################

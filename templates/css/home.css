@@ -1,0 +1,8 @@
+/********* Home ************/
+
+html, body {
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}

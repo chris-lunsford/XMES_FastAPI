@@ -20,20 +20,16 @@
             <input type="text" name="order-info" id="order-id">
         </form>
     </section>
-    <section class="total-row">
-        <section class="machine-row">                
-            <div class="machine-container hrz" id="machine-HRZ">
-                <section class="hrz-container">
-                    <div class="machine-name">
-                        <p>All parts for order</p>            
-                    </div>
-                    <div class="part-count">
-                        <p>Total count:</p>
-                        <p id="part-count-Total">0</p>
-                    </div>  
-                </section>  
-            </div>             
-        </section> 
+    <section class="total-row">                  
+            <div class="machine-container" id="order-total">
+                <div class="total-name">
+                    <p>All parts for order</p>            
+                </div>
+                <div class="part-count">
+                    <p>Total count:</p>
+                    <p id="part-count-Total">0</p>
+                </div>  
+            </div>
     </section>
     <section class="data-display">
     <!-- Machines -->
@@ -46,8 +42,8 @@
                             <p>[PSZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-PSZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>
                         </div>  
                     </section>
                 </div>
@@ -58,8 +54,8 @@
                             <p>[TRZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-TRZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-TRZ">0</span> of <span id="part-count-TRZ">0</span></p>
                         </div>  
                     </section>  
                 </div>
@@ -70,8 +66,8 @@
                             <p>[EBZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-EBZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-EBZ">0</span> of <span id="part-count-EBZ">0</span></p>
                         </div>  
                     </section>
                 </div> 
@@ -82,14 +78,11 @@
                             <p>[PRZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-PRZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-PRZ">0</span> of <span id="part-count-PRZ">0</span></p>
                         </div>  
                     </section>
                 </div>
-            </section>
-
-            <section class="machine-row">                
                 <div class="machine-container hrz" id="machine-HRZ">
                     <section class="hrz-container">
                         <div class="machine-name">
@@ -97,8 +90,8 @@
                             <p>[HRZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-HRZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-HRZ">0</span> of <span id="part-count-HRZ">0</span></p>
                         </div>  
                     </section>  
                 </div>
@@ -109,8 +102,8 @@
                             <p>[HDZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-HDZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-HDZ">0</span> of <span id="part-count-HDZ">0</span></p>
                         </div>  
                     </section>  
                 </div>
@@ -121,8 +114,8 @@
                             <p>[GMZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-GMZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-GMZ">0</span> of <span id="part-count-GMZ">0</span></p>
                         </div>  
                     </section>  
                 </div>
@@ -133,12 +126,12 @@
                             <p>[SC]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-SCZ">0</p>
+                            <p>Progress:</p>
+                            <p><span id="current-count-SCZ">0</span> of <span id="part-count-SCZ">0</span></p>
                         </div>  
                     </section>
                 </div>
-            </section>                        
+            </section>                       
         </section>                
     </section>
 <script src="templates/global.js"></script>    

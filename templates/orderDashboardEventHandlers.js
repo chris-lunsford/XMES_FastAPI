@@ -42,6 +42,7 @@ function handleDynamicInputs(event) {
     if (event.target.id === 'order-id') {
         if (orderID.length === 8) {
             fetchOrderPartCounts(orderID);
+            fetchScannedOrderPartCounts(orderID);
         } else if (orderID.length ===0) {
             resetPartCounts();
         }
@@ -52,6 +53,12 @@ function handleDynamicInputs(event) {
 // Function to reset all part counts to zero and remove 'has-parts' class
 function resetPartCounts() {
     console.log("Resetting part counts and border styles");
+
+    const scanCountElements = document.querySelectorAll('[id^="current-count-"]')
+    scanCountElements.forEach(element => {
+        element.textContent = '0';
+    });
+    
     const partCountElements = document.querySelectorAll('[id^="part-count-"]');
     partCountElements.forEach(element => {
         element.textContent = '0';

@@ -1,5 +1,7 @@
 from datetime import datetime
 import pytz
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -240,3 +242,22 @@ async def handle_order_part_counts(OrderID):
         return counts
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/scanned-order-part-counts')
+async def handle_scanned_order_part_counts(OrderID: str):
+    loop = asyncio.get_running_loop()
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        data = await loop.run_in_executor(executor, fetch_scanned_order_part_counts_data, OrderID)
+        counts = process_scanned_order_part_counts_data(data)
+        return counts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        executor.shutdown(wait=True)
+    
+
+
+
+    
