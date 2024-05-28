@@ -5,6 +5,19 @@ html, body {
     padding: 0; /* Reset default padding */
 }
 
+.title-info {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
+}
+
+.page-name {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 2rem;
+    text-align: center;
+    /* border: 1px dotted black; */
+}
+
 .production-dashboard {
     display: flex;
     flex-direction: column;
@@ -20,7 +33,6 @@ html, body {
     align-items: center;
     margin: 0px;
     /* border: 1px solid red; */
-    padding: 10px;
     min-height: 70px;
 }
 
@@ -148,4 +160,28 @@ html, body {
 .job-list {
     display: flex;
     flex-direction: column;
+}
+
+.order-data-container {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width:  30ch;
+    row-gap: 30px;
+}
+
+.order-data-types {
+    display: flex;
+    flex-direction: column;
+    flex-basis: auto;
+    row-gap: 20px;
+}
+
+.ordercount-area, .ordercount-total-area, .ordercount-total-order{
+    display: flex;
+    justify-content: space-between;
+    gap: 35px;
 }

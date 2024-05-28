@@ -15,6 +15,10 @@
     font-family: Arial, sans-serif;
 }
 
+.index-page body {
+    overflow-x: hidden;
+}
+
 .index-page .header {
     background-color: #696969;
     border-bottom: 0px solid black;
@@ -42,7 +46,8 @@
 
 .index-page .container {
     display: flex;
-    height: calc(100% - 50px); /* Adjust height to account for header */
+    box-sizing: border-box;
+    height: calc(100% - 60px); /* Adjust height to account for header */
 }
 
 .sidebar {

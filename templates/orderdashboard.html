@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/order_dashboard.css">
+    
+    
+    <title>Document</title>
+</head>
+<body class="order-dashboard">
+    <section class="title-info">
+        <div class="page-name">
+            <span>Order Status</span>
+        </div>        
+    </section>
+    <section class="input-fields">
+        <form class="order-input" id="orderForm">            
+            <label for="order-id">Order ID:</label>
+            <input type="text" name="order-info" id="order-id">
+        </form>
+    </section>
+    <section class="total-row">                  
+            <div class="machine-container" id="order-total">
+                <div class="total-name">
+                    <p>All parts for order</p>            
+                </div>
+                <div class="part-count">
+                    <p>Total count:</p>
+                    <p id="part-count-Total">0</p>
+                </div>  
+            </div>
+    </section>
+    <section class="data-display">
+    <!-- Machines -->
+        <section class="machine-group">            
+            <section class="machine-row">
+                <div class="machine-container psz" id="machine-PSZ">
+                    <section class="psz-container">
+                        <div class="machine-name">
+                            <p>Panel Saw</p>
+                            <p>[PSZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container trz" id="machine-TRZ">
+                    <section class="trz-container">
+                        <div class="machine-name">
+                            <p>Table Router</p>
+                            <p>[TRZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-TRZ">0</span> of <span id="part-count-TRZ">0</span></p>
+                        </div>  
+                    </section>  
+                </div>
+                <div class="machine-container ebz" id="machine-EBZ">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <p>Edgebander</p>
+                            <p>[EBZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-EBZ">0</span> of <span id="part-count-EBZ">0</span></p>
+                        </div>  
+                    </section>
+                </div> 
+                <div class="machine-container prz" id="machine-PRZ">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <p>Pod Router</p>
+                            <p>[PRZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-PRZ">0</span> of <span id="part-count-PRZ">0</span></p>
+                        </div>  
+                    </section>
+                </div>
+                <div class="machine-container hrz" id="machine-HRZ">
+                    <section class="hrz-container">
+                        <div class="machine-name">
+                            <p>Horizontal Router</p>
+                            <p>[HRZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-HRZ">0</span> of <span id="part-count-HRZ">0</span></p>
+                        </div>  
+                    </section>  
+                </div>
+                <div class="machine-container hdz" id="machine-HDZ">
+                    <section class="hdz-container">
+                        <div class="machine-name">
+                            <p>Horizontal Drill</p>
+                            <p>[HDZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-HDZ">0</span> of <span id="part-count-HDZ">0</span></p>
+                        </div>  
+                    </section>  
+                </div>
+                <div class="machine-container gmz" id="machine-GMZ">
+                    <section class="gmz-container">
+                        <div class="machine-name">
+                            <p>General Mill</p>
+                            <p>[GMZ]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-GMZ">0</span> of <span id="part-count-GMZ">0</span></p>
+                        </div>  
+                    </section>  
+                </div>
+                <div class="machine-container scz" id="machine-SC">
+                    <section class="scz-container">
+                        <div class="machine-name">
+                            <p>Shipping / Crating</p>
+                            <p>[SC]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-SCZ">0</span> of <span id="part-count-SCZ">0</span></p>
+                        </div>  
+                    </section>
+                </div>
+            </section>                       
+        </section>                
+    </section>
+<script src="templates/global.js"></script>    
+<script src="templates/orderDashboardEventHandlers.js"></script>
+
+</body>
+</html>

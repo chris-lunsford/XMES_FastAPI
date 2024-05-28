@@ -298,7 +298,7 @@ function handleBarcodeScan_to_DB() {
             EmployeeID: employeeID,
             Resource: workArea,
             CustomerID: customerID,
-            JobID: orderID,
+            OrderID: orderID,
             Barcode: barcode
         })
     })
@@ -334,7 +334,7 @@ function handleBarcodeScan_to_DB() {
 function updateRecutStatus(barcode, orderID, workArea) {
     const payload = JSON.stringify({
         Barcode: barcode,
-        JobID: orderID,
+        OrderID: orderID,
         Resource: workArea,
         Recut: 1  // Assuming Recut is an integer and is a required field
     });
@@ -482,8 +482,8 @@ function fetchEEJobListDay(employeeID) {
 
 
 
-function fetchJobNotifications(JobID) {
-    const url = `/api/jobid-notifications?OrderID=${JobID}`;
+function fetchJobNotifications(OrderID) {
+    const url = `/api/jobid-notifications?OrderID=${OrderID}`;
 
     fetch(url)
         .then(response => {
@@ -529,6 +529,73 @@ function formatDate(dateStr) {
 }
 
 
+function fetchOrderTotalAreaCount(orderID, workArea) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', { orderID});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        OrderID: orderID,
+        Resource: workArea
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/order-total-area-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('ordercount-total-area').textContent = data.total_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+function fetchOrderTotalCount(orderID) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', { orderID});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        OrderID: orderID
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/order-total-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('ordercount-total-order').textContent = data.total_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+
+
 
 /**********************************************************/
 /* Notification Dashboard */
@@ -554,8 +621,8 @@ function populateNotificationTypes() {
         .catch(error => console.error('Error fetching Notification Types:', error));
 }
 
-function fetchExistingJobNotifications(OrderID) {
-    const url = `/api/jobid-notifications?OrderID=${OrderID}`;
+function fetchExistingJobNotifications(orderID) {
+    const url = `/api/jobid-notifications?OrderID=${orderID}`;
 
     fetch(url)
         .then(response => {
@@ -628,4 +695,90 @@ function deleteNotification(notificationID) {
         console.error('Error deleting notification:', error);
         alert('Error deleting notification.');
     });
+}
+
+
+
+
+/**********************************************************/
+/* Order Dashboard */
+
+
+
+
+function fetchOrderPartCounts(orderID) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', { orderID });
+    
+    const queryParams = new URLSearchParams({ OrderID: orderID });
+    const url = `/api/order-part-counts?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url);
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            Object.entries(data).forEach(([machineCode, count]) => {
+                const partCountElementId = `part-count-${machineCode}`;
+                const partCountElement = document.getElementById(partCountElementId);
+                if (partCountElement) {
+                    partCountElement.textContent = count;
+                    // Update border color based on count
+                    const machineContainer = partCountElement.closest('.machine-container');
+                    console.log(`Element found, updating: ${partCountElementId}`);
+                    if (count > 0) {
+                        machineContainer.classList.add('has-parts');
+                        machineContainer.classList.remove('hidden'); // Ensure it's visible
+                    } else {
+                        machineContainer.classList.remove('has-parts');
+                        machineContainer.classList.add('hidden'); // Hide if no parts
+                    }
+                } else {
+                    console.error('Element not found:', partCountElementId);
+                }
+            });
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+function fetchScannedOrderPartCounts(orderID) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', { orderID });
+    
+    const queryParams = new URLSearchParams({ OrderID: orderID });
+    const url = `/api/scanned-order-part-counts?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url);
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            Object.entries(data).forEach(([machineCode, count]) => {
+                const partCountElementId = `current-count-${machineCode}`;
+                const partCountElement = document.getElementById(partCountElementId);
+                if (partCountElement) {
+                    partCountElement.textContent = count;                    
+                } else {
+                    console.error('Element not found:', partCountElementId);
+                }
+            });
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
 }

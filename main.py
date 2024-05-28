@@ -1,5 +1,7 @@
 from datetime import datetime
 import pytz
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -10,6 +12,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from work_stations import WORK_STATIONS
+from work_station_groups import WORK_STATION_GROUPS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
 from sql_functions import *
@@ -48,6 +51,14 @@ async def machine_dashboard(request: Request):
 async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
+@app.get('/order-dashboard')
+async def notification(request: Request):
+    return templates.TemplateResponse("orderdashboard.html", {"request": request})
+
+def get_resource_group(Resource):
+    """Return the group for a given work area, or the work area itself if no group is defined."""
+    return WORK_STATION_GROUPS.get(Resource, Resource)
+
 @app.get('/api/work-stations')
 async def get_work_stations():
     return WORK_STATIONS
@@ -80,7 +91,7 @@ async def machine_part_counts(form_data: DateForm):
 
 class BarcodeData(BaseModel):
     Barcode: str
-    JobID: str
+    OrderID: str
     EmployeeID: str
     Resource: str
     CustomerID: str
@@ -101,7 +112,7 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
         timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
         result = barcode_scan_to_db(
             data.Barcode, 
-            data.JobID, 
+            data.OrderID, 
             timestamp,
             data.EmployeeID,
             data.Resource,
@@ -118,7 +129,7 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
 
 class BarcodeRecutData(BaseModel):
     Barcode: str
-    JobID: str
+    OrderID: str
     Resource: str
     Recut: int
 
@@ -126,7 +137,7 @@ class BarcodeRecutData(BaseModel):
 async def update_recut_status(data: BarcodeRecutData):
     try:
         print("Received data for recut:", data)
-        result = update_recut_in_db(data.Barcode, data.JobID, data.Resource, data.Recut)
+        result = update_recut_in_db(data.Barcode, data.OrderID, data.Resource, data.Recut)
         return {"message": "Recut status updated successfully", "result": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -147,6 +158,25 @@ async def employee_totalparts_count(EmployeeID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+@app.get('/api/order-total-area-count')
+async def order_totalarea_count(OrderID, Resource):
+    Resource_Group = get_resource_group(Resource)
+    try:
+        count = get_order_totalarea_count(OrderID, Resource_Group)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/order-total-count')
+async def order_total_count(OrderID):
+    try:
+        count = get_order_total_count(OrderID)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get('/api/employee-joblist-day/')
 async def employee_joblist_day(EmployeeID):
@@ -202,3 +232,32 @@ async def handle_delete_order_notificatino(notificationID: int):
         raise HTTPException(status_code=500, detail=str(e))
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+
+@app.get('/api/order-part-counts')
+async def handle_order_part_counts(OrderID):
+    try:
+        counts = get_order_part_counts(OrderID)
+        return counts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/scanned-order-part-counts')
+async def handle_scanned_order_part_counts(OrderID: str):
+    loop = asyncio.get_running_loop()
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        data = await loop.run_in_executor(executor, fetch_scanned_order_part_counts_data, OrderID)
+        counts = process_scanned_order_part_counts_data(data)
+        return counts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        executor.shutdown(wait=True)
+    
+
+
+
+    
