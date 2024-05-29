@@ -706,7 +706,7 @@ function deleteNotification(notificationID) {
 
 
 
-function fetchOrderPartCounts(orderID) {
+function fetchOrderPartCounts(orderID, callback) {
     if (!orderID) {
         console.error('Order ID required.');
         return;
@@ -745,12 +745,16 @@ function fetchOrderPartCounts(orderID) {
                     console.error('Element not found:', partCountElementId);
                 }
             });
+            if (callback) callback();
         })
-        .catch(error => console.error('Failed to fetch parts count:', error));
+        .catch(error => {
+            console.error('Failed to fetch parts count:', error);
+            if (callback) callback(); // Call the callback even on error to handle cases where progress bar needs updating
+        });
 }
 
 
-function fetchScannedOrderPartCounts(orderID) {
+function fetchScannedOrderPartCounts(orderID, callback) {
     if (!orderID) {
         console.error('Order ID required.');
         return;
@@ -779,6 +783,24 @@ function fetchScannedOrderPartCounts(orderID) {
                     console.error('Element not found:', partCountElementId);
                 }
             });
+            if (callback) callback();
         })
-        .catch(error => console.error('Failed to fetch parts count:', error));
+        .catch(error => {
+            console.error('Failed to fetch parts count:', error);
+            if (callback) callback(); // Call the callback even on error to handle cases where progress bar needs updating
+        });
+}
+
+
+function fetchWorkStationGroups() {
+    return fetch('/api/work-station-groups')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load workstation groups.');
+            return response.json();
+        })
+        .then(data => data.groups)
+        .catch(error => {
+            console.error('Error fetching workstation groups:', error);
+            return {}; // Return empty object to handle gracefully
+        });
 }
