@@ -267,6 +267,9 @@ async def handle_scanned_order_part_counts(OrderID: str):
         executor.shutdown(wait=True)
     
 
-
-
-    
+@app.get('/api/parts-not-scanned-by-shipping')
+async def handle_parts_not_scanned_by_shipping(OrderID: str):
+    try:
+        return await get_not_scanned_parts(OrderID)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -804,3 +804,30 @@ function fetchWorkStationGroups() {
             return {}; // Return empty object to handle gracefully
         });
 }
+
+
+
+
+// Function to fetch parts not scanned and update the table
+function fetchPartsNotScanned(orderID) {
+    console.log('Submitting data:', { orderID });
+    fetch(`/api/parts-not-scanned-by-shipping?OrderID=${orderID}`)
+        .then(response => response.json())
+        .then(data => {
+            updatePartsTable(data);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
+
+// Function to update the table with fetched data
+function updatePartsTable(parts) {
+    const tableBody = document.getElementById('table-body');
+    tableBody.innerHTML = ''; // Clear existing entries
+    parts.forEach(part => {
+        const row = `<tr>
+                        <td>${part.BARCODE}</td>
+                        <td>${part.Description}</td>
+                     </tr>`;
+        tableBody.innerHTML += row;
+    });
+}

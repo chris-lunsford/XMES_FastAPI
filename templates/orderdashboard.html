@@ -15,10 +15,10 @@
         </div>        
     </section>
     <section class="input-fields">
-        <form class="order-input" id="orderForm">            
+        <div class="order-input" id="orderForm">            
             <label for="order-id">Order ID:</label>
             <input type="text" name="order-info" id="order-id">
-        </form>
+        </div>
     </section>
     <section class="total-row">                  
             <div class="machine-container" id="order-total">
@@ -165,6 +165,24 @@
                 </div>
             </section>                       
         </section>                
+    </section>
+    <section class="missing-part-display">
+        <div>
+            <button type="button" id="fetch-parts">Parts Not Scanned by Shipping</button>
+        </div>
+        <div class="missing-parts-table">
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
     </section>
 <script src="templates/global.js"></script>    
 <script src="templates/orderDashboardEventHandlers.js"></script>
