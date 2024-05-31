@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'cfxmes'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_EFD1E44DD0B34F3691F7FF61138B2506 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BD18448986554DB99493C6F41D3FB6C0 }}
