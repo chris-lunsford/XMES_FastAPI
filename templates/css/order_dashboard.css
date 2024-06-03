@@ -232,9 +232,12 @@ progress.complete::-moz-progress-bar {
 }
 
 .missing-parts-table {
+    width: 95%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
     border: 1px solid #ccc;  /* Optional: adds a border around the table container */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: .8rem;
 }
 
 .missing-parts-table table {
