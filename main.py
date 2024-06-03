@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict
 
 from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
@@ -62,6 +62,15 @@ def get_resource_group(Resource):
 @app.get('/api/work-stations')
 async def get_work_stations():
     return WORK_STATIONS
+
+
+class WorkStationGroups(BaseModel):
+    groups: Dict[str, str]
+
+@app.get("/api/work-station-groups", response_model=WorkStationGroups)
+def get_work_station_groups():
+    return WorkStationGroups(groups=WORK_STATION_GROUPS)
+
 
 @app.get('/api/customer-ids')
 async def get_customer_ids():
@@ -258,6 +267,9 @@ async def handle_scanned_order_part_counts(OrderID: str):
         executor.shutdown(wait=True)
     
 
-
-
-    
+@app.get('/api/parts-not-scanned-by-shipping')
+async def handle_parts_not_scanned_by_shipping(OrderID: str):
+    try:
+        return await get_not_scanned_parts(OrderID)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

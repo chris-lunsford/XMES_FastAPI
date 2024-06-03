@@ -109,7 +109,7 @@ html, body {
 
 /* Styles for the submit button */
 .notification-body button {
-    background-color: #969191; /* Bright blue background */
+    background-color: #969191; 
     color: black;
     padding: 10px 15px;
     border: none;

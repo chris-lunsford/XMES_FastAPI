@@ -15,10 +15,10 @@
         </div>        
     </section>
     <section class="input-fields">
-        <form class="order-input" id="orderForm">            
+        <div class="order-input" id="orderForm">            
             <label for="order-id">Order ID:</label>
             <input type="text" name="order-info" id="order-id">
-        </form>
+        </div>
     </section>
     <section class="total-row">                  
             <div class="machine-container" id="order-total">
@@ -42,8 +42,12 @@
                             <p>[PSZ]</p>            
                         </div>
                         <div class="part-count">
-                            <p>Progress:</p>
-                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>
+                            <p>Progress:</p>                            
+                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>                            
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-PSZ" value="0" max="100"></progress>
+                            <span id="progress-text-PSZ">0%</span>
                         </div>  
                     </section>
                 </div>
@@ -56,7 +60,11 @@
                         <div class="part-count">
                             <p>Progress:</p>
                             <p><span id="current-count-TRZ">0</span> of <span id="part-count-TRZ">0</span></p>
-                        </div>  
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-TRZ" value="0" max="100"></progress>
+                            <span id="progress-text-TRZ">0%</span>
+                        </div>   
                     </section>  
                 </div>
                 <div class="machine-container ebz" id="machine-EBZ">
@@ -68,7 +76,11 @@
                         <div class="part-count">
                             <p>Progress:</p>
                             <p><span id="current-count-EBZ">0</span> of <span id="part-count-EBZ">0</span></p>
-                        </div>  
+                        </div> 
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-EBZ" value="0" max="100"></progress>
+                            <span id="progress-text-EBZ">0%</span>
+                        </div> 
                     </section>
                 </div> 
                 <div class="machine-container prz" id="machine-PRZ">
@@ -80,6 +92,10 @@
                         <div class="part-count">
                             <p>Progress:</p>
                             <p><span id="current-count-PRZ">0</span> of <span id="part-count-PRZ">0</span></p>
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-PRZ" value="0" max="100"></progress>
+                            <span id="progress-text-PRZ">0%</span>
                         </div>  
                     </section>
                 </div>
@@ -93,6 +109,10 @@
                             <p>Progress:</p>
                             <p><span id="current-count-HRZ">0</span> of <span id="part-count-HRZ">0</span></p>
                         </div>  
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-HRZ" value="0" max="100"></progress>
+                            <span id="progress-text-HRZ">0%</span>
+                        </div>
                     </section>  
                 </div>
                 <div class="machine-container hdz" id="machine-HDZ">
@@ -105,6 +125,10 @@
                             <p>Progress:</p>
                             <p><span id="current-count-HDZ">0</span> of <span id="part-count-HDZ">0</span></p>
                         </div>  
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-HDZ" value="0" max="100"></progress>
+                            <span id="progress-text-HDZ">0%</span>
+                        </div>
                     </section>  
                 </div>
                 <div class="machine-container gmz" id="machine-GMZ">
@@ -117,6 +141,10 @@
                             <p>Progress:</p>
                             <p><span id="current-count-GMZ">0</span> of <span id="part-count-GMZ">0</span></p>
                         </div>  
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-GMZ" value="0" max="100"></progress>
+                            <span id="progress-text-GMZ">0%</span>
+                        </div>
                     </section>  
                 </div>
                 <div class="machine-container scz" id="machine-SC">
@@ -129,10 +157,32 @@
                             <p>Progress:</p>
                             <p><span id="current-count-SCZ">0</span> of <span id="part-count-SCZ">0</span></p>
                         </div>  
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-SCZ" value="0" max="100"></progress>
+                            <span id="progress-text-SCZ">0%</span>
+                        </div>
                     </section>
                 </div>
             </section>                       
         </section>                
+    </section>
+    <section class="missing-part-display">
+        <div>
+            <button type="button" id="fetch-parts">Parts Not Scanned by Shipping</button>
+        </div>
+        <div class="missing-parts-table">
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
     </section>
 <script src="templates/global.js"></script>    
 <script src="templates/orderDashboardEventHandlers.js"></script>

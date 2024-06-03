@@ -456,3 +456,39 @@ def delete_order_notification(notificationID):
         raise RuntimeError(f"Database query failed: {e}")  # More specific exception for runtime errors
     finally:
         conn.close()
+
+
+
+############################################################
+
+
+async def get_not_scanned_parts(OrderID: str):
+    query = """
+    SELECT
+        vw.BARCODE,
+        vw.INFO1 AS Description
+    FROM
+        [dbo].[View_WIP] vw
+    WHERE
+        vw.ORDERID = %s
+        AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
+        AND NOT EXISTS (
+            SELECT 1
+            FROM [DBA].[Fact_WIP] fw
+            WHERE fw.BARCODE = vw.BARCODE
+            AND fw.RESOURCE IN ('SC1', 'SC2')
+            AND fw.ORDERID = vw.ORDERID
+        )
+    ORDER BY BARCODE
+    """
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(as_dict=True)
+        cursor.execute(query, (OrderID,))
+        result = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return result
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
