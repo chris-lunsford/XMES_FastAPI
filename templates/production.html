@@ -30,7 +30,7 @@
             </div>    
             <div>
                 <label for="order-id">Order ID:</label>
-                <input type="text" value="Auto-fill" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
+                <input type="text" value="Optional" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
@@ -88,8 +88,25 @@
                     </div>
                 </div>
             </div>
-        </div>      
-
+        </div>    
+    </section>
+    <section class="missing-part-display">
+        <div>
+            <button type="button" id="not-scanned-parts">Parts Not Scanned by Shipping</button>
+        </div>
+        <div class="missing-parts-table">
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
     </section>
     <script src="templates/global.js"></script>    
 </body>

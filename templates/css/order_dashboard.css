@@ -232,7 +232,7 @@ progress.complete::-moz-progress-bar {
 }
 
 .missing-parts-table {
-    width: 95%;
+    width: 75%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
     border: 1px solid #ccc;  /* Optional: adds a border around the table container */
@@ -253,4 +253,37 @@ progress.complete::-moz-progress-bar {
 
 .missing-parts-table th {
     background-color: #f2f2f2;
+}
+
+.notification-display {
+    display: flex;
+    flex-direction: column;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    min-width: 30ch;
+    max-width: 50ch;
+    row-gap: 10px;
+}
+
+#notification-list ul {
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    padding: 10px; /** Provides padding around the list **/      
+}
+
+#notification-list li {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0px; /** Space between rows**/
+    padding: 5px; /** Padding inside each list item**/
+    /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    border-radius: 5px; /** Rounded corners**/
+    margin-bottom:0px; /**Margin at the bottom of each item**/
+    background: #f4f4f4; /** Light grey background**/
+}
+
+#notification-list li:last-child {
+    border-bottom: none; /**Removes border from the last item**/
 }

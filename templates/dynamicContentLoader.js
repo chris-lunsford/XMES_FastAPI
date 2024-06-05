@@ -109,7 +109,7 @@ function loadLastContent(highlight) {
     if (lastContent) {
         loadContent(lastContent, highlight);
     } else {
-        loadContent('/home', highlight);
+        loadContent('/production', highlight);
     }
 }
 

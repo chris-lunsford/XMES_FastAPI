@@ -101,8 +101,13 @@ window.EventHandler = window.EventHandler || {
 
     handleOrderInput: function(event) {
         const orderID = event.target.value;
+        const notificationListElement = document.getElementById('notification-list');
+        
         if (orderID.length === 8) {
             fetchExistingJobNotifications(orderID);
+        } else {
+            notificationListElement.innerHTML = ''; // Clear existing notifications
         }
-    }    
+
+       }    
 };

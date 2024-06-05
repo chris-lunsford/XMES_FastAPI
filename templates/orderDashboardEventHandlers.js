@@ -27,7 +27,7 @@ function initializeOrderDashboard() {
 // Setup or re-setup event handlers
 function setupEventHandlers() {
     console.log("Setting up event handlers");
-    listenerManager.addListener(document.getElementById('fetch-parts'), 'click', handleFetchPartsNotScanned);
+    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
 }
 
@@ -42,6 +42,7 @@ function handleDynamicInputs(event) {
     // Handle OrderID input and Resource & Order input together for proper validation
     if (event.target.id === 'order-id') {
         if (orderID.length === 8) {
+            fetchJobNotifications(orderID)
             fetchWorkStationGroups().then(groups => {
                 const uniqueGroups = new Set(Object.values(groups));
                 fetchOrderPartCounts(orderID, () => {
@@ -55,7 +56,7 @@ function handleDynamicInputs(event) {
                     });
                 });
             });
-        } else if (orderID.length != 0) {
+        } else if (orderID.length === 0) {
             resetPartCounts();
         }
     }
@@ -103,48 +104,18 @@ function resetPartCounts() {
             tableBody.innerHTML = '';
         }
 
+        // Clear Notifications
+        const notificationListElement = document.getElementById('notification-list');
+        console.log("Clearing notifications");
+        if (notificationListElement) {
+            notificationListElement.innerHTML = ''; // Clear existing notifications
+    }
+
     }).catch(error => {
         console.error("Failed to fetch work station groups:", error);
     });
 }
 
-// // Function to reset all part counts to zero and remove 'has-parts' class
-// function resetPartCounts() {
-//     console.log("Resetting part counts, border styles, and progress bars");
-
-//     // Fetch work station groups dynamically
-//     fetchWorkStationGroups().then(groups => {
-//         const uniqueGroups = new Set(Object.values(groups));
-
-//         uniqueGroups.forEach(code => {
-//             // Resetting progress bars specifically
-//             let progressBar = document.getElementById(`progress-bar-${code}`);
-//             let progressText = document.getElementById(`progress-text-${code}`);
-
-//             if (progressBar && progressText) {
-//                 progressBar.value = 0;
-//                 progressBar.classList.remove('complete');
-//                 progressText.textContent = '0%';
-//             }
-
-//             // Resetting count texts and classes on containers
-//             const totalCountElement = document.getElementById(`part-count-Total`);
-//             let currentCountElement = document.getElementById(`current-count-${code}`);
-//             let partCountElement = document.getElementById(`part-count-${code}`);
-//             let machineContainer = currentCountElement ? currentCountElement.closest('.machine-container') : null;
-
-//             if (currentCountElement && partCountElement && machineContainer) {
-//                 totalCountElement.textContent = '0'
-//                 currentCountElement.textContent = '0';
-//                 partCountElement.textContent = '0';
-//                 machineContainer.classList.remove('has-parts');
-//                 machineContainer.classList.remove('hidden');  // Assuming you want to hide the container when parts count is reset
-//             }
-//         });
-//     }).catch(error => {
-//         console.error("Failed to fetch work station groups:", error);
-//     });
-// }
 
 
 
