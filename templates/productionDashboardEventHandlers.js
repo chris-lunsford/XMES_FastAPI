@@ -94,6 +94,9 @@ function handleDynamicInputs(event) {
             console.log("Order ID or Work Area is not properly selected.");
             // Optionally, alert the user or handle the error in the UI
         }
+    } else if (event.target.id === 'order-id' && orderID.length != 0) {
+        resetNotifications()
+        resetMissingPartsTable()
     }
 }
 
@@ -137,4 +140,23 @@ function handleFetchPartsNotScanned() {
     if (orderID) {
         fetchPartsNotScanned(orderID);  // This function will be defined in global.js
     }
+}
+
+
+function resetNotifications() {
+    console.log("Resetting notifications for invalid or no order ID");
+    const notificationListElement = document.getElementById('notification-list');
+    console.log("Clearing notifications");
+    if (notificationListElement) {
+        notificationListElement.innerHTML = ''; // Clear existing notifications
+}
+}
+
+function resetMissingPartsTable() {
+    console.log("Resetting missing parts table for invalid or no order ID");
+
+    const tableBody = document.getElementById('table-body');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+        }
 }
