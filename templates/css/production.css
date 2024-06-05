@@ -87,7 +87,7 @@ html, body {
     gap: 30px;
     /* border: 2px dotted orange; */
     padding: 10px;
-    height: 300px;
+    min-height: 300px;
 }
 
 .notification-display {
@@ -184,4 +184,60 @@ html, body {
     display: flex;
     justify-content: space-between;
     gap: 35px;
+}
+
+
+
+
+.missing-part-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 70px;
+    margin-bottom: 70px;
+    gap: 20px;
+    /* border: 1px solid black; */
+}
+
+
+.missing-part-display button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px; 
+    border-radius: 10px;
+}
+
+.missing-part-display button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
+}
+
+.missing-parts-table {
+    width: 75%;
+    max-height: 400px;  /* Set the maximum height to whatever suits your design */
+    overflow-y: auto;   /* Enables vertical scrolling */
+    border: 1px solid #ccc;  /* Optional: adds a border around the table container */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: .8rem;
+}
+
+.missing-parts-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.missing-parts-table th, .missing-parts-table td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: left;
+}
+
+.missing-parts-table th {
+    background-color: #f2f2f2;
 }

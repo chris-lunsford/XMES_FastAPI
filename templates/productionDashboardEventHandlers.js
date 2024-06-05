@@ -42,6 +42,7 @@ function initializeProductionDashboard() {
 // Setup or re-setup event handlers
 function setupEventHandlers() {
     console.log("Setting up event handlers");
+    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
 }
@@ -62,6 +63,13 @@ function handleDynamicInputs(event) {
     if (event.target.id === 'barcode' && event.target.value.length >= 8) {
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
+        fetchOrderTotalCount(orderIDField.value);        
+
+        if (workArea && workArea !== '') {
+            fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);            
+        } else {
+            console.log("Work Area not selected");
+        }
     }
 
     // Listen for changes in 'employee-id' or 'work-area' elements
@@ -86,6 +94,9 @@ function handleDynamicInputs(event) {
             console.log("Order ID or Work Area is not properly selected.");
             // Optionally, alert the user or handle the error in the UI
         }
+    } else if (event.target.id === 'order-id' && orderID.length != 0) {
+        resetNotifications()
+        resetMissingPartsTable()
     }
 }
 
@@ -122,3 +133,30 @@ function updateEEJobListDay() {
     fetchEEJobListDay(employeeID)
 }
 
+
+// Event handler for fetching parts not scanned by shipping
+function handleFetchPartsNotScanned() {
+    const orderID = document.getElementById('order-id').value.trim();
+    if (orderID) {
+        fetchPartsNotScanned(orderID);  // This function will be defined in global.js
+    }
+}
+
+
+function resetNotifications() {
+    console.log("Resetting notifications for invalid or no order ID");
+    const notificationListElement = document.getElementById('notification-list');
+    console.log("Clearing notifications");
+    if (notificationListElement) {
+        notificationListElement.innerHTML = ''; // Clear existing notifications
+}
+}
+
+function resetMissingPartsTable() {
+    console.log("Resetting missing parts table for invalid or no order ID");
+
+    const tableBody = document.getElementById('table-body');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+        }
+}
