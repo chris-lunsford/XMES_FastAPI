@@ -15,6 +15,7 @@ function handleBarcodeKeyPress(event) {
         handleBarcodeScan_to_DB();
         updatePartCountsOnScan();
         updateEEJobListDay();
+        resetBarcodeField();
     }
 }
 
@@ -60,7 +61,7 @@ function handleDynamicInputs(event) {
     const employeeID = employeeIDField ? employeeIDField.value : null;
 
     // Handle barcode input
-    if (event.target.id === 'barcode' && event.target.value.length >= 8) {
+    if (event.target.id === 'barcode' && event.target.value.length === 12) {
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
         fetchOrderTotalCount(orderIDField.value);        
@@ -73,13 +74,17 @@ function handleDynamicInputs(event) {
     }
 
     // Listen for changes in 'employee-id' or 'work-area' elements
-    if (event.target.id === 'employee-id' || event.target.id === 'work-area') {
+    if (event.target.id === 'employee-id' && employeeID.length === 4|| event.target.id === 'work-area') {
         updatePartCountsOnInputs(employeeID, workArea);
 
-        // Additionally, check if the orderID is valid and run fetchOrderTotalAreaCount if both are valid
-        if (orderID && orderID.length === 8 && workArea && workArea !== "") {
+        if (orderID && orderID.length === 8 && workArea && workArea !== "" && employeeID) {
+            fetchOrderAreaScannedCount(orderID, workArea, employeeID);
+            fetchOrderTotalAreaCount(orderID, workArea);
+        }else if (orderID && orderID.length === 8 && workArea && workArea !== "") {
             fetchOrderTotalAreaCount(orderID, workArea);
         }
+    } else if (event.target.id === 'employee-id' && employeeID.length != 0) {
+        resetEmployeeData();
     }
 
     // Handle OrderID input and Resource & Order input together for proper validation
@@ -93,6 +98,10 @@ function handleDynamicInputs(event) {
         } else {
             console.log("Order ID or Work Area is not properly selected.");
             // Optionally, alert the user or handle the error in the UI
+        }
+
+        if (employeeID) {
+            fetchOrderAreaScannedCount(orderID, workArea, employeeID);
         }
     } else if (event.target.id === 'order-id' && orderID.length != 0) {
         resetNotifications()
@@ -142,6 +151,12 @@ function handleFetchPartsNotScanned() {
     }
 }
 
+function resetBarcodeField() {
+    console.log("Resetting barcode field")
+    const barcodeField = document.getElementById('barcode');
+    barcodeField.value = ''
+}
+
 
 function resetNotifications() {
     console.log("Resetting notifications for invalid or no order ID");
@@ -159,4 +174,14 @@ function resetMissingPartsTable() {
         if (tableBody) {
             tableBody.innerHTML = '';
         }
+}
+
+function resetEmployeeData() {
+    console.log("Resetting employee data")
+    const jobListContainer = document.querySelector('.job-list');
+    
+    document.getElementById('ordercount-area').textContent = '0';
+    jobListContainer.innerHTML = ''
+    document.getElementById('partcount-emp').textContent = '0';
+    document.getElementById('partcount-area').textContent = '0';
 }

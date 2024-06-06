@@ -232,7 +232,7 @@ progress.complete::-moz-progress-bar {
 }
 
 .missing-parts-table {
-    width: 75%;
+    width: 65%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
     border: 1px solid #ccc;  /* Optional: adds a border around the table container */
@@ -253,6 +253,10 @@ progress.complete::-moz-progress-bar {
 
 .missing-parts-table th {
     background-color: #f2f2f2;
+}
+
+.part-barcode {
+    width: 25%;
 }
 
 .notification-display {

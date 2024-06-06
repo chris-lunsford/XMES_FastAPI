@@ -168,6 +168,15 @@ async def employee_totalparts_count(EmployeeID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.get('/api/order-area-scanned-count')
+async def order_area_scanned_count(OrderID, Resource, EmployeeID):
+    try:
+        count = get_order_area_scanned_count(OrderID, Resource, EmployeeID)
+        return {"scanned_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get('/api/order-total-area-count')
 async def order_totalarea_count(OrderID, Resource):
     Resource_Group = get_resource_group(Resource)
@@ -273,3 +282,5 @@ async def handle_parts_not_scanned_by_shipping(OrderID: str):
         return await get_not_scanned_parts(OrderID)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+

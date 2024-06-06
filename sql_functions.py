@@ -220,6 +220,29 @@ def get_employee_totalparts_count(EmployeeID):
 ############################################################
 
 
+def get_order_area_scanned_count(OrderID, Resource, EmployeeID):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            select_query = """
+            SELECT COUNT(BARCODE)
+            FROM dba.Fact_WIP
+            WHERE OrderID = %s
+            AND (Resource = %s AND EmployeeID = %s)
+            """
+            cursor.execute(select_query, (OrderID, Resource, EmployeeID))
+            (count, ) = cursor.fetchone()
+            return count or 0
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
 
 def get_order_totalarea_count(OrderID, Resource):
     Formatted_Resource = f'%{Resource}%'
