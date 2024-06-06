@@ -92,6 +92,7 @@ html, body {
 
 .notification-display {
     display: flex;
+    overflow: auto;
     flex-direction: column;
     border: 1px dotted black;
     padding: 10px;
@@ -193,7 +194,7 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 70px;
+    margin-top: 50px;
     margin-bottom: 70px;
     gap: 20px;
     /* border: 1px solid black; */
@@ -219,7 +220,7 @@ html, body {
 }
 
 .missing-parts-table {
-    width: 75%;
+    width: 65%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
     border: 1px solid #ccc;  /* Optional: adds a border around the table container */
@@ -240,4 +241,8 @@ html, body {
 
 .missing-parts-table th {
     background-color: #f2f2f2;
+}
+
+.part-barcode {
+    width: 25%;
 }

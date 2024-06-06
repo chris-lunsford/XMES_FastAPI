@@ -378,7 +378,7 @@ function fetchAreaPartsCount(employeeID, workArea) {
         console.error('Employee ID and Work Area are required.');
         return;
     }
-    console.log('Submitting data:', { employeeID, workArea});
+    console.log('Submitting data:', {employeeID, workArea});
     
     // Construct the query string
     const queryParams = new URLSearchParams({
@@ -411,7 +411,7 @@ function fetchEETotalPartsCount(employeeID) {
         console.error('Employee ID required.');
         return;
     }
-    console.log('Submitting data:', { employeeID});
+    console.log('Submitting data:', {employeeID});
     
     // Construct the query string
     const queryParams = new URLSearchParams({
@@ -526,6 +526,40 @@ function fetchJobNotifications(OrderID) {
 function formatDate(dateStr) {
     const dateParts = dateStr.split('-'); // Split the date into parts
     return `${dateParts[1]}-${dateParts[2]}-${dateParts[0]}`; // Reformat to MM-DD-YYYY
+}
+
+
+function fetchOrderAreaScannedCount(orderID, workArea, employeeID) {
+    if (!orderID) {
+        console.error('Order ID required.');
+        return;
+    }
+    console.log('Submitting data:', {orderID, workArea, employeeID});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        OrderID: orderID,
+        Resource: workArea,
+        EmployeeID: employeeID
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/order-area-scanned-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('ordercount-area').textContent = data.scanned_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
 }
 
 
