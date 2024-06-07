@@ -8,14 +8,18 @@ if (typeof scriptMap !== 'undefined') {
 
 
 // Define the barcode scanning function outside to keep its reference
-function handleBarcodeKeyPress(event) {
+async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
-        handleBarcodeScan_to_DB();
-        updatePartCountsOnScan();
-        updateEEJobListDay();
-        resetBarcodeField();
+        try {
+            await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
+            updatePartCountsOnScan();        // Then update parts counts
+            updateEEJobListDay();            // Update other UI elements
+            resetBarcodeField();             // Finally, reset the barcode field
+        } catch (error) {
+            console.error('Failed to scan barcode to DB:', error)
+        }
     }
 }
 
@@ -132,8 +136,10 @@ function updatePartCountsOnScan() {
     const employeeID = document.getElementById('employee-id').value;
     const workAreaSelect = document.getElementById('work-area');
     const workArea = workAreaSelect.value;
+    const orderID = document.getElementById('order-id').value.trim();
     fetchAreaPartsCount(employeeID, workArea);
     fetchEETotalPartsCount(employeeID);
+    fetchOrderAreaScannedCount(orderID, workArea, employeeID);
 
 }
 

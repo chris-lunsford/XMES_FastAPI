@@ -272,7 +272,7 @@ function populateWorkAreas() {
 }
 
 
-function handleBarcodeScan_to_DB() {
+async function handleBarcodeScan_to_DB() {
     let employeeID = document.getElementById('employee-id').value;
     let workArea = document.getElementById('work-area').value;
     let customerID = document.getElementById('customer-id').value;
@@ -284,54 +284,57 @@ function handleBarcodeScan_to_DB() {
     if (!employeeID || !workArea || !customerID || !orderID || !barcode) {
         statusMessage.textContent = 'All fields must be filled out!';
         statusMessage.style.color = 'red';
-        return;
+        return Promise.reject('Required fields are missing.'); // Return a rejected promise to maintain async consistency
     }
-   
+       
     console.log('Submitting data:', { employeeID, workArea, customerID, orderID, barcode });
 
-    fetch('/api/barcode-scan-Submit', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            EmployeeID: employeeID,
-            Resource: workArea,
-            CustomerID: customerID,
-            OrderID: orderID,
-            Barcode: barcode
-        })
-    })
-    .then(response => response.json().then(data => ({ status: response.status, body: data })))
-    .then(result => {
-        if (result.status >= 400) {  // Check for errors
-            throw new Error(result.body.detail);  // Assuming the server sends back an error in 'detail'
+    try {
+        const response = await fetch('/api/barcode-scan-Submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                EmployeeID: employeeID,
+                Resource: workArea,
+                CustomerID: customerID,
+                OrderID: orderID,
+                Barcode: barcode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.status >= 400) {  // Check for errors
+            throw new Error(data.detail || 'Server error');  // Assuming the server sends back an error in 'detail'
         }
-        console.log('Success:', result.body);
+        
+        console.log('Success:', data);
         statusMessage.textContent = 'Barcode scan successful!';
         statusMessage.style.color = 'green';
-    })
-    .catch((error) => {
+        return data;  // Optionally return data for further processing
+    } catch (error) {
         if (error.message.includes('Duplicate barcode')) {
             if (confirm("This barcode has been scanned before. Is this part a recut?")) {
                 // If user confirms it's a recut, send another request to update the recut status
-                updateRecutStatus(barcode, orderID, workArea);
+                await updateRecutStatus(barcode, orderID, workArea);
             } else {
                 // Handle the case where it's not a recut
                 console.error("Duplicate barcode and not a recut.");
-                document.getElementById('status-message').textContent = "Duplicate barcode error!";
-                document.getElementById('status-message').style.color = 'red';
+                statusMessage.textContent = "Duplicate barcode error!";
+                statusMessage.style.color = 'red';
             }
         } else {
             console.error('Error:', error);
-            document.getElementById('status-message').textContent = 'Error scanning barcode: ' + error.message;
-            document.getElementById('status-message').style.color = 'red';
+            statusMessage.textContent = 'Error scanning barcode: ' + error.message;
+            statusMessage.style.color = 'red';
         }
-    });
+        return Promise.reject(error);  // Return a rejected promise to indicate failure
+    }
 }
 
-
-function updateRecutStatus(barcode, orderID, workArea) {
+async function updateRecutStatus(barcode, orderID, workArea) {
     const payload = JSON.stringify({
         Barcode: barcode,
         OrderID: orderID,
@@ -341,29 +344,28 @@ function updateRecutStatus(barcode, orderID, workArea) {
     
     console.log("Sending payload:", payload);
     
-    fetch('/api/update-recut-status', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: payload
-    })
-    .then(response => {
+    try {
+        const response = await fetch('/api/update-recut-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: payload
+        });
+
         if (!response.ok) {
             throw new Error('Failed to update recut status: ' + response.statusText);
         }
-        return response.json();
-    })
-    .then(data => {
+
+        const data = await response.json();
         console.log('Recut status updated:', data);
         document.getElementById('status-message').textContent = 'Barcode updated as a recut!';
         document.getElementById('status-message').style.color = 'green';
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error updating recut status:', error);
-        document.getElementById('status-message').textContent = 'Failed to update recut status.';
+        document.getElementById('status-message').textContent = 'Failed to update recut status: ' + error.message;
         document.getElementById('status-message').style.color = 'red';
-    });
+    }
 }
 
 

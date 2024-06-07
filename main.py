@@ -68,7 +68,7 @@ class WorkStationGroups(BaseModel):
     groups: Dict[str, str]
 
 @app.get("/api/work-station-groups", response_model=WorkStationGroups)
-def get_work_station_groups():
+async def get_work_station_groups():
     return WorkStationGroups(groups=WORK_STATION_GROUPS)
 
 
