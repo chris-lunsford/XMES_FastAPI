@@ -312,7 +312,7 @@ async function handleBarcodeScan_to_DB() {
         }
         
         console.log('Success:', data);
-        statusMessage.textContent = 'Barcode scan successful!';
+        statusMessage.textContent = 'Barcode scan successful.';
         statusMessage.style.color = 'green';
         return data;  // Optionally return data for further processing
     } catch (error) {
@@ -323,7 +323,7 @@ async function handleBarcodeScan_to_DB() {
             } else {
                 // Handle the case where it's not a recut
                 console.error("Duplicate barcode and not a recut.");
-                statusMessage.textContent = "Duplicate barcode error!";
+                statusMessage.textContent = "Duplicate barcode not updated. ";
                 statusMessage.style.color = 'red';
             }
         } else {
@@ -361,7 +361,7 @@ async function updateRecutStatus(barcode, orderID, workArea) {
 
         const data = await response.json();
         console.log('Recut status updated:', data);
-        document.getElementById('status-message').textContent = 'Barcode updated as a recut!';
+        document.getElementById('status-message').textContent = 'Barcode updated as a recut.';
         document.getElementById('status-message').style.color = 'green';
     } catch (error) {
         console.error('Error updating recut status:', error);

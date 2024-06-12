@@ -104,6 +104,18 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
     cursor = conn.cursor()
 
     try:
+        # First, check if the barcode is expected in dbo.View_WIP
+        expected_check_query = """
+            SELECT Barcode FROM dbo.View_WIP
+            WHERE Barcode = %s
+        """
+        cursor.execute(expected_check_query, (Barcode,))
+        expected_entry = cursor.fetchone()
+
+        if not expected_entry:
+            raise ValueError("Barcode not expected in the system")
+
+        # Check for duplicate barcodes in DBA.Fact_WIP
         if CustomerID != "TPS":
             check_query = """
                 SELECT * FROM DBA.Fact_WIP
@@ -114,7 +126,8 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
 
             if existing_entry:
                 raise ValueError("Duplicate barcode")
-        
+
+        # Proceed with the insert if checks pass
         insert_query = """
             INSERT INTO DBA.Fact_WIP (
                 Barcode, OrderID, Timestamp, EmployeeID, Resource, Recut, CustomerID
@@ -122,6 +135,9 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
         """
         cursor.execute(insert_query, (Barcode, OrderID, Timestamp, EmployeeID, Resource, 0, CustomerID))
         conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
     finally:
         conn.close()
 
