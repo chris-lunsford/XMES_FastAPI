@@ -284,6 +284,7 @@ async function handleBarcodeScan_to_DB() {
     if (!employeeID || !workArea || !customerID || !orderID || !barcode) {
         statusMessage.textContent = 'All fields must be filled out!';
         statusMessage.style.color = 'red';
+        resetBarcodeField();
         return Promise.reject('Required fields are missing.'); // Return a rejected promise to maintain async consistency
     }
        
@@ -330,8 +331,9 @@ async function handleBarcodeScan_to_DB() {
             statusMessage.textContent = 'Error scanning barcode: ' + error.message;
             statusMessage.style.color = 'red';
         }
-        return Promise.reject(error);  // Return a rejected promise to indicate failure
-    }
+    } finally {
+        resetBarcodeField();        
+    }     
 }
 
 async function updateRecutStatus(barcode, orderID, workArea) {

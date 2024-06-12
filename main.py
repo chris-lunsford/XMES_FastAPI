@@ -302,7 +302,7 @@ def format_date(value):
         return ''
     try:
         print(f"Original value: {value}")  # Debugging line
-        formatted_date = value.strftime("%m-%d-%Y    %H:%M")
+        formatted_date = value.strftime("%m-%d-%Y | %H:%M")
         print(f"Formatted date: {formatted_date}")  # Debugging line
         return formatted_date
     except (ValueError, TypeError)as e:
