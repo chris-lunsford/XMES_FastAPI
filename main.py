@@ -1,4 +1,5 @@
 from datetime import datetime
+import datetime
 import pytz
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -284,3 +285,43 @@ async def handle_parts_not_scanned_by_shipping(OrderID: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+
+# Define a custom filter for converting mm to inches
+def mm_to_inches(value):
+    if value is None:
+        return ''
+    try:
+        return round(value * 0.0393701, 2)  # Convert mm to inches and round to 2 decimal places
+    except (ValueError, TypeError):
+        return value
+    
+# Define a custom filter for formatting the timestamp
+def format_date(value):
+    if value is None:
+        return ''
+    try:
+        print(f"Original value: {value}")  # Debugging line
+        formatted_date = value.strftime("%m-%d-%Y    %H:%M")
+        print(f"Formatted date: {formatted_date}")  # Debugging line
+        return formatted_date
+    except (ValueError, TypeError)as e:
+        print(f"Error formatting date: {e}")  # Debugging line
+        return value
+
+# Register the filter with Jinja2
+templates.env.filters['mm_to_inches'] = mm_to_inches
+templates.env.filters['format_date'] = format_date
+
+
+@app.get('/api/generate-packlist')
+async def handle_generate_packlist(request: Request, OrderID: str):
+    try:
+        data = generate_packlist(OrderID)
+        return templates.TemplateResponse("packlist_template.html", {
+            "request": request,
+            "data": data,
+            "order_id": OrderID
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

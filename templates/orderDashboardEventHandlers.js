@@ -29,6 +29,7 @@ function setupEventHandlers() {
     console.log("Setting up event handlers");
     listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
+    listenerManager.addListener(document.getElementById('generate-packlist'), 'click', generatePackList);
 }
 
 
@@ -181,4 +182,11 @@ function handleFetchPartsNotScanned() {
 }
 
 
-
+function generatePackList() {
+    var OrderID = document.getElementById('order-id').value;
+    if (OrderID) {
+        window.open(`/api/generate-packlist?OrderID=${OrderID}`, '_blank');
+    } else {
+        alert('Please enter a valid Order ID.');
+    }
+}
