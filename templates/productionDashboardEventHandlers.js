@@ -49,7 +49,7 @@ function setupEventHandlers() {
     console.log("Setting up event handlers");
     listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
-    listenerManager.addListener(document.body, 'input', handleDynamicInputs);
+    listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
 }
 
 

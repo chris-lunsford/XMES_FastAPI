@@ -1,0 +1,149 @@
+
+/********* Packing List Template ************/
+
+html, body {
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
+
+.logo {
+    display: block; 
+    margin: auto;
+    width: clamp(180px, 20%, 300px);  /* Percentage of the containing block */
+    height: auto; /* Maintains the aspect ratio */
+}
+
+h1 {
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    text-align: center;
+    color: #333;
+}
+
+table {
+    width: 95%;
+    margin: auto;
+    margin-bottom: 50px;
+    border-collapse: collapse; /* Ensures that cell borders are shared */
+}
+
+th, td {
+    border: 1px solid black; /* Light grey border for each cell */
+    padding: 8px; /* Padding inside each cell for better readability */
+    text-align: left; /* Aligns text to the left; change to 'center' if needed */
+}
+
+th {
+    background-color: #e8e8e8; /* Light grey background for header cells */
+    font-weight: bold; /* Makes header text bold */
+    font-size: 16px; /* Larger font size for headers */
+    font-family: 'Arial', sans-serif; /* Sets a specific font for headers */
+    color: #000000; /* Dark grey text color for better readability */
+}
+
+td {
+    font-size: 14px; /* Slightly smaller font size for data cells */
+    font-family: 'Arial', sans-serif; /* Maintains consistency in font across table */
+    color: #000000; /* Lighter text color for data cells */
+}
+
+/* Alternating row background colors for better readability */
+tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f0f0f0;
+}
+
+/* Enhance visual focus on hover */
+tr:hover {
+    background-color: #dddddd; /* Darker grey when row is hovered over */
+}
+
+
+/********* Print-specific Styles ************/
+@media print {
+    html, body {
+        height: auto;
+        overflow-y: visible; /* Removes scrolling for printing */
+    }
+
+    .logo {
+        display: block;
+        margin: 5px auto; /* Add some margin for print */
+        width: 30%; /* Adjust size for print */
+        height: auto;
+    }
+
+    h1 {
+        font-size: clamp(1rem, 2.5vw, 2rem);
+        text-align: center;
+        color: #333;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%; /* Full width tables in print */
+        border: 1px solid black; /* Ensure outer table border is visible */
+        page-break-inside: auto;
+        break-inside: avoid;
+    }
+
+    th, td {
+        border: 1px solid black; /* Ensure borders are visible in print */
+        padding: 8px;
+        page-break-inside: avoid; /* Avoid breaking inside rows and cells */
+        break-inside: avoid;
+    }
+
+    th {
+        background-color: #e8e8e8; /* Light grey background for header cells */
+        font-weight: bold; /* Makes header text bold */
+        font-size: 14px; /* Larger font size for headers */
+        font-family: 'Arial', sans-serif; /* Sets a specific font for headers */
+        color: #000000;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    td {
+        font-size: 12px; /* Slightly smaller font size for data cells */
+        font-family: 'Arial', sans-serif; /* Maintains consistency in font across table */
+        color: #000; 
+    }
+
+    thead {
+        display: table-header-group; /* Ensure headers are repeated on each page */
+    }
+
+    tfoot {
+        display: table-footer-group; /* Ensure footers are repeated on each page */
+    }
+
+    tbody tr:nth-child(odd) {
+        background-color: #ffffff; /* Light grey background for odd rows */
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f0f0f0; /* White background for even rows */
+    }
+
+    /* Remove hover styles for printing */
+    tr:hover {
+        background-color: transparent;
+    }
+
+    /* Ensure table rows are not cut off at the top of the new page */
+    tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Avoid page break inside table */
+    table {
+        page-break-inside: auto;
+        break-inside: auto;
+    }
+}

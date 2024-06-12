@@ -515,3 +515,41 @@ async def get_not_scanned_parts(OrderID: str):
     except Exception as e:
         print("Error in executing SQL: ", e)
         raise
+
+
+############################################################
+
+
+def generate_packlist(OrderID: str):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")
+    cursor = conn.cursor()
+    try:        
+        query = """
+        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATID, f.Timestamp
+        FROM dbo.View_WIP v
+        LEFT JOIN dba.Fact_WIP f 
+            ON v.BARCODE = f.BARCODE 
+            AND f.ORDERID = v.ORDERID
+            AND f.Resource IN ('SC1', 'SC2')
+        WHERE v.ORDERID = %s
+        AND v.BARCODE IS NOT NULL
+        AND (v.CNC_BARCODE1 IS NULL OR v.CNC_BARCODE1 <> '')
+        ORDER BY BARCODE;
+        """
+        cursor.execute(query, (OrderID,))
+        result = cursor.fetchall()
+        print("Data fetched:", result)  # Debugging line
+        return result
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
+############################################################
+
+

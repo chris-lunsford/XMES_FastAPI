@@ -28,6 +28,7 @@ html, body {
 .input-fields {
     display: flex;
     justify-content: center;
+    column-gap: 20px;
     margin-bottom: 50px;
 }
 
@@ -290,4 +291,23 @@ progress.complete::-moz-progress-bar {
 
 #notification-list li:last-child {
     border-bottom: none; /**Removes border from the last item**/
+}
+
+
+.packlist-button button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 5px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px; 
+    border-radius: 10px;
+}
+
+.packlist-button button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
 }
