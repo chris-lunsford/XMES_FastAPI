@@ -5,10 +5,9 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional, Dict
 
@@ -130,7 +129,10 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
             )
         return {"message": "Entry added successfully", "result": result}
     except ValueError as e:  # Specific handling for known exceptions
-        raise HTTPException(status_code=400, detail=str(e))
+        if "not expected at work area" in str(e):
+            return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": str(e)})
+        elif "not expected in the system" in str(e):
+            raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
     

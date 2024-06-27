@@ -105,15 +105,29 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
 
     try:
         # First, check if the barcode is expected in dbo.View_WIP
-        expected_check_query = """
+        expected_system_check_query = """
             SELECT Barcode FROM dbo.View_WIP
             WHERE Barcode = %s
         """
-        cursor.execute(expected_check_query, (Barcode,))
+        cursor.execute(expected_system_check_query, (Barcode,))
         expected_entry = cursor.fetchone()
 
         if not expected_entry:
             raise ValueError("Barcode not expected in the system")
+        
+
+        expected_resource_check_query = """
+            SELECT Barcode FROM dbo.View_WIP
+            WHERE Barcode = %s AND Resource LIKE %s
+        """
+
+        like_pattern = f'%{Resource}%'
+        cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
+        expected_entry = cursor.fetchone()
+
+        if not expected_entry:
+            raise ValueError("Barcode not expected at work area")
+        
 
         # Check for duplicate barcodes in DBA.Fact_WIP
         if CustomerID != "TPS":
