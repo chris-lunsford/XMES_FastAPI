@@ -16,7 +16,7 @@ async function handleBarcodeKeyPress(event) {
             await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
             updatePartCountsOnScan();        // Then update parts counts
             updateEEJobListDay();            // Update other UI elements
-            resetBarcodeField();             // Finally, reset the barcode field
+            // resetBarcodeField();             // Handled in handleBarcodeScan_to_DB 
         } catch (error) {
             console.error('Failed to scan barcode to DB:', error)
         }
