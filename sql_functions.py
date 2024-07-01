@@ -144,7 +144,7 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
             existing_entry = cursor.fetchone()
 
             if existing_entry:
-                raise ValueError("Duplicate barcode")
+                raise ValueError("Duplicate barcode; recut possible?")
 
         # Proceed with the insert if checks pass
         insert_query = """

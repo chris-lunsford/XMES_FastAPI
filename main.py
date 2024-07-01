@@ -130,7 +130,9 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
             )
         return {"message": "Entry added successfully", "result": result}
     except ValueError as e:  # Specific handling for known exceptions
-        if "not expected at work area" in str(e):
+        if "Duplicate barcode; recut possible?" in str(e):
+            return JSONResponse(status_code=200, content={'warning': "duplicate_barcode", 'detail': str(e)})
+        elif "not expected at work area" in str(e):
             return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": str(e)})
         elif "not expected in the system" in str(e):
             raise HTTPException(status_code=400, detail=str(e))
