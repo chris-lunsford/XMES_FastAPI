@@ -95,7 +95,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
 ############################################################
 
 
-def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, CustomerID):
+def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, CustomerID, forceContinue=False):
     conn = connect_to_db()
     if conn is None:
         print("Failed to connect to the database.")
@@ -115,19 +115,24 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
         if not expected_entry:
             raise ValueError("Barcode not expected in the system")
         
-
-        expected_resource_check_query = """
-            SELECT Barcode FROM dbo.View_WIP
-            WHERE Barcode = %s AND Resource LIKE %s
-        """
-
-        like_pattern = f'%{Resource}%'
-        cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
-        expected_entry = cursor.fetchone()
-
-        if not expected_entry:
-            raise ValueError("Barcode not expected at work area")
+        # Translate the specific work area to its routing group
+        resource_group = WORK_STATION_GROUPS.get(Resource, None)
+        if resource_group is None:
+            raise ValueError("Invalid work area specified")
         
+        if not forceContinue:
+            expected_resource_check_query = """
+                SELECT Barcode FROM dbo.View_WIP
+                WHERE Barcode = %s AND Info2 LIKE %s
+            """
+
+            like_pattern = f'%{resource_group}%'
+            cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
+            expected_entry = cursor.fetchone()
+
+            if not expected_entry:
+                raise ValueError("Barcode not expected at work area")
+            
 
         # Check for duplicate barcodes in DBA.Fact_WIP
         if CustomerID != "TPS":
@@ -139,7 +144,7 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
             existing_entry = cursor.fetchone()
 
             if existing_entry:
-                raise ValueError("Duplicate barcode")
+                raise ValueError("Duplicate barcode; recut possible?")
 
         # Proceed with the insert if checks pass
         insert_query = """

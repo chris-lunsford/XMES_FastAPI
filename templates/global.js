@@ -280,60 +280,109 @@ async function handleBarcodeScan_to_DB() {
     let barcode = document.getElementById('barcode').value;
     let statusMessage = document.getElementById('status-message');
 
-    // Check if all required fields are filled
     if (!employeeID || !workArea || !customerID || !orderID || !barcode) {
         statusMessage.textContent = 'All fields must be filled out!';
         statusMessage.style.color = 'red';
         resetBarcodeField();
-        return Promise.reject('Required fields are missing.'); // Return a rejected promise to maintain async consistency
+        return Promise.reject('Required fields are missing.');
     }
-       
-    console.log('Submitting data:', { employeeID, workArea, customerID, orderID, barcode });
-
+    
     try {
-        const response = await fetch('/api/barcode-scan-Submit', {
+        const payload = {
+            EmployeeID: employeeID,
+            Resource: workArea,
+            CustomerID: customerID,
+            OrderID: orderID,
+            Barcode: barcode,
+            forceContinue: false  // initially set to false
+        };
+
+        let response = await fetch('/api/barcode-scan-Submit', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                EmployeeID: employeeID,
-                Resource: workArea,
-                CustomerID: customerID,
-                OrderID: orderID,
-                Barcode: barcode
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
         });
-        
-        const data = await response.json();
-        
-        if (response.status >= 400) {  // Check for errors
-            throw new Error(data.detail || 'Server error');  // Assuming the server sends back an error in 'detail'
+
+        let data = await response.json();
+
+        if (response.status >= 400) {
+            throw new Error(data.detail || 'Server error');
         }
-        
-        console.log('Success:', data);
-        statusMessage.textContent = 'Barcode scan successful.';
-        statusMessage.style.color = 'green';
-        return data;  // Optionally return data for further processing
-    } catch (error) {
-        if (error.message.includes('Duplicate barcode')) {
-            if (confirm("This barcode has been scanned before. Is this part a recut?")) {
-                // If user confirms it's a recut, send another request to update the recut status
-                await updateRecutStatus(barcode, orderID, workArea);
-            } else {
-                // Handle the case where it's not a recut
-                console.error("Duplicate barcode and not a recut.");
-                statusMessage.textContent = "Duplicate barcode not updated. ";
+
+        // Handle warning about unexpected resource area
+        if (data.warning && data.warning === 'not_at_resource') {
+            if (!confirm("This part is not expected at this area. Do you want to continue?")) {
+                console.log('User chose not to continue.');
+                statusMessage.textContent = "Scan cancelled by user.";
                 statusMessage.style.color = 'red';
+                return;
+            } else {
+                console.log('User chose to continue despite warning.');
+                statusMessage.textContent = 'Proceeding with scan...';
+                statusMessage.style.color = 'orange';
+                payload.forceContinue = true;
             }
-        } else {
-            console.error('Error:', error);
-            statusMessage.textContent = 'Error scanning barcode: ' + error.message;
-            statusMessage.style.color = 'red';
         }
+
+        // Repeat the API call if the user decided to continue despite the warning
+        if (payload.forceContinue) {
+            response = await fetch('/api/barcode-scan-Submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            data = await response.json();
+            if (response.status >= 400) {
+                throw new Error(data.detail || 'Server error during force continue');
+            }
+        }
+
+        // Now handle duplicate barcode scenario
+        if (data.warning && data.warning === 'duplicate_barcode') {
+            if (confirm("Duplicate barcode detected. Is this a recut part?")) {
+                console.log('User confirmed recut.');
+                statusMessage.textContent = 'Updating recut status...';
+                statusMessage.style.color = 'orange';
+
+                const recutData = {
+                    Barcode: barcode,
+                    OrderID: orderID,
+                    Resource: workArea,
+                    Recut: 1  // Assuming this increments the recut count by 1
+                };
+
+                const recutResponse = await fetch('/api/update-recut-status', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(recutData)
+                });
+                const recutResult = await recutResponse.json();
+                if (recutResponse.status >= 400) {
+                    throw new Error(recutResult.detail || 'Server error during recut update');
+                }
+                console.log('Recut status updated:', recutResult);
+                statusMessage.textContent = 'Recut status updated successfully.';
+                statusMessage.style.color = 'green';
+            } else {
+                console.log('User denied recut.');
+                statusMessage.textContent = "Scan cancelled by user.";
+                statusMessage.style.color = 'red';
+                return;
+            }
+        }
+
+        if (!data.warning) {
+            console.log('Success:', data);
+            statusMessage.textContent = 'Barcode scan successful.';
+            statusMessage.style.color = 'green';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        statusMessage.textContent = 'Error scanning barcode: ' + error.message;
+        statusMessage.style.color = 'red';
     } finally {
-        resetBarcodeField();        
-    }     
+        resetBarcodeField();
+    }
 }
 
 async function updateRecutStatus(barcode, orderID, workArea) {

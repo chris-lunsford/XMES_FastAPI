@@ -2,6 +2,7 @@ from datetime import datetime
 import datetime
 import pytz
 import asyncio
+import traceback
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -104,36 +105,42 @@ class BarcodeData(BaseModel):
     EmployeeID: str
     Resource: str
     CustomerID: str
+    forceContinue: bool = False  
 
 @app.post('/api/barcode-scan-Submit')
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
         # Create a timezone object for Eastern Time
         eastern = pytz.timezone('America/New_York')
-
         # Get the current time in UTC
         now_utc = datetime.now(pytz.utc)
-
         # Convert the current time from UTC to Eastern Time
         now_eastern = now_utc.astimezone(eastern)
-
         # Format the timestamp as a string without timezone information, suitable for SQL Server
         timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
+
         result = barcode_scan_to_db(
             data.Barcode, 
             data.OrderID, 
             timestamp,
             data.EmployeeID,
             data.Resource,
-            data.CustomerID
+            data.CustomerID,
+            forceContinue=data.forceContinue  # Pass the forceContinue flag to the function
             )
         return {"message": "Entry added successfully", "result": result}
     except ValueError as e:  # Specific handling for known exceptions
-        if "not expected at work area" in str(e):
+        if "Duplicate barcode; recut possible?" in str(e):
+            return JSONResponse(status_code=200, content={'warning': "duplicate_barcode", 'detail': str(e)})
+        elif "not expected at work area" in str(e):
             return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": str(e)})
         elif "not expected in the system" in str(e):
             raise HTTPException(status_code=400, detail=str(e))
+        else:
+            raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling
+        # Log the full stack trace to help diagnose the issue
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
     
 
