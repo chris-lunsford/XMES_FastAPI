@@ -50,6 +50,24 @@ window.EventHandler = window.EventHandler || {
         const notificationDetail = document.getElementById('notification-detail').value;
         const employeeID = document.getElementById('employee-id').value;
 
+        // Validate Order ID length
+        const statusMessage = document.getElementById('statusMessage');
+        if (orderID.length !== 8) {
+            statusMessage.textContent = "8 digit Order ID required.";
+            statusMessage.style.color = 'red';
+            return;
+        }
+
+        // Validate Notification Detail is not empty
+        if (notificationDetail.trim() === '') {
+            statusMessage.textContent = "Notification detail cannot be empty.";
+            statusMessage.style.color = 'red';
+            return;
+        }
+
+        statusMessage.textContent = "";
+        statusMessage.style.color = ''; // Reset color if no error
+
         const data = {
             OrderID: orderID,
             NotificationType: notificationType,
@@ -63,7 +81,7 @@ window.EventHandler = window.EventHandler || {
     submitFormData: async function(data) {
         try {
             document.getElementById('submit-button').disabled = true; // Disable the submit button
-            document.getElementById('status-message').textContent = "Submitting...";
+            document.getElementById('statusMessage').textContent = "Submitting...";
 
             const response = await fetch('/api/submit-order-notification', {
                 method: 'POST',
@@ -73,8 +91,10 @@ window.EventHandler = window.EventHandler || {
                 body: JSON.stringify(data)
             });
             const result = await response.json();
+            const statusMessage = document.getElementById('statusMessage');
             if (response.ok) {
-                document.getElementById('status-message').textContent = "Notification submitted successfully: " + result.message;
+                statusMessage.textContent = "Notification submitted: " + result.message;
+                statusMessage.style.color = 'green';
                 // Clear fields except for order-id-notificationpage
                 this.clearFormFieldsExceptOrderId();
                 fetchExistingJobNotifications(data.OrderID);
@@ -82,7 +102,8 @@ window.EventHandler = window.EventHandler || {
                 throw new Error(result.detail || "Unknown error occurred");
             }
         } catch (error) {
-            document.getElementById('status-message').textContent = "Error: " + error.message;
+            statusMessage.textContent = "Error: " + error.message;
+            statusMessage.style.color = 'red';
         } finally {
             document.getElementById('submit-button').disabled = false; // Re-enable the submit button
         }
