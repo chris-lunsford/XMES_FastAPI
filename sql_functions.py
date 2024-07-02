@@ -575,7 +575,7 @@ def generate_packlist(OrderID: str):
         """
         cursor.execute(query, (OrderID,))
         result = cursor.fetchall()
-        print("Data fetched:", result)  # Debugging line
+        # print("Data fetched:", result)  # Debugging line
         return result
     except Exception as e:
         print("Error in executing SQL: ", e)
