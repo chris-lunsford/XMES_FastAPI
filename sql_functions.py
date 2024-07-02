@@ -562,7 +562,7 @@ def generate_packlist(OrderID: str):
     cursor = conn.cursor()
     try:        
         query = """
-        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATID, f.Timestamp
+        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME, f.Timestamp
         FROM dbo.View_WIP v
         LEFT JOIN dba.Fact_WIP f 
             ON v.BARCODE = f.BARCODE 
