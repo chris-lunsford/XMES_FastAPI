@@ -301,7 +301,8 @@ def mm_to_inches(value):
     if value is None:
         return ''
     try:
-        return round(value * 0.0393701, 2)  # Convert mm to inches and round to 2 decimal places
+        inches = round(value * 0.0393701, 3)  # Convert mm to inches and round to 2 decimal places
+        return f"{inches:.3f}in"
     except (ValueError, TypeError):
         return value
     
