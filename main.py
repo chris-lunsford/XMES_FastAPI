@@ -327,11 +327,12 @@ templates.env.filters['format_date'] = format_date
 @app.get('/api/generate-packlist')
 async def handle_generate_packlist(request: Request, OrderID: str):
     try:
-        data = generate_packlist(OrderID)
+        data, customer_name = generate_packlist(OrderID)
         return templates.TemplateResponse("packlist_template.html", {
             "request": request,
             "data": data,
-            "order_id": OrderID
+            "order_id": OrderID,
+            "customer_name": customer_name 
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
