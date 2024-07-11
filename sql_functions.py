@@ -562,7 +562,7 @@ def generate_packlist(OrderID: str):
     cursor = conn.cursor()
     try:        
         query = """
-        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME, f.Timestamp
+        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME, f.Timestamp, v.INFO4, v.INFO3, v.CNC_BARCODE1, v.CUSTOMER
         FROM dbo.View_WIP v
         LEFT JOIN dba.Fact_WIP f 
             ON v.BARCODE = f.BARCODE 
@@ -571,12 +571,13 @@ def generate_packlist(OrderID: str):
         WHERE v.ORDERID = %s
         AND v.BARCODE IS NOT NULL
         AND (v.CNC_BARCODE1 IS NULL OR v.CNC_BARCODE1 <> '')
-        ORDER BY BARCODE;
+        ORDER BY INFO4 DESC, INFO3;
         """
         cursor.execute(query, (OrderID,))
         result = cursor.fetchall()
         print("Data fetched:", result)  # Debugging line
-        return result
+        customer_name = result[0][-1] if result else "No Customer"
+        return result, customer_name
     except Exception as e:
         print("Error in executing SQL: ", e)
         raise
@@ -586,5 +587,8 @@ def generate_packlist(OrderID: str):
 
 
 ############################################################
+
+
+
 
 
