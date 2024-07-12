@@ -185,7 +185,15 @@ function handleFetchPartsNotScanned() {
 function generatePackList() {
     var OrderID = document.getElementById('order-id').value;
     if (OrderID) {
-        window.open(`/api/generate-packlist?OrderID=${OrderID}`, '_blank');
+        fetch(`/api/generate-packlist?OrderID=${OrderID}`)
+            .then(response => response.text())  // Assuming the server sends back HTML
+            .then(html => {
+                var newWindow = window.open();
+                newWindow.document.open();
+                newWindow.document.write(html);
+                newWindow.document.close();
+            })
+            .catch(error => console.error('Error fetching the packlist:', error));
     } else {
         alert('Please enter a valid Order ID.');
     }
