@@ -23,7 +23,7 @@
                 <th>Height</th>
                 <th>Material</th>
                 <th>Shipping</th>
-                <th>Received</th>
+                <!-- <th>Received</th> -->
             </tr>
         </thead>
         <tbody>
@@ -39,7 +39,7 @@
                 <td>{{ (item[4] | mm_to_inches) if item[4] is not none else '' }}</td>  <!-- THICKNESS -->
                 <td>{{ item[5] if item[5] is not none else '' }}</td>  <!-- MATNAME -->
                 <td>{{ (item[6] | format_date) if item[6] is not none else '' }}</td>  <!-- Timestamp -->
-                <td></td>  <!-- Assuming Received is to be filled manually or elsewhere -->
+                <!-- <td></td>  Assuming Received is to be filled manually or elsewhere -->
             </tr>
             {% else %}
             <tr>
