@@ -50,6 +50,7 @@ function setupEventHandlers() {
     listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
+    listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
 }
 
 
@@ -190,4 +191,34 @@ function resetEmployeeData() {
     jobListContainer.innerHTML = ''
     document.getElementById('partcount-emp').textContent = '0';
     document.getElementById('partcount-area').textContent = '0';
+}
+
+
+function handleReportDefect() {
+    // Display the modal
+    var modal = document.getElementById("defectModal");
+    modal.style.display = "block";
+
+    // Optional: Pre-fill any fields in the modal based on existing data
+    // For example, automatically filling in the barcode or employee ID
+    var employeeIDField = document.getElementById('employee-id').value;
+    var barcodeField = document.getElementById('barcode').value;
+    // Assume these IDs exist in your modal form
+    document.getElementById('modal-employee-id').value = employeeIDField;
+    document.getElementById('modal-barcode').value = barcodeField;
+}
+
+// Close the modal with the close button
+var span = document.getElementsByClassName("close")[0];
+span.onclick = function() {
+    var modal = document.getElementById("defectModal");
+    modal.style.display = "none";
+}
+
+// Close the modal by clicking outside of it
+window.onclick = function(event) {
+    var modal = document.getElementById("defectModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
 }

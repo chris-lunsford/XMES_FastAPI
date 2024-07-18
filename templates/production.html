@@ -90,7 +90,11 @@
             </div>
         </div>    
     </section>
-    
+    <section class="report-defect-display">
+        <div>
+            <button type="button" id="report-defect">Report Defective Part</button>
+        </div>
+    </section>
     <section class="missing-part-display">
         <div>
             <button type="button" id="not-scanned-parts">Parts Not Scanned by Shipping</button>
@@ -109,6 +113,45 @@
             </table>
         </div>
     </section>
+    <!-- Modal Structure -->
+        <div id="defectModal" class="modal">
+            <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="defect-submission">
+                <section class="defect-header">
+                    <div class="defect-input-fields">                                 
+                        <div>
+                            <label for="order-id-defect">Order ID:</label>
+                            <input type="text" name="defect_info" id="order-id-defect" required>
+                        </div>    
+                        <div>
+                            <label for="defect-type">Defect Type:</label>
+                            <select name="defect_info" id="defect-type" required>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="defect-employee-id">Employee ID:</label>
+                            <input type="text" name="defect_info" id="defect-employee-id" required>
+                        </div>
+                        <div>
+                            <label for="work-area-defect">Work Area:</label>
+                            <select name="defect_info" id="work-area-defect" required>
+                        </div>   
+                    </div>
+                </section>
+                <section class="defect-detail-body">
+                    <!-- <div>
+                        <label for="defect-detail">Description of issue:</label>
+                        <textarea name="" id="defect-detail" cols="50" rows="10"></textarea>
+                        <button type="submit" id="submit-defect-button">Submit Defect</button>
+                    </div> -->
+                </section>
+                <!-- <label for="defect-desc">Defect Description:</label>
+                <textarea id="defect-desc" name="defectDescription" required></textarea>
+                <button type="submit">Submit Defect</button> -->
+            </form>
+            </div>
+        </div>
     <script src="templates/global.js"></script>    
 </body>
 </html>
