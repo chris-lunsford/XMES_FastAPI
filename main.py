@@ -16,6 +16,8 @@ from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
+from defect_types import DEFECT_TYPES
+from defect_actions import DEFECT_ACTIONS
 from sql_functions import *
 
 
@@ -76,6 +78,14 @@ async def get_work_station_groups():
 @app.get('/api/customer-ids')
 async def get_customer_ids():
     return CUSTOMER_IDS
+
+@app.get('/api/defect-types')
+async def get_defect_types():
+    return DEFECT_TYPES
+
+@app.get('/api/defect-actions')
+async def get_defect_actions():
+    return DEFECT_ACTIONS
 
 @app.get("/api/machine-status")
 async def machine_status():

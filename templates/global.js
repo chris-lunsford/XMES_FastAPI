@@ -271,6 +271,44 @@ function populateWorkAreas() {
         .catch(error => console.error('Error fetching work stations:', error));
 }
 
+function populateDefectTypes() {
+    fetch('/api/defect-types')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('defect-type');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(defectType => {
+                    let option = new Option(defectType, defectType);
+                    select.add(option);
+                });
+            } else {
+                console.log('Defect Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching defect types:', error));
+}
+
+function populateDefectActions() {
+    fetch('/api/defect-actions')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('defect-action');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(defectAction => {
+                    let option = new Option(defectAction, defectAction);
+                    select.add(option);
+                });
+            } else {
+                console.log('Defect Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching defect types:', error));
+}
+
 
 async function handleBarcodeScan_to_DB() {
     let employeeID = document.getElementById('employee-id').value;

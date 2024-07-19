@@ -32,6 +32,8 @@ function initializeProductionDashboard() {
     // Initialize dashboard functionalities
     populateCustomerIDs(); // Populate customer IDs
     populateWorkAreas(); // Populate work areas
+    populateDefectTypes();
+    populateDefectActions();
 
     // Setup event handlers at initialization
     setupEventHandlers();
@@ -51,6 +53,7 @@ function setupEventHandlers() {
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
+    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitDefect);
 }
 
 
@@ -201,11 +204,24 @@ function handleReportDefect() {
 
     // Optional: Pre-fill any fields in the modal based on existing data
     // For example, automatically filling in the barcode or employee ID
+    var orderIDField = document.getElementById('order-id').value;
     var employeeIDField = document.getElementById('employee-id').value;
-    var barcodeField = document.getElementById('barcode').value;
-    // Assume these IDs exist in your modal form
-    document.getElementById('modal-employee-id').value = employeeIDField;
-    document.getElementById('modal-barcode').value = barcodeField;
+    var workAreaField = document.getElementById('work-area');
+    var workAreaDefectField = document.getElementById('work-area-defect');
+
+    // Clear existing options in modal's work area select
+    workAreaDefectField.innerHTML = '';
+
+    // Copy all options from the main form's work area select to the modal's select
+    for (var i = 0; i < workAreaField.options.length; i++) {
+        var opt = workAreaField.options[i];
+        var newOption = new Option(opt.text, opt.value, opt.defaultSelected, opt.selected);
+        workAreaDefectField.options.add(newOption);
+    }
+
+    // Set selected values
+    document.getElementById('order-id-defect').value = orderIDField;
+    document.getElementById('defect-employee-id').value = employeeIDField;
 }
 
 // Close the modal with the close button

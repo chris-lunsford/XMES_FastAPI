@@ -30,7 +30,7 @@
             </div>    
             <div>
                 <label for="order-id">Order ID:</label>
-                <input type="text" value="Optional" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
+                <input type="text" value="" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
             </div>    
             <div>
                 <label for="barcode">Barcode:</label>
@@ -116,41 +116,47 @@
     <!-- Modal Structure -->
         <div id="defectModal" class="modal">
             <div class="modal-content">
-            <span class="close">&times;</span>
+                <div class="modal-header">
+                    <span class="title">Submit Defective Part</span>  
+                    <span class="close">&times;</span>                  
+                </div>
             <form id="defect-submission">
                 <section class="defect-header">
-                    <div class="defect-input-fields">                                 
+                    <div class="defect-input-fields">
+                        <div>
+                            <label for="defect-barcode">Barcode:</label>
+                            <input type="text" name="defect_info" id="defect-barcode" required>
+                        </div>                                  
                         <div>
                             <label for="order-id-defect">Order ID:</label>
                             <input type="text" name="defect_info" id="order-id-defect" required>
-                        </div>    
-                        <div>
-                            <label for="defect-type">Defect Type:</label>
-                            <select name="defect_info" id="defect-type" required>
-                            </select>
-                        </div>
+                        </div>  
                         <div>
                             <label for="defect-employee-id">Employee ID:</label>
                             <input type="text" name="defect_info" id="defect-employee-id" required>
                         </div>
                         <div>
                             <label for="work-area-defect">Work Area:</label>
-                            <select name="defect_info" id="work-area-defect" required>
-                        </div>   
+                            <select name="defect_info" id="work-area-defect" required></select>
+                        </div>
+                        <div>
+                            <label for="defect-type">Defect Type:</label>
+                            <select name="defect_info" id="defect-type" required></select>                            
+                        </div>
+                        <div>
+                            <label for="defect-action">Action:</label>
+                            <select name="defect_info" id="defect-action" required></select>                            
+                        </div>                          
                     </div>
                 </section>
-                <section class="defect-detail-body">
-                    <!-- <div>
+                <section class="defect-description">
+                    <div class="detail-body">
                         <label for="defect-detail">Description of issue:</label>
-                        <textarea name="" id="defect-detail" cols="50" rows="10"></textarea>
-                        <button type="submit" id="submit-defect-button">Submit Defect</button>
-                    </div> -->
-                </section>
-                <!-- <label for="defect-desc">Defect Description:</label>
-                <textarea id="defect-desc" name="defectDescription" required></textarea>
-                <button type="submit">Submit Defect</button> -->
-            </form>
-            </div>
+                        <textarea name="" id="defect-detail" cols="50" rows="10" required></textarea>                        
+                    </div>
+                    <button type="submit" id="submit-defect-button">Submit Defect</button>
+                </section>                                
+            </form>                        
         </div>
     <script src="templates/global.js"></script>    
 </body>
