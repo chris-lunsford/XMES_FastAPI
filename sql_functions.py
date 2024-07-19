@@ -590,5 +590,31 @@ def generate_packlist(OrderID: str):
 
 
 
+def submit_defect(OrderID, DefectType, DefectDetails, DefectAction, EmployeeID, Resource, Barcode):
+    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            submit_query=f"""
+            INSERT INTO [DBA].[Fact_Defects]
+            (OrderID, DefectType, DefectDetails, DefectAction, DateSubmitted, EmployeeID, Resource, Barcode)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(submit_query, (OrderID, DefectType, DefectDetails, DefectAction, current_date, EmployeeID, Resource, Barcode))
+            conn.commit()
+            return "Success"
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise Exception(f"Database query failed {e}")
+    finally:
+        if conn:
+            conn.close()
 
+
+from datetime import datetime
+current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+print(current_date)
 

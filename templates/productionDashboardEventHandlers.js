@@ -238,3 +238,51 @@ window.onclick = function(event) {
         modal.style.display = "none";
     }
 }
+
+
+
+function handleSubmitDefect() {
+    let orderID = document.getElementById('order-id-defect').value;
+    let defectType = document.getElementById('defect-type').value;
+    let defectDetails = document.getElementById('defect-detail').textContent;
+    let defectAction = document.getElementById('defect-action').value;
+    let employeeID = document.getElementById('defect-employee-id').value;
+    let resource = document.getElementById('work-area-defect').value;
+    let barcode = document.getElementById('defect-barcode').value;
+    
+    const payload = {
+        OrderID: orderID,
+        DefectType: defectType,
+        DefectDetails: defectDetails,
+        DefectAction: defectAction,
+        EmployeeID: employeeID,
+        Resource: resource,
+        Barcode: barcode
+    };
+
+        // Assuming the server endpoint URL is '/api/submit-defect'
+    fetch('/api/submit-defect', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        alert('Defect submitted successfully!');
+        // Optionally, clear the form or redirect the user
+    })
+    .catch(error => {
+        console.error('Error submitting defect:', error);
+        alert('Failed to submit defect. Please try again.');
+    });
+}
+
+

@@ -346,3 +346,31 @@ async def handle_generate_packlist(request: Request, OrderID: str):
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+class DefectData(BaseModel):
+    OrderID: str
+    DefectType: str
+    DefectDetails: str
+    DefectAction: str
+    EmployeeID: str
+    Resource: str
+    Barcode: str
+
+@app.post('/api/submit-defect')
+async def handle_submit_defect(data: DefectData):
+    try:
+        result = submit_defect(
+            data.OrderID, 
+            data.DefectType, 
+            data.DefectDetails, 
+            data.DefectAction,
+            data.EmployeeID,
+            data.Resource,
+            data.Barcode
+            )
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
