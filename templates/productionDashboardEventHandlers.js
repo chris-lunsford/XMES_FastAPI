@@ -53,7 +53,7 @@ function setupEventHandlers() {
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
-    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitDefect);
+    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
 }
 
 
@@ -244,7 +244,7 @@ window.onclick = function(event) {
 function handleSubmitDefect() {
     let orderID = document.getElementById('order-id-defect').value;
     let defectType = document.getElementById('defect-type').value;
-    let defectDetails = document.getElementById('defect-detail').textContent;
+    let defectDetails = document.getElementById('defect-detail').value;
     let defectAction = document.getElementById('defect-action').value;
     let employeeID = document.getElementById('defect-employee-id').value;
     let resource = document.getElementById('work-area-defect').value;
@@ -284,5 +284,25 @@ function handleSubmitDefect() {
         alert('Failed to submit defect. Please try again.');
     });
 }
+
+
+// Define the barcode scanning function outside to keep its reference
+function handleSubmitButton(event) {    
+    console.log("Submit button clicked");
+    event.preventDefault(); // Prevent the default form submission
+
+    const form = document.getElementById('defect-submission');
+    if (!form.checkValidity()) {
+        form.reportValidity(); // Show validation messages if form is invalid
+        return;
+    }
+
+    try {
+        handleSubmitDefect(); // Call the function to handle the defect submission
+    } catch (error) {
+        console.error('Failed to submit defect:', error);
+    }
+}
+
 
 
