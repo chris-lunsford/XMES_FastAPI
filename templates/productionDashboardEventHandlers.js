@@ -12,6 +12,16 @@ async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
+
+        // Check validity of the barcode input field
+        const barcodeInput = document.getElementById('barcode');
+        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+        
+        if (form && !form.checkValidity()) {
+            form.reportValidity(); // Show validation messages if form is invalid
+            return;
+        }
+        
         try {
             await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
             updatePartCountsOnScan();        // Then update parts counts
