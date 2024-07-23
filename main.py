@@ -55,8 +55,12 @@ async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/order-dashboard')
-async def notification(request: Request):
+async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
+
+@app.get('/defect-dashboard')
+async def defect_dashboard(request: Request):
+    return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
 def get_resource_group(Resource):
     """Return the group for a given work area, or the work area itself if no group is defined."""
