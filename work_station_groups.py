@@ -14,10 +14,12 @@ WORK_STATION_GROUPS = {
     "PR1": "PRZ",
     "PR2": "PRZ",
     "PR3": "PRZ",
+    "PR3": "PRZ",
     "HR1": "HRZ",
     "HD1": "HDZ",
     "HD2": "HDZ",
     "GM1": "GMZ",
+    "SC1": "SCZ",
     "SC2": "SCZ",
     # Add other mappings as necessary
 }
