@@ -378,3 +378,15 @@ async def handle_submit_defect(data: DefectData):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/fetch-defects')
+async def handle_fetch_defects(order_id: Optional[str] = None, 
+                               defect_type: Optional[str] = None, 
+                               defect_action: Optional[str] = None, 
+                               work_area: Optional[str] = None):
+    try:
+        result = fetch_defect_list(order_id, defect_type, defect_action, work_area)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
