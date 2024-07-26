@@ -16,6 +16,8 @@ from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
+from defect_types import DEFECT_TYPES
+from defect_actions import DEFECT_ACTIONS
 from sql_functions import *
 
 
@@ -53,8 +55,12 @@ async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/order-dashboard')
-async def notification(request: Request):
+async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
+
+@app.get('/defect-dashboard')
+async def defect_dashboard(request: Request):
+    return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
 def get_resource_group(Resource):
     """Return the group for a given work area, or the work area itself if no group is defined."""
@@ -76,6 +82,14 @@ async def get_work_station_groups():
 @app.get('/api/customer-ids')
 async def get_customer_ids():
     return CUSTOMER_IDS
+
+@app.get('/api/defect-types')
+async def get_defect_types():
+    return DEFECT_TYPES
+
+@app.get('/api/defect-actions')
+async def get_defect_actions():
+    return DEFECT_ACTIONS
 
 @app.get("/api/machine-status")
 async def machine_status():
@@ -334,5 +348,45 @@ async def handle_generate_packlist(request: Request, OrderID: str):
             "order_id": OrderID,
             "customer_name": customer_name 
         })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+class DefectData(BaseModel):
+    OrderID: str
+    DefectType: str
+    DefectDetails: str
+    DefectAction: str
+    EmployeeID: str
+    Resource: str
+    Barcode: str
+
+@app.post('/api/submit-defect')
+async def handle_submit_defect(data: DefectData):
+    try:
+        result = submit_defect(
+            data.OrderID, 
+            data.DefectType, 
+            data.DefectDetails, 
+            data.DefectAction,
+            data.EmployeeID,
+            data.Resource,
+            data.Barcode
+            )
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/fetch-defects')
+async def handle_fetch_defects(order_id: Optional[str] = None, 
+                               defect_type: Optional[str] = None, 
+                               defect_action: Optional[str] = None, 
+                               work_area: Optional[str] = None):
+    try:
+        result = fetch_defect_list(order_id, defect_type, defect_action, work_area)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

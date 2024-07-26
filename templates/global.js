@@ -271,6 +271,44 @@ function populateWorkAreas() {
         .catch(error => console.error('Error fetching work stations:', error));
 }
 
+function populateDefectTypes() {
+    fetch('/api/defect-types')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('defect-type');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(defectType => {
+                    let option = new Option(defectType, defectType);
+                    select.add(option);
+                });
+            } else {
+                console.log('Defect Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching defect types:', error));
+}
+
+function populateDefectActions() {
+    fetch('/api/defect-actions')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('defect-action');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(defectAction => {
+                    let option = new Option(defectAction, defectAction);
+                    select.add(option);
+                });
+            } else {
+                console.log('Defect Type select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching defect types:', error));
+}
+
 
 async function handleBarcodeScan_to_DB() {
     let employeeID = document.getElementById('employee-id').value;
@@ -916,5 +954,130 @@ function updatePartsTable(parts) {
                         <td>${part.Description}</td>
                      </tr>`;
         tableBody.innerHTML += row;
+    });
+}
+
+
+
+
+
+/**********************************************************/
+/* Defect Dashboard */
+
+function fetchDefectList() {
+    const orderID = document.getElementById('order-id').value;
+    const defectType = document.getElementById('defect-type').value;
+    const defectAction = document.getElementById('defect-action').value;
+    const workArea = document.getElementById('work-area').value;
+    console.log('Fetching Defect List')
+
+    const url = `/api/fetch-defects?` +
+                `order_id=${encodeURIComponent(orderID)}&` +
+                `defect_type=${encodeURIComponent(defectType)}&` +
+                `defect_action=${encodeURIComponent(defectAction)}&` +
+                `work_area=${encodeURIComponent(workArea)}`;
+
+    fetch(url)
+    .then(response => response.json())
+    .then(data => {
+        updateDefectTable(data);
+    })
+    .catch(error => console.error('Error fetching data:', error));
+}
+
+
+function updateDefectTable(defects) {
+    const tableBody = document.getElementById('table-body');
+    tableBody.innerHTML = '';
+    defects.forEach(defect => {
+        const row = `<tr>
+                        <td>${defect.OrderID}</td>
+                        <td>${defect.DefectType}</td>
+                        <td>${defect.DefectDetails}</td>
+                        <td>${defect.DefectAction}</td>
+                        <td class="date-cell">${defect.DateSubmitted}</td>
+                        <td>${defect.EmployeeID}</td>
+                        <td>${defect.Resource}</td>
+                        <td>${defect.Barcode}</td>
+                    </tr>`;
+        tableBody.innerHTML += row;
+    });
+
+    // After table is updated, reformat date cells
+    reformatDateElements();
+}
+
+// Object to store the direction for each column
+var sortDirections = {};
+
+function sortTable(columnIndex) {
+    const table = document.getElementById("parts-table");
+    let switching = true;
+
+    // Check if the column has been sorted before and toggle direction
+    if (sortDirections[columnIndex] && sortDirections[columnIndex] === "asc") {
+        sortDirections[columnIndex] = "desc";
+    } else {
+        sortDirections[columnIndex] = "asc";
+    }
+
+    let direction = sortDirections[columnIndex]; // Get current direction for this column
+    let shouldSwitch, i; // Declare outside the loop to ensure they are reset properly each time
+
+    while (switching) {
+        switching = false;
+        const rows = table.getElementsByTagName("TR");
+
+        // Loop through all rows except the header and the last one for comparison
+        for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+
+            // Get the two elements to compare, one from current row and one from the next
+            const x = rows[i].getElementsByTagName("TD")[columnIndex];
+            const y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
+
+            // Decide if switching should occur based on the direction
+            if (direction === "asc") {
+                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else {
+                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+
+        if (shouldSwitch) {
+            // If a switch is needed, perform it and mark that a switch has been done
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+        } else if (i === (rows.length - 2) && !shouldSwitch) {
+            // If no switching has been done, stop the loop
+            switching = false;
+        }
+    }
+}
+
+function reformatDateElements() {
+    // Select all elements with the 'date-cell' class
+    const dateCells = document.querySelectorAll('.date-cell');
+
+    dateCells.forEach(cell => {
+        // Get current content, which is in ISO 8601 format
+        const isoDate = cell.textContent;
+
+        // Create a date object
+        const dateObj = new Date(isoDate);
+
+        // Format the date as desired, here using toLocaleDateString for a simple example
+        // You can specify options to change the appearance
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const formattedDate = dateObj.toLocaleDateString(undefined, options);
+
+        // Replace the cell content with the formatted date
+        cell.textContent = formattedDate;
     });
 }

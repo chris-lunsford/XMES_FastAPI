@@ -12,6 +12,16 @@ async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
+
+        // Check validity of the barcode input field
+        const barcodeInput = document.getElementById('barcode');
+        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+        
+        if (form && !form.checkValidity()) {
+            form.reportValidity(); // Show validation messages if form is invalid
+            return;
+        }
+        
         try {
             await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
             updatePartCountsOnScan();        // Then update parts counts
@@ -32,6 +42,8 @@ function initializeProductionDashboard() {
     // Initialize dashboard functionalities
     populateCustomerIDs(); // Populate customer IDs
     populateWorkAreas(); // Populate work areas
+    populateDefectTypes();
+    populateDefectActions();
 
     // Setup event handlers at initialization
     setupEventHandlers();
@@ -50,6 +62,8 @@ function setupEventHandlers() {
     listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
+    listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
+    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
 }
 
 
@@ -191,3 +205,114 @@ function resetEmployeeData() {
     document.getElementById('partcount-emp').textContent = '0';
     document.getElementById('partcount-area').textContent = '0';
 }
+
+
+function handleReportDefect() {
+    // Display the modal
+    var modal = document.getElementById("defectModal");
+    modal.style.display = "block";
+
+    // Optional: Pre-fill any fields in the modal based on existing data
+    // For example, automatically filling in the barcode or employee ID
+    var orderIDField = document.getElementById('order-id').value;
+    var employeeIDField = document.getElementById('employee-id').value;
+    var workAreaField = document.getElementById('work-area');
+    var workAreaDefectField = document.getElementById('work-area-defect');
+
+    // Clear existing options in modal's work area select
+    workAreaDefectField.innerHTML = '';
+
+    // Copy all options from the main form's work area select to the modal's select
+    for (var i = 0; i < workAreaField.options.length; i++) {
+        var opt = workAreaField.options[i];
+        var newOption = new Option(opt.text, opt.value, opt.defaultSelected, opt.selected);
+        workAreaDefectField.options.add(newOption);
+    }
+
+    // Set selected values
+    document.getElementById('order-id-defect').value = orderIDField;
+    document.getElementById('defect-employee-id').value = employeeIDField;
+}
+
+// Close the modal with the close button
+var span = document.getElementsByClassName("close")[0];
+span.onclick = function() {
+    var modal = document.getElementById("defectModal");
+    modal.style.display = "none";
+}
+
+// Close the modal by clicking outside of it
+window.onclick = function(event) {
+    var modal = document.getElementById("defectModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+
+
+
+function handleSubmitDefect() {
+    let orderID = document.getElementById('order-id-defect').value;
+    let defectType = document.getElementById('defect-type').value;
+    let defectDetails = document.getElementById('defect-detail').value;
+    let defectAction = document.getElementById('defect-action').value;
+    let employeeID = document.getElementById('defect-employee-id').value;
+    let resource = document.getElementById('work-area-defect').value;
+    let barcode = document.getElementById('defect-barcode').value;
+    
+    const payload = {
+        OrderID: orderID,
+        DefectType: defectType,
+        DefectDetails: defectDetails,
+        DefectAction: defectAction,
+        EmployeeID: employeeID,
+        Resource: resource,
+        Barcode: barcode
+    };
+
+        // Assuming the server endpoint URL is '/api/submit-defect'
+    fetch('/api/submit-defect', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        alert('Defect submitted successfully!');
+        // Optionally, clear the form or redirect the user
+    })
+    .catch(error => {
+        console.error('Error submitting defect:', error);
+        alert('Failed to submit defect. Please try again.');
+    });
+}
+
+
+// Define the barcode scanning function outside to keep its reference
+function handleSubmitButton(event) {    
+    console.log("Submit button clicked");
+    event.preventDefault(); // Prevent the default form submission
+
+    const form = document.getElementById('defect-submission');
+    if (!form.checkValidity()) {
+        form.reportValidity(); // Show validation messages if form is invalid
+        return;
+    }
+
+    try {
+        handleSubmitDefect(); // Call the function to handle the defect submission
+    } catch (error) {
+        console.error('Failed to submit defect:', error);
+    }
+}
+
+
+

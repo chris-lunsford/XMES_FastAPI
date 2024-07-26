@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/defect_dashboard.css">    
+    <title>Defects</title>
+</head>
+<body class="defect-dashboard">    
+    <h1 class="centered">
+        <span class="title">Defect Table</span>
+    </h1>
+    <section class="defect-container">
+        <section class="defect-filters">    
+            <div>
+                <label for="order-id">Order ID:</label>
+                <input type="text" name="defect_info" id="order-id">
+            </div>
+            <div>
+                <label for="defect-type">Defect Type:</label>
+                <select name="defect_info" id="defect-type" required></select>
+            </div>
+            <div>
+                <label for="defect-action">Defect Action:</label>
+                <select name="defect_info" id="defect-action" required></select>
+            </div>
+            <div>
+                <label for="work-area">Work Area:</label>
+                <select name="defect_info" id="work-area" required></select>
+            </div>
+        </section>
+        <section class="defect-list-display">
+            <div>
+                <button type="button" id="fetch-defects">Generate List</button>
+            </div>
+            <div class="defect-table">
+                <table id="parts-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">OrderID</th>
+                            <th onclick="sortTable(1)">Defect Type</th>
+                            <th onclick="sortTable(2)">Defect Details</th>
+                            <th onclick="sortTable(3)">Action</th>
+                            <th onclick="sortTable(4)">Date Submitted</th>
+                            <th onclick="sortTable(5)">Submitted By</th>
+                            <th onclick="sortTable(6)">Area</th>
+                            <th onclick="sortTable(7)">Barcode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Data rows will be added here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </section>    
+    <script src="templates/global.js"></script>   
+</body>
+</html>

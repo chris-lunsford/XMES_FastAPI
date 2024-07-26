@@ -590,5 +590,73 @@ def generate_packlist(OrderID: str):
 
 
 
+def submit_defect(OrderID, DefectType, DefectDetails, DefectAction, EmployeeID, Resource, Barcode):
+    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    try:
+        with conn.cursor() as cursor:
+            submit_query=f"""
+            INSERT INTO [DBA].[Fact_Defects]
+            (OrderID, DefectType, DefectDetails, DefectAction, DateSubmitted, EmployeeID, Resource, Barcode)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(submit_query, (OrderID, DefectType, DefectDetails, DefectAction, current_date, EmployeeID, Resource, Barcode))
+            conn.commit()
+            return "Success"
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise Exception(f"Database query failed {e}")
+    finally:
+        if conn:
+            conn.close()
 
+
+from datetime import datetime
+current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+print(current_date)
+
+
+############################################################
+
+
+def fetch_defect_list(order_id=None, defect_type=None, defect_action=None, work_area=None):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    
+    query=f"""
+            SELECT OrderID, DefectType, DefectDetails, DefectAction, DateSubmitted, EmployeeID, Resource, Barcode
+            FROM [DBA].[Fact_Defects]
+            WHERE 1=1
+            """
+    params = []
+    # Append conditions and parameters to the list as needed
+    if order_id:
+        query += " AND OrderID = %s"
+        params.append(order_id)
+    if defect_type:
+        query += " AND DefectType = %s"
+        params.append(defect_type)
+    if defect_action:
+        query += " AND DefectAction = %s"
+        params.append(defect_action)
+    if work_area:
+        query += " AND Resource = %s"
+        params.append(work_area)
+
+    try:
+        with conn.cursor(as_dict=True) as cursor:            
+            cursor.execute(query, tuple(params))  # Pass parameters as a tuple           
+            result = cursor.fetchall()
+            print("Data fetched:", result)  # Debugging line
+        return result
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise Exception(f"Database query failed {e}")
+    finally:
+        conn.close()
 
