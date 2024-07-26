@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from fastapi import HTTPException
 from work_station_groups import WORK_STATION_GROUPS
 import pymssql
 
@@ -550,6 +551,51 @@ async def get_not_scanned_parts(OrderID: str):
     except Exception as e:
         print("Error in executing SQL: ", e)
         raise
+
+
+    ############################################################
+
+
+async def get_not_scanned_byarea(OrderID: str, Resource: str):
+    work_group = WORK_STATION_GROUPS.get(Resource)
+    if not work_group:
+        raise HTTPException(status_code=400, detail="Invalid work area")
+    
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(as_dict=True)
+
+        query = """
+        SELECT
+            vw.BARCODE,
+            vw.INFO1 AS Description
+        FROM
+            [dbo].[View_WIP] vw
+        WHERE
+            vw.ORDERID = %s
+            AND vw.INFO2 LIKE %s
+            AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
+            AND NOT EXISTS (
+                SELECT 1
+                FROM [DBA].[Fact_WIP] fw
+                WHERE fw.BARCODE = vw.BARCODE
+                AND fw.RESOURCE LIKE %s
+                AND fw.ORDERID = vw.ORDERID
+            )
+        ORDER BY BARCODE
+        """
+        formatted_resource = f'%{work_group}%'
+        cursor.execute(query, (OrderID, formatted_resource, formatted_resource))
+        result = cursor.fetchall()       
+        
+        cursor.close()
+        conn.close()
+        return result
+    
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
+
 
 
 ############################################################

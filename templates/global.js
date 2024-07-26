@@ -934,9 +934,9 @@ function fetchWorkStationGroups() {
 
 
 // Function to fetch parts not scanned and update the table
-function fetchPartsNotScanned(orderID) {
-    console.log('Submitting data:', { orderID });
-    fetch(`/api/parts-not-scanned-by-shipping?OrderID=${orderID}`)
+function fetchPartsNotScanned(orderID, workAreaField) {
+    console.log('Submitting data:', { orderID }, { workAreaField });
+    fetch(`/api/parts-not-scanned-by-area?OrderID=${orderID}&Resource=${workAreaField}`)
         .then(response => response.json())
         .then(data => {
             updatePartsTable(data);
