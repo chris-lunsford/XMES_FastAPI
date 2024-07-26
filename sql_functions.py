@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from fastapi import HTTPException
 from work_station_groups import WORK_STATION_GROUPS
 import pymssql
 
@@ -286,28 +287,16 @@ def get_order_totalarea_count(OrderID, Resource):
     if conn is None:
         raise Exception("Failed to connect to the database.")
     try:
-        with conn.cursor() as cursor:
-            # Check if the Resource is 'SCZ' and modify the behavior
-            if Resource == 'SCZ':
-                # For SCZ, count all barcodes regardless of CNC_BARCODE1
-                select_query = """
-                SELECT COUNT(BARCODE)
-                FROM dbo.View_WIP
-                WHERE OrderID = %s
-                AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
-                """
-                cursor.execute(select_query, (OrderID,))
-            else:
-                # For other resources, use the original query
-                Formatted_Resource = f'%{Resource}%'
-                select_query = """
-                SELECT COUNT(BARCODE)
-                FROM dbo.View_WIP
-                WHERE OrderID = %s AND INFO2 LIKE %s
-                AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
-                """
-                cursor.execute(select_query, (OrderID, Formatted_Resource))
-            
+        with conn.cursor() as cursor:            
+            Formatted_Resource = f'%{Resource}%'
+            select_query = """
+            SELECT COUNT(BARCODE)
+            FROM dbo.View_WIP
+            WHERE OrderID = %s AND INFO2 LIKE %s
+            AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+            """
+            cursor.execute(select_query, (OrderID, Formatted_Resource))
+                
             (count,) = cursor.fetchone()
             return count or 0  # Return 0 if count is None
     except Exception as e:
@@ -359,16 +348,16 @@ def get_order_part_counts(OrderID):
                 COUNT(CASE WHEN INFO2 LIKE '%HRZ%' THEN BARCODE END) AS HRZ,
                 COUNT(CASE WHEN INFO2 LIKE '%HDZ%' THEN BARCODE END) AS HDZ,
                 COUNT(CASE WHEN INFO2 LIKE '%GMZ%' THEN BARCODE END) AS GMZ,
-                COUNT(DISTINCT BARCODE) AS Total
+                COUNT(CASE WHEN INFO2 LIKE '%SCZ%' THEN BARCODE END) AS SCZ
             FROM dbo.View_WIP
             WHERE OrderID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
             """
             cursor.execute(select_query, (OrderID))
             result = cursor.fetchone()
-            keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'Total']
-            counts = {key: result[i] for i, key in enumerate(keys)}
-            counts['SCZ'] = counts['Total']  # Set SCZ count as the total count
+            keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'SCZ']
+            counts = {key: result[i] for i, key in enumerate(keys)}            
             return counts
+        
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
     finally:
@@ -550,6 +539,51 @@ async def get_not_scanned_parts(OrderID: str):
     except Exception as e:
         print("Error in executing SQL: ", e)
         raise
+
+
+    ############################################################
+
+
+async def get_not_scanned_byarea(OrderID: str, Resource: str):
+    work_group = WORK_STATION_GROUPS.get(Resource)
+    if not work_group:
+        raise HTTPException(status_code=400, detail="Invalid work area")
+    
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(as_dict=True)
+
+        query = """
+        SELECT
+            vw.BARCODE,
+            vw.INFO1 AS Description
+        FROM
+            [dbo].[View_WIP] vw
+        WHERE
+            vw.ORDERID = %s
+            AND vw.INFO2 LIKE %s
+            AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
+            AND NOT EXISTS (
+                SELECT 1
+                FROM [DBA].[Fact_WIP] fw
+                WHERE fw.BARCODE = vw.BARCODE
+                AND fw.RESOURCE LIKE %s
+                AND fw.ORDERID = vw.ORDERID
+            )
+        ORDER BY BARCODE
+        """
+        formatted_resource = f'%{work_group}%'
+        cursor.execute(query, (OrderID, formatted_resource, formatted_resource))
+        result = cursor.fetchall()       
+        
+        cursor.close()
+        conn.close()
+        return result
+    
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
+
 
 
 ############################################################

@@ -306,7 +306,14 @@ async def handle_parts_not_scanned_by_shipping(OrderID: str):
         return await get_not_scanned_parts(OrderID)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
+@app.get('/api/parts-not-scanned-by-area')
+async def handle_parts_not_scanned_by_area(OrderID: str, Resource: str):
+    try:
+        return await get_not_scanned_byarea(OrderID, Resource)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

@@ -166,8 +166,9 @@ function updateEEJobListDay() {
 // Event handler for fetching parts not scanned by shipping
 function handleFetchPartsNotScanned() {
     const orderID = document.getElementById('order-id').value.trim();
+    const workAreaField = document.getElementById('work-area').value;
     if (orderID) {
-        fetchPartsNotScanned(orderID);  // This function will be defined in global.js
+        fetchPartsNotScanned(orderID, workAreaField);  // This function will be defined in global.js
     }
 }
 
