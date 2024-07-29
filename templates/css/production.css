@@ -187,6 +187,57 @@ html, body {
     gap: 35px;
 }
 
+progress {
+    width: 100%; /* Full width of its container */
+    height: 20px; /* Adequate height for visibility */
+    appearance: none; /* Add this line */
+    background-color: #eee; /* Light grey background */
+    border-radius: 10px;
+    padding: 0px;
+}
+
+/* Optional: Style for different browser engines */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress.complete {
+    background-color: limegreen; /* Green background for complete progress */
+}
+
+/* For browsers using pseudo-elements for progress bars */
+progress.complete::-webkit-progress-value {
+    background-color: limegreen;
+}
+
+progress.complete::-moz-progress-bar {
+    background-color: limegreen;
+}
+
+.progressbar-container {
+    position: relative;
+    width: 100%;
+}
+
+.progressbar-container span {
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    transform: translate(-50%, -50%); /* Center the text both horizontally and vertically */
+    color: black; /* Color for visibility, change as necessary */
+}
+
 
 .report-defect-display {
     display: flex;
