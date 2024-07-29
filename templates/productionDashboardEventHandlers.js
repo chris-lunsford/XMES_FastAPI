@@ -82,7 +82,7 @@ function handleDynamicInputs(event) {
     if (event.target.id === 'barcode' && event.target.value.length === 12) {
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
-        fetchOrderTotalCount(orderIDField.value);        
+        // fetchOrderTotalCount(orderIDField.value);        
 
         if (workArea && workArea !== '') {
             fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);            
@@ -108,7 +108,7 @@ function handleDynamicInputs(event) {
     // Handle OrderID input and Resource & Order input together for proper validation
     if (event.target.id === 'order-id' && orderID.length === 8) {
         fetchJobNotifications(orderID);
-        fetchOrderTotalCount(orderID);
+        // fetchOrderTotalCount(orderID);
 
         // Verify that the work area has a valid selection
         if (workArea && workArea !== "") {
@@ -317,3 +317,31 @@ function handleSubmitButton(event) {
 
 
 
+// Function to update progress bar
+function updateAreaProgressBar() {
+    console.log("Updating progress bar");
+    var currentCountElement = document.getElementById(`ordercount-area`);
+    var partCountElement = document.getElementById(`ordercount-total-area`);
+    var progressBar = document.getElementById(`progress-bar`);
+    var progressText = document.getElementById(`progress-text`);
+
+    
+    var currentCount = parseInt(currentCountElement.textContent, 10);
+    var partCount = parseInt(partCountElement.textContent, 10);
+
+    if (partCount > 0) {
+        var percentComplete = (currentCount / partCount) * 100;
+        progressBar.value = percentComplete;
+        progressText.textContent = `${Math.round(percentComplete)}%`;
+
+        if (Math.round(percentComplete) === 100) {
+            progressBar.classList.add('complete');
+        } else {
+            progressBar.classList.remove('complete');
+        }
+    } else {
+        progressBar.value = 0;
+        progressText.textContent = "0%";
+        progressBar.classList.remove('complete');
+    }
+}
