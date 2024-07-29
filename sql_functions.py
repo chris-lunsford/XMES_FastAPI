@@ -573,7 +573,7 @@ async def get_not_scanned_byarea(OrderID: str, Resource: str):
         ORDER BY BARCODE
         """
         formatted_resource = f'%{work_group}%'
-        cursor.execute(query, (OrderID, formatted_resource, formatted_resource))
+        cursor.execute(query, (OrderID, formatted_resource, Resource))
         result = cursor.fetchall()       
         
         cursor.close()
