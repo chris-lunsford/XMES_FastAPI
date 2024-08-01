@@ -105,14 +105,14 @@ html, body {
     display: flex;
     flex-direction: column;
     row-gap: 15px;
-    padding: 10px; /** Provides padding around the list **/      
+    padding: 1px; /** Provides padding around the list **/      
 }
 
 #notification-list li {
     display: flex;
     flex-direction: column;
     row-gap: 0px; /** Space between rows**/
-    padding: 5px; /** Padding inside each list item**/
+    padding: 4px; /** Padding inside each list item**/
     /* border-bottom: 1px solid red;*/ /* Divider between items* */
     border-radius: 5px; /** Rounded corners**/
     margin-bottom:0px; /**Margin at the bottom of each item**/
@@ -185,6 +185,68 @@ html, body {
     display: flex;
     justify-content: space-between;
     gap: 35px;
+}
+
+.part-count {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.part-count > div {
+    position: relative; /* Required for positioning the percentage text absolutely */
+    width: 100%; /* Full width to contain the progress bar */
+}
+
+progress {
+    width: 100%; /* Full width of its container */
+    height: 20px; /* Adequate height for visibility */
+    appearance: none; /* Add this line */
+    background-color: #eee; /* Light grey background */
+    border-radius: 10px;
+    padding: 0px;
+}
+
+/* Optional: Style for different browser engines */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress.complete {
+    background-color: limegreen; /* Green background for complete progress */
+}
+
+/* For browsers using pseudo-elements for progress bars */
+progress.complete::-webkit-progress-value {
+    background-color: limegreen;
+}
+
+progress.complete::-moz-progress-bar {
+    background-color: limegreen;
+}
+
+.progressbar-container {
+    position: relative;
+    width: 100%;
+}
+
+.progressbar-container span {
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    transform: translate(-50%, -50%); /* Center the text both horizontally and vertically */
+    color: black; /* Color for visibility, change as necessary */
 }
 
 

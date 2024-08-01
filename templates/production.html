@@ -51,15 +51,23 @@
         </div>
         <div class="order-data-display">
             <div class="order-data-container">
-                <p>Current order:</p>
+                <p>Scans for current order:</p>
                 <div class="order-data-types">
                     <div class="ordercount-area">
-                        <p id="ordercount-area-label">Parts scanned:</p>
+                        <p id="ordercount-area-label">This Area:</p>
                         <p id="ordercount-area">0</p>
                     </div>            
-                    <div class="ordercount-total-area">
+                    <!-- <div class="ordercount-total-area">
                         <p>Parts for work area:</p>
                         <p id="ordercount-total-area">N/A</p>
+                    </div> -->
+                    <div class="part-count">
+                        <p>Total Progress:</p>                            
+                        <p><span id="ordercount-scanned-area">0</span> of <span id="ordercount-total-area">0</span></p>                            
+                    </div>
+                    <div class="progressbar-container">
+                        <progress id="progress-bar" value="0" max="100"></progress>
+                        <span id="progress-text">0%</span>
                     </div>
                     <!-- <div class="ordercount-total-order">
                         <p>Total for order:</p>
