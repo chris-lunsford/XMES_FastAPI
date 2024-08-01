@@ -634,6 +634,59 @@ async def get_not_scanned_byarea(OrderID: str, Resource: str):
 
 ############################################################
 
+async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
+    # This retrieves machine codes from groups, ensure this mapping is available and correct
+    group_members = [k for k, v in WORK_STATION_GROUPS.items() if v == Resource]
+    if not group_members:
+        raise HTTPException(status_code=400, detail="Invalid work area or group")
+
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor(as_dict=True)
+        
+        # Prepare placeholders for the SQL query
+        placeholders = ', '.join(['%s'] * len(group_members))
+
+        query = f"""
+        SELECT
+            vw.BARCODE,
+            vw.INFO1 AS Description
+        FROM
+            [dbo].[View_WIP] vw
+        WHERE
+            vw.ORDERID = %s
+            AND vw.INFO2 LIKE %s
+            AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
+            AND NOT EXISTS (
+                SELECT 1
+                FROM [DBA].[Fact_WIP] fw
+                WHERE fw.BARCODE = vw.BARCODE
+                AND fw.RESOURCE IN ({placeholders})
+                AND fw.ORDERID = vw.ORDERID
+            )
+        ORDER BY BARCODE
+        """
+        formatted_resource = f'%{Resource}%'
+        # Ensure that the parameters are in tuple form
+        parameters = tuple([OrderID, formatted_resource] + group_members)        
+        
+        cursor.execute(query, parameters)
+        print(Resource, parameters)
+        result = cursor.fetchall()
+        
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+    return result
+
+
+
+############################################################
+
 
 def generate_packlist(OrderID: str):
     conn = connect_to_db()
