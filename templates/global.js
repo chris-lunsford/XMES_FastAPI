@@ -998,13 +998,23 @@ function fetchWorkStationGroups() {
 
 // Function to fetch parts not scanned and update the table
 function fetchPartsNotScanned(orderID, workAreaField) {
-    console.log('Submitting data:', { orderID }, { workAreaField });
-    fetch(`/api/parts-not-scanned-by-area?OrderID=${orderID}&Resource=${workAreaField}`)
-        .then(response => response.json())
-        .then(data => {
-            updatePartsTable(data);
-        })
-        .catch(error => console.error('Error fetching data:', error));
+    fetchWorkStationGroups().then(groups => {
+        // Ensure groups are loaded and then use them
+        const group = groups[workAreaField] || workAreaField; // Use fetched groups here
+        console.log('Submitting data:', { orderID, group });
+
+        fetch(`/api/parts-not-scanned-by-group?OrderID=${orderID}&Resource=${group}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load parts data.');
+                return response.json();
+            })
+            .then(data => {
+                updatePartsTable(data);
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }).catch(error => {
+        console.error('Error loading workstation groups:', error);
+    });
 }
 
 // Function to update the table with fetched data

@@ -27,9 +27,15 @@ function initializeOrderDashboard() {
 // Setup or re-setup event handlers
 function setupEventHandlers() {
     console.log("Setting up event handlers");
-    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
+    // listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('generate-packlist'), 'click', generatePackList);
+
+    // Adding a listener to handle clicks on any machine container
+    const machineRow = document.querySelector('.machine-row'); // Assuming all containers are within this element
+    if (machineRow) {
+        listenerManager.addListener(machineRow, 'click', handleMachineContainerClick);
+    }
 }
 
 
@@ -62,6 +68,40 @@ function handleDynamicInputs(event) {
         }
     }
 
+}
+
+
+// Function to handle clicks on machine containers
+function handleMachineContainerClick(event) {
+    // Check if the clicked element or its parent is a machine container
+    const machineContainer = event.target.closest('.machine-container');
+    if (!machineContainer) return;
+
+    const orderID = document.getElementById('order-id').value.trim();
+    if (!orderID) {
+        alert('Please enter an Order ID.');
+        return;
+    }
+
+    // Extract the work area from the container's ID attribute
+    const workAreaCode = machineContainer.id.replace('machine-', '').toUpperCase(); // Adjust according to your actual IDs
+    console.log(`Machine container clicked for: ${workAreaCode}`);
+
+    // Optionally fetch workstation groups to use for further logic
+    fetchWorkStationGroups().then(groups => {
+        if (groups[workAreaCode]) {
+            console.log(`Fetching parts not scanned for group: ${groups[workAreaCode]}`);
+            // Assuming groups[workAreaCode] gives you the group and you have different behavior/logic based on the group
+            fetchPartsNotScanned(orderID, groups[workAreaCode]);
+        } else {
+            console.log(`No group found for ${workAreaCode}, using default work area code.`);
+            fetchPartsNotScanned(orderID, workAreaCode);
+        }
+    }).catch(error => {
+        console.error('Failed to fetch workstation groups:', error);
+        // Proceed with default action if fetching groups fails
+        fetchPartsNotScanned(orderID, workAreaCode);
+    });
 }
 
 
@@ -176,8 +216,9 @@ function fetchDataAndUpdateUI(orderID) {
 // Event handler for fetching parts not scanned by shipping
 function handleFetchPartsNotScanned() {
     const orderID = document.getElementById('order-id').value.trim();
+    const workAreaField = document.getElementById('work-area').value; 
     if (orderID) {
-        fetchPartsNotScanned(orderID);  // This function will be defined in global.js
+        fetchPartsNotScanned(orderID, workAreaField);  // This function will be defined in global.js
     }
 }
 

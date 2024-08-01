@@ -57,6 +57,7 @@ html, body {
     gap: 5px;
 }
 
+
 #order-total {
     display: flex;
     flex-direction: column;
@@ -100,6 +101,7 @@ html, body {
     padding: 0px;
     gap: 5px;
 }
+
 .machine-container {
     display: flex;
     flex-direction: column;
@@ -109,6 +111,11 @@ html, body {
     border: 3px solid grey;
     padding: 0px;
     gap: 5px;
+}
+
+.machine-container:hover {
+    cursor: pointer;
+    border: 3px solid #0063cc;
 }
 
 /* .machine-container.has-parts {
