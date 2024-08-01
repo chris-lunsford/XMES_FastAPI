@@ -62,9 +62,6 @@ async def order_dashboard(request: Request):
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
-def get_resource_group(Resource):
-    """Return the group for a given work area, or the work area itself if no group is defined."""
-    return WORK_STATION_GROUPS.get(Resource, Resource)
 
 @app.get('/api/work-stations')
 async def get_work_stations():
@@ -206,7 +203,16 @@ async def order_totalarea_count(OrderID, Resource):
     Resource_Group = get_resource_group(Resource)
     try:
         count = get_order_totalarea_count(OrderID, Resource_Group)
-        return {"total_count": count}
+        return {"area_total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/order-machinegroup-scan-count')
+async def order_machinegroup_scan_count(OrderID, Resource):
+    try:
+        count = get_order_machinegroup_scan_count(OrderID, Resource)
+        return {"order_machinegroup_scan_count": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

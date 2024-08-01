@@ -51,6 +51,21 @@ def fetch_last_timestamp():
 ########################################################
 
 
+def get_resource_group(Resource):
+    """Return the group for a given work area, or the work area itself if no group is defined."""
+    return WORK_STATION_GROUPS.get(Resource, Resource)
+
+def get_resources_in_group(group):
+    """Retrieve all resources that are part of the specified group."""
+    # If the group itself is a resource (no other resources in its group), return it in a list
+    if group in WORK_STATION_GROUPS.values():
+        return [res for res, grp in WORK_STATION_GROUPS.items() if grp == group]
+    return [group]  # Return the resource itself if it's not a group
+
+
+########################################################
+
+
 
 def fetch_machine_part_counts(start_date=None, end_date=None):
     conn = connect_to_db()
@@ -269,6 +284,36 @@ def get_order_area_scanned_count(OrderID, Resource, EmployeeID):
             AND (Resource = %s AND EmployeeID = %s)
             """
             cursor.execute(select_query, (OrderID, Resource, EmployeeID))
+            (count, ) = cursor.fetchone()
+            return count or 0
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
+
+def get_order_machinegroup_scan_count(OrderID, Resource):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    
+    # Get the resource group (or the resource itself if it's not in a group)
+    Resource_Group = get_resource_group(Resource)
+    resources_in_group = get_resources_in_group(Resource_Group)
+
+    try:
+        with conn.cursor() as cursor:
+            # Modify the query to select scans for all resources in the group or the resource itself
+            select_query = """
+            SELECT COUNT(BARCODE)
+            FROM dba.Fact_WIP
+            WHERE OrderID = %s AND Resource IN %s
+            """
+            # Use tuple conversion to handle list formatting in SQL query properly
+            cursor.execute(select_query, (OrderID, tuple(resources_in_group)))
             (count, ) = cursor.fetchone()
             return count or 0
     except Exception as e:

@@ -26,6 +26,7 @@ async function handleBarcodeKeyPress(event) {
             await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
             updatePartCountsOnScan();        // Then update parts counts
             updateEEJobListDay();            // Update other UI elements
+            updateAreaProgressBar();
             // resetBarcodeField();             // Handled in handleBarcodeScan_to_DB 
         } catch (error) {
             console.error('Failed to scan barcode to DB:', error)
@@ -85,7 +86,7 @@ function handleDynamicInputs(event) {
         // fetchOrderTotalCount(orderIDField.value);        
 
         if (workArea && workArea !== '') {
-            fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);            
+            fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);                        
         } else {
             console.log("Work Area not selected");
         }
@@ -97,9 +98,9 @@ function handleDynamicInputs(event) {
 
         if (orderID && orderID.length === 8 && workArea && workArea !== "" && employeeID) {
             fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-            fetchOrderTotalAreaCount(orderID, workArea);
+            // fetchOrderTotalAreaCount(orderID, workArea);
         }else if (orderID && orderID.length === 8 && workArea && workArea !== "") {
-            fetchOrderTotalAreaCount(orderID, workArea);
+            // fetchOrderTotalAreaCount(orderID, workArea);
         }
     } else if (event.target.id === 'employee-id' && employeeID.length != 0) {
         resetEmployeeData();
@@ -112,7 +113,8 @@ function handleDynamicInputs(event) {
 
         // Verify that the work area has a valid selection
         if (workArea && workArea !== "") {
-            fetchOrderTotalAreaCount(orderID, workArea);
+            // fetchOrderTotalAreaCount(orderID, workArea);
+            updateAreaProgressBar();
         } else {
             console.log("Order ID or Work Area is not properly selected.");
             // Optionally, alert the user or handle the error in the UI
@@ -124,6 +126,16 @@ function handleDynamicInputs(event) {
     } else if (event.target.id === 'order-id' && orderID.length != 0) {
         resetNotifications()
         resetMissingPartsTable()
+    }
+
+    if (event.target.id === 'work-area' && workArea !== '') {
+        if (orderID && orderID.length === 8) {
+            // fetchOrderTotalAreaCount(orderID, workArea);
+            updateAreaProgressBar()
+        } else {
+            console.log("Order ID or Work Area is not properly selected.");
+            // Optionally, alert the user or handle the error in the UI
+        }
     }
 }
 
@@ -317,31 +329,52 @@ function handleSubmitButton(event) {
 
 
 
-// Function to update progress bar
-function updateAreaProgressBar() {
+async function updateAreaProgressBar() {
     console.log("Updating progress bar");
-    var currentCountElement = document.getElementById(`ordercount-area`);
-    var partCountElement = document.getElementById(`ordercount-total-area`);
-    var progressBar = document.getElementById(`progress-bar`);
-    var progressText = document.getElementById(`progress-text`);
+    const orderIDField = document.getElementById('order-id');
+    const workAreaSelect = document.getElementById('work-area');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
 
-    
-    var currentCount = parseInt(currentCountElement.textContent, 10);
-    var partCount = parseInt(partCountElement.textContent, 10);
+    const orderID = orderIDField ? orderIDField.value : null;
+    const workArea = workAreaSelect ? workAreaSelect.value : null;
 
-    if (partCount > 0) {
-        var percentComplete = (currentCount / partCount) * 100;
-        progressBar.value = percentComplete;
-        progressText.textContent = `${Math.round(percentComplete)}%`;
+    try {
+        // Ensure both promises are awaited properly
+        const partCountResponse = await fetchOrderTotalAreaCount(orderID, workArea);
+        const currentCountResponse = await fetchMachineGroupScanCount(orderID, workArea);
 
-        if (Math.round(percentComplete) === 100) {
-            progressBar.classList.add('complete');
+        const partCount = partCountResponse.area_total_count; // Assuming the response has this structure
+        const currentCount = currentCountResponse.order_machinegroup_scan_count; // Assuming the response has this structure
+
+        console.log(`Part count: ${partCount}, Current count: ${currentCount}`);
+
+        if (partCount > 0 && currentCount !== undefined) {
+            const percentComplete = (currentCount / partCount) * 100;
+            progressBar.value = percentComplete;
+            progressText.textContent = `${Math.round(percentComplete)}%`;
+
+            console.log(`Progress bar updated to ${Math.round(percentComplete)}% completion.`);
+
+            if (Math.round(percentComplete) === 100) {
+                progressBar.classList.add('complete');
+            } else {
+                progressBar.classList.remove('complete');
+            }
         } else {
+            progressBar.value = 0;
+            progressText.textContent = "0%";
             progressBar.classList.remove('complete');
+            console.log("No parts to count, progress bar reset.");
         }
-    } else {
+    } catch (error) {
+        console.error("Failed to update progress bar:", error);
         progressBar.value = 0;
         progressText.textContent = "0%";
         progressBar.classList.remove('complete');
     }
 }
+
+
+
+

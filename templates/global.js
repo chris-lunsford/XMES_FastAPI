@@ -497,6 +497,37 @@ function fetchAreaPartsCount(employeeID, workArea) {
 }
 
 
+
+function fetchAreaGroupCount(orderID, workArea) {
+    console.log('Submitting data:', {orderID, workArea});
+    
+    // Construct the query string
+    const queryParams = new URLSearchParams({
+        EmployeeID: employeeID, // Ensure the parameter names match the server's expected names
+        Resource: workArea
+    });
+
+    // Append query parameters to the URL
+    const url = `/api/employee-areaparts-count?${queryParams.toString()}`;
+    console.log('Fetching parts count from:', url); // Debug: log the URL being requested
+
+    fetch(url)
+        .then(response => {
+            console.log('Response received'); // Debug: confirm response received
+            if (!response.ok) {
+                throw new Error('Failed to fetch data from server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data); // Debug: log the data received
+            document.getElementById('partcount-area').textContent = data.area_count;
+        })
+        .catch(error => console.error('Failed to fetch parts count:', error));
+}
+
+
+
 function fetchEETotalPartsCount(employeeID) {
     if (!employeeID) {
         console.error('Employee ID required.');
@@ -594,11 +625,11 @@ function fetchJobNotifications(OrderID) {
                     const li = document.createElement('li');
                     const dateOnly = notification[0].split('T')[0]; // Split the timestamp and take only the date part
                     const reformattedDate = formatDate(dateOnly); // Call function to reformat the date
+                    const messageWithBreaks = notification[3].replace(/\n/g, '<br><br>'); // Replace newline characters with HTML <br>
                     li.innerHTML = `
                         <p>Type: ${notification[2]}</p>
-                        <p>Date: ${reformattedDate}</p>                     
-                        <p>ID: ${notification[1]}</p>
-                        <p>-${notification[3]}</p>
+                        <p>Date: ${reformattedDate}</p>
+                        <p><br>${messageWithBreaks}</p>
                     `;
                     ul.appendChild(li); // Append each <li> to the single <ul>
                 });
@@ -654,12 +685,40 @@ function fetchOrderAreaScannedCount(orderID, workArea, employeeID) {
 }
 
 
-function fetchOrderTotalAreaCount(orderID, workArea) {
-    if (!orderID) {
-        console.error('Order ID required.');
-        return;
-    }
-    console.log('Submitting data:', { orderID});
+function fetchMachineGroupScanCount(orderID, workArea) {
+    console.log('Submitting data:', {orderID, workArea});
+
+    const queryParams = new URLSearchParams({
+        OrderID: orderID,
+        Resource: workArea
+    });
+   
+    const url = `/api/order-machinegroup-scan-count?${queryParams.toString()}`;
+    console.log('Fetching scans from machine group:', url);
+
+    return fetch (url)
+    .then(response => {
+        console.log('Response recieved');
+        if (!response.ok) {
+            throw new Error('Failed to fetch data from server');            
+        }
+        return response.json();        
+    })
+    .then(data => {
+        console.log('Data received:', data);
+        // document.getElementById('ordercount-area').textContent = data.order_machinegroup_scan_count;
+        document.getElementById('ordercount-scanned-area').textContent = data.order_machinegroup_scan_count;
+        return data;        
+    })
+    .catch(error => {
+        console.error('Failed to fetch scan count:', error);
+    throw error;
+    });
+}
+
+
+function fetchOrderTotalAreaCount(orderID, workArea) {    
+    console.log('Submitting data:', { orderID, workArea});
     
     // Construct the query string
     const queryParams = new URLSearchParams({
@@ -671,7 +730,7 @@ function fetchOrderTotalAreaCount(orderID, workArea) {
     const url = `/api/order-total-area-count?${queryParams.toString()}`;
     console.log('Fetching parts count from:', url); // Debug: log the URL being requested
 
-    fetch(url)
+    return fetch(url)
         .then(response => {
             console.log('Response received'); // Debug: confirm response received
             if (!response.ok) {
@@ -681,10 +740,14 @@ function fetchOrderTotalAreaCount(orderID, workArea) {
         })
         .then(data => {
             console.log('Data received:', data); // Debug: log the data received
-            document.getElementById('ordercount-total-area').textContent = data.total_count;
+            document.getElementById('ordercount-total-area').textContent = data.area_total_count;
+            return data;
         })
-        .catch(error => console.error('Failed to fetch parts count:', error));
-}
+        .catch(error => {
+            console.error('Failed to fetch parts count:', error);
+            throw error;
+        });
+    }
 
 
 function fetchOrderTotalCount(orderID) {
