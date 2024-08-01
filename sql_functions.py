@@ -393,13 +393,14 @@ def get_order_part_counts(OrderID):
                 COUNT(CASE WHEN INFO2 LIKE '%HRZ%' THEN BARCODE END) AS HRZ,
                 COUNT(CASE WHEN INFO2 LIKE '%HDZ%' THEN BARCODE END) AS HDZ,
                 COUNT(CASE WHEN INFO2 LIKE '%GMZ%' THEN BARCODE END) AS GMZ,
-                COUNT(CASE WHEN INFO2 LIKE '%SCZ%' THEN BARCODE END) AS SCZ
+                COUNT(CASE WHEN INFO2 LIKE '%SCZ%' THEN BARCODE END) AS SCZ,
+                COUNT(DISTINCT BARCODE) AS Total
             FROM dbo.View_WIP
             WHERE OrderID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
             """
             cursor.execute(select_query, (OrderID))
             result = cursor.fetchone()
-            keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'SCZ']
+            keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'SCZ', "Total"]
             counts = {key: result[i] for i, key in enumerate(keys)}            
             return counts
         
