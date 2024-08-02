@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ order_id }} Packing List</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/templates/css/packlist.css">
+</head>
+<body>
+    <img class="logo" src="/assets/CFX_Logo_Light.jpg" alt="CFX Logo">
+    <h1>Packing List</h1>
+    <h1><span id="order-number">{{ order_id }} - {{ customer_name }} </span></h1>
+    <table id="packingListTable">
+        <thead>
+            <tr>
+                <th>Quantity</th>
+                <th>Room</th>
+                <th>Part Description</th>
+                <th>Length</th>
+                <th>Width</th>
+                <th>Height</th>
+                <th>Material</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item[0] }}</td>  <!-- Quantity -->
+                <td>{{ item[1] }}</td>  <!-- Room -->
+                <td>{{ item[2] }}</td>  <!-- Part Description -->
+                <td>{{ (item[3] | mm_to_inches) }}</td>  <!-- LENGTH -->
+                <td>{{ (item[4] | mm_to_inches) }}</td>  <!-- WIDTH -->
+                <td>{{ (item[5] | mm_to_inches) }}</td>  <!-- THICKNESS -->
+                <td>{{ item[6] }}</td>  <!-- Material -->
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7">No data found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

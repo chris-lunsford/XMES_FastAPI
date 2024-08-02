@@ -301,7 +301,7 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.packlist-button button {
+.packlist-button button, .packlist-button2 button{
     background-color: #969191; 
     color: black;
     border: none;
@@ -314,7 +314,7 @@ progress.complete::-moz-progress-bar {
     border-radius: 10px;
 }
 
-.packlist-button button:hover {
+.packlist-button button:hover, .packlist-button2 :hover{
     background-color: #1a3d80; /* Darker blue on hover */
     color: white;
 }

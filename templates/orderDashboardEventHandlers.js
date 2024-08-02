@@ -30,6 +30,7 @@ function setupEventHandlers() {
     // listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('generate-packlist'), 'click', generatePackList);
+    listenerManager.addListener(document.getElementById('generate-packlist2'), 'click', generatePackList2);
 
     // Adding a listener to handle clicks on any machine container
     const machineRow = document.querySelector('.machine-row'); // Assuming all containers are within this element
@@ -49,20 +50,8 @@ function handleDynamicInputs(event) {
     // Handle OrderID input and Resource & Order input together for proper validation
     if (event.target.id === 'order-id') {
         if (orderID.length === 8) {
-            fetchJobNotifications(orderID)
-            fetchWorkStationGroups().then(groups => {
-                const uniqueGroups = new Set(Object.values(groups));
-                fetchOrderPartCounts(orderID, () => {
-                    uniqueGroups.forEach(code => {
-                        updateProgressBar(code);
-                    });
-                });
-                fetchScannedOrderPartCounts(orderID, () => {
-                    uniqueGroups.forEach(code => {
-                        updateProgressBar(code);
-                    });
-                });
-            });
+            fetchJobNotifications(orderID);
+            fetchDataAndUpdateUI(orderID);
         } else if (orderID.length === 0) {
             resetPartCounts();
         }
@@ -177,6 +166,14 @@ function updateProgressBar(machineGroupCode) {
     var currentCount = parseInt(currentCountElement.textContent, 10);
     var partCount = parseInt(partCountElement.textContent, 10);
 
+    // Handle case where part count is zero or current count is not a valid number
+    if (isNaN(currentCount) || currentCount < 0) {
+        currentCount = 0;
+    }
+    if (isNaN(partCount) || partCount <= 0) {
+        partCount = 0;
+    }
+
     if (partCount > 0) {
         var percentComplete = (currentCount / partCount) * 100;
         progressBar.value = percentComplete;
@@ -199,6 +196,23 @@ function updateProgressBar(machineGroupCode) {
 function fetchDataAndUpdateUI(orderID) {
     fetchWorkStationGroups().then(groups => {
         const uniqueGroups = new Set(Object.values(groups));
+
+        // Clear previous data
+        uniqueGroups.forEach(code => {
+            const currentCountElement = document.getElementById(`current-count-${code}`);
+            if (currentCountElement) {
+                currentCountElement.textContent = "0";
+            }
+            const progressBar = document.getElementById(`progress-bar-${code}`);
+            if (progressBar) {
+                progressBar.value = 0;
+            }
+            const progressText = document.getElementById(`progress-text-${code}`);
+            if (progressText) {
+                progressText.textContent = "0%";
+            }
+        });
+
         fetchOrderPartCounts(orderID, () => {
             uniqueGroups.forEach(code => {
                 updateProgressBar(code);
@@ -227,6 +241,24 @@ function generatePackList() {
     var OrderID = document.getElementById('order-id').value;
     if (OrderID) {
         fetch(`/api/generate-packlist?OrderID=${OrderID}`)
+            .then(response => response.text())  // Assuming the server sends back HTML
+            .then(html => {
+                var newWindow = window.open();
+                newWindow.document.open();
+                newWindow.document.write(html);
+                newWindow.document.close();
+            })
+            .catch(error => console.error('Error fetching the packlist:', error));
+    } else {
+        alert('Please enter a valid Order ID.');
+    }
+}
+
+
+function generatePackList2() {
+    var OrderID = document.getElementById('order-id').value;
+    if (OrderID) {
+        fetch(`/api/generate-packlist2?OrderID=${OrderID}`)
             .then(response => response.text())  // Assuming the server sends back HTML
             .then(html => {
                 var newWindow = window.open();

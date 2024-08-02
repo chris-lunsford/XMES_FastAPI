@@ -719,6 +719,44 @@ def generate_packlist(OrderID: str):
         conn.close()
 
 
+
+############################################################
+
+
+def generate_packlist2(OrderID: str):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")
+    cursor = conn.cursor()
+    try:
+        query = """
+        SELECT
+            COUNT(*) AS Quantity,  -- Count the number of items in each group
+            v.INFO4 AS Room,       -- Room
+            v.INFO1 AS PartDescription,  -- Part description
+            v.LENGTH,
+            v.WIDTH,
+            v.THICKNESS AS Height,
+            v.MATNAME AS Material,  -- Material name
+            MAX(v.CUSTOMER) AS CustomerName  -- Assuming customer name is in the same view
+        FROM dbo.View_WIP v
+        WHERE v.ORDERID = %s
+        GROUP BY
+            v.INFO4, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME
+        ORDER BY v.INFO4 DESC, v.INFO1, v.MATNAME;
+        """
+        cursor.execute(query, (OrderID,))
+        result = cursor.fetchall()
+        customer_name = result[0][-1] if result else "No Customer"
+        return result, customer_name
+    except Exception as e:
+        print("Error in executing SQL: ", e)
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
 ############################################################
 
 
