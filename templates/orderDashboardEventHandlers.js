@@ -55,6 +55,9 @@ function handleDynamicInputs(event) {
         } else if (orderID.length === 0) {
             resetPartCounts();
         }
+        if (orderID.length !== 8) {
+            clearPartsTable();
+        }
     }
 
 }

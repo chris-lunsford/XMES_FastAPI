@@ -1030,6 +1030,11 @@ function updatePartsTable(parts) {
     });
 }
 
+function clearPartsTable() {
+    const tableBody = document.getElementById('table-body');
+    tableBody.innerHTML = ''; // Clear all existing rows
+}
+
 
 
 
