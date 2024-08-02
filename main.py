@@ -373,6 +373,20 @@ async def handle_generate_packlist(request: Request, OrderID: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@app.get('/api/generate-packlist2')
+async def handle_generate_packlist2(request: Request, OrderID: str):
+    try:
+        data, customer_name = generate_packlist2(OrderID)
+        return templates.TemplateResponse("packlist_template2.html", {
+            "request": request,
+            "data": data,
+            "order_id": OrderID,
+            "customer_name": customer_name 
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
 class DefectData(BaseModel):
     OrderID: str
     DefectType: str
