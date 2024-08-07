@@ -310,6 +310,31 @@ function populateDefectActions() {
 }
 
 
+function showScanResult(success) {
+    const overlay = document.getElementById('scan-result-overlay');
+    const icon = document.getElementById('scan-result-icon');
+
+    if (success) {
+        icon.classList.remove('scan-failure');
+        icon.classList.add('scan-success');
+        icon.textContent = '✔'; // Green check mark
+        console.log('Showing success icon');
+    } else {
+        icon.classList.remove('scan-success');
+        icon.classList.add('scan-failure');
+        icon.textContent = '✘'; // Red X mark
+        console.log('Showing failure icon');
+    }
+
+    overlay.style.visibility = 'visible'; // Show the overlay
+
+    // Hide the overlay after 2 seconds
+    setTimeout(() => {
+        overlay.style.visibility = 'hidden';
+    }, 2000);
+}
+
+
 async function handleBarcodeScan_to_DB() {
     let employeeID = document.getElementById('employee-id').value;
     let workArea = document.getElementById('work-area').value;
@@ -322,6 +347,7 @@ async function handleBarcodeScan_to_DB() {
         statusMessage.textContent = 'All fields must be filled out!';
         statusMessage.style.color = 'red';
         resetBarcodeField();
+        showScanResult(false); // Show failure icon
         return Promise.reject('Required fields are missing.');
     }
     
@@ -353,12 +379,13 @@ async function handleBarcodeScan_to_DB() {
                 console.log('User chose not to continue.');
                 statusMessage.textContent = "Scan cancelled by user.";
                 statusMessage.style.color = 'red';
+                showScanResult(false);
                 return;
             } else {
                 console.log('User chose to continue despite warning.');
                 statusMessage.textContent = 'Proceeding with scan...';
                 statusMessage.style.color = 'orange';
-                payload.forceContinue = true;
+                payload.forceContinue = true;                
             }
         }
 
@@ -401,10 +428,12 @@ async function handleBarcodeScan_to_DB() {
                 console.log('Recut status updated:', recutResult);
                 statusMessage.textContent = 'Recut status updated successfully.';
                 statusMessage.style.color = 'green';
+                showScanResult(true); // Show success icon
             } else {
                 console.log('User denied recut.');
                 statusMessage.textContent = "Scan cancelled by user.";
                 statusMessage.style.color = 'red';
+                showScanResult(false);
                 return;
             }
         }
@@ -413,11 +442,13 @@ async function handleBarcodeScan_to_DB() {
             console.log('Success:', data);
             statusMessage.textContent = 'Barcode scan successful.';
             statusMessage.style.color = 'green';
+            showScanResult(true); // Show success icon
         }
     } catch (error) {
         console.error('Error:', error);
         statusMessage.textContent = 'Error scanning barcode: ' + error.message;
         statusMessage.style.color = 'red';
+        showScanResult(false); // Show failure icon
     } finally {
         resetBarcodeField();
     }
