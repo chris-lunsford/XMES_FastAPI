@@ -385,7 +385,7 @@ async function handleBarcodeScan_to_DB() {
                 console.log('User chose to continue despite warning.');
                 statusMessage.textContent = 'Proceeding with scan...';
                 statusMessage.style.color = 'orange';
-                payload.forceContinue = true;
+                payload.forceContinue = true;                
             }
         }
 
@@ -433,6 +433,7 @@ async function handleBarcodeScan_to_DB() {
                 console.log('User denied recut.');
                 statusMessage.textContent = "Scan cancelled by user.";
                 statusMessage.style.color = 'red';
+                showScanResult(false);
                 return;
             }
         }
