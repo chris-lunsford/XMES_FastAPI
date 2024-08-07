@@ -650,6 +650,7 @@ async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
         query = f"""
         SELECT
             vw.BARCODE,
+            vw.CNC_BARCODE1,
             vw.INFO1 AS Description
         FROM
             [dbo].[View_WIP] vw

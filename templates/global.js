@@ -1055,6 +1055,7 @@ function updatePartsTable(parts) {
     parts.forEach(part => {
         const row = `<tr>
                         <td>${part.BARCODE}</td>
+                        <td>${part.CNC_BARCODE1}</td>
                         <td>${part.Description}</td>
                      </tr>`;
         tableBody.innerHTML += row;
