@@ -1052,14 +1052,27 @@ function fetchPartsNotScanned(orderID, workAreaField) {
 function updatePartsTable(parts) {
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = ''; // Clear existing entries
-    parts.forEach(part => {
+
+    if (parts.length === 0) {
         const row = `<tr>
-                        <td>${part.BARCODE}</td>
-                        <td>${part.CNC_BARCODE1}</td>
-                        <td>${part.Description}</td>
+                        <td colspan="3">No parts found</td>
                      </tr>`;
-        tableBody.innerHTML += row;
-    });
+        tableBody.innerHTML = row;
+
+    }else {
+        parts.forEach(part => {
+            const barcode = part.BARCODE || 'N/A';
+            const cncBarcode = part.CNC_BARCODE1 || 'N/A';
+            const description = part.Description || 'N/A';
+
+            const row = `<tr>
+                            <td>${barcode}</td>
+                            <td>${cncBarcode}</td>
+                            <td>${description}</td>
+                        </tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
 }
 
 function clearPartsTable() {
