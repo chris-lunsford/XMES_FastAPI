@@ -648,12 +648,26 @@ async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
         placeholders = ', '.join(['%s'] * len(group_members))
 
         query = f"""
+        WITH LatestResources AS (
+            SELECT
+                fw.BARCODE,
+                fw.RESOURCE,
+                fw.Timestamp,
+                ROW_NUMBER() OVER (PARTITION BY fw.BARCODE ORDER BY fw.TIMESTAMP DESC) AS rn
+            FROM
+                [DBA].[Fact_WIP] fw
+        )
         SELECT
             vw.BARCODE,
             vw.CNC_BARCODE1,
-            vw.INFO1 AS Description
+            vw.INFO1 AS Description,
+            vw.INFO2 AS Routing,
+            lr.RESOURCE AS LastResource,
+            lr.Timestamp 
         FROM
             [dbo].[View_WIP] vw
+        LEFT JOIN
+            LatestResources lr ON vw.BARCODE = lr.BARCODE AND lr.rn = 1
         WHERE
             vw.ORDERID = %s
             AND vw.INFO2 LIKE %s

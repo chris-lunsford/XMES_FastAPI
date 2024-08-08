@@ -1052,14 +1052,33 @@ function fetchPartsNotScanned(orderID, workAreaField) {
 function updatePartsTable(parts) {
     const tableBody = document.getElementById('table-body');
     tableBody.innerHTML = ''; // Clear existing entries
-    parts.forEach(part => {
+
+    if (parts.length === 0) {
         const row = `<tr>
-                        <td>${part.BARCODE}</td>
-                        <td>${part.CNC_BARCODE1}</td>
-                        <td>${part.Description}</td>
+                        <td colspan="3">No parts found</td>
                      </tr>`;
-        tableBody.innerHTML += row;
-    });
+        tableBody.innerHTML = row;
+
+    }else {
+        parts.forEach(part => {
+            const barcode = part.BARCODE || 'N/A';
+            const cncBarcode = part.CNC_BARCODE1 || 'N/A';
+            const description = part.Description || 'N/A';
+            const routing = part.Routing || 'N/A';
+            const lastresource = part.LastResource || 'N/A';
+            const timestamp = part.Timestamp ? formatLastScanDate(part.Timestamp) : 'N/A';
+
+            const row = `<tr>
+                            <td>${barcode}</td>
+                            <td>${cncBarcode}</td>
+                            <td>${description}</td>
+                            <td>${routing}</td>
+                            <td>${lastresource}</td>
+                            <td>${timestamp}</td>
+                        </tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
 }
 
 function clearPartsTable() {
@@ -1067,6 +1086,15 @@ function clearPartsTable() {
     tableBody.innerHTML = ''; // Clear all existing rows
 }
 
+
+
+// Function to format the timestamp
+function formatLastScanDate(timestamp) {
+    const date = new Date(timestamp);
+    const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+    const timeOptions = { hour: '2-digit', minute: '2-digit' };
+    return `${date.toLocaleDateString(undefined, options)} ${date.toLocaleTimeString(undefined, timeOptions)}`;
+}
 
 
 
