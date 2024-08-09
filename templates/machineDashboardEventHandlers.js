@@ -38,6 +38,7 @@ function initializeMachineDashboard() {
     listenerManager.removeListeners();
     initializeDateInputs();
     autoSubmitForm();
+    updateRunTimes();
 
     
     // Now add new listeners as needed
@@ -51,11 +52,31 @@ function initializeMachineDashboard() {
     if (!window.autoSubmitIntervalSet) {
         window.autoSubmitIntervalSet = true;
         setInterval(autoSubmitForm, 60000); // Auto submit form every minute
+        setInterval(updateRunTimes, 60000); // Update run times every minute
     }
 }
 
 
-
+// Function to fetch and update run times for all machines
+function updateRunTimes() {
+    fetch('/api/fetch-uptime-downtime')
+        .then(response => response.json())
+        .then(data => {
+            // Iterate over each machine in the returned data
+            Object.keys(data).forEach(machineId => {
+                // Update the DOM elements with the received data
+                const upTimeElement = document.getElementById(`up-time-${machineId}`);
+                const downTimeElement = document.getElementById(`down-time-${machineId}`);
+                
+                // Set the text content with the up and down times
+                if (upTimeElement && downTimeElement) {
+                    upTimeElement.textContent = data[machineId].upTime !== 'N/A' ? data[machineId].upTime : 'N/A';
+                    downTimeElement.textContent = data[machineId].downTime !== 'N/A' ? data[machineId].downTime : 'N/A';
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching uptime/downtime data:', error));
+}
 
 
 

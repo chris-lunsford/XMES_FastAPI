@@ -188,3 +188,28 @@ input[type="date"] {
     gap: 10px;
 }
 
+.run-time-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 5%;
+    padding: 0px;
+    gap: 5px;
+}
+
+.run-time {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.times {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 2px;
+    margin-left: 20px;
+    margin-right: 35px;
+}
+

@@ -4,13 +4,13 @@ import pytz
 import asyncio
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
@@ -425,3 +425,23 @@ async def handle_fetch_defects(order_id: Optional[str] = None,
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# @app.get('/api/fetch-uptime-downtime')
+# async def handle_fetch_uptime_downtime(resource):
+#     try: 
+#         result = fetch_uptime_downtime(resource)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/fetch-uptime-downtime')
+async def handle_fetch_uptime_downtime(resources: List[str] = Query(WORK_STATIONS)):
+    try:
+        result = fetch_uptime_downtime_multiple(resources)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+

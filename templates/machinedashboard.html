@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
     
     
+    
     <title>Document</title>
 </head>
 <body class="machining-dashboard">
@@ -58,18 +59,8 @@
                 </div>            
             </div>
         </form>
-        <!-- <div class="legend">
-            <div class="green-box">
-                <span>0-5 minutes</span>
-            </div>
-            <div class="yellow-box">
-                <span>5-15 minutes</span>
-            </div>
-            <div class="red-box">
-                <span>15+ minutes</span>
-            </div>            
-        </div> -->
     </section>
+
     <section class="machdash-data-display">
     <!-- Small Batch Machines -->
         <section class="machine-batch">
@@ -84,6 +75,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-PS4">0</p>
                         </div>  
+                        <div class="run-time-container psz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PS4">0</p>
+                                <p id="down-time-PS4">0</p>
+                            </div>                            
+                        </div>
                     </section>
                 </div>
                 <div class="machine-container trz" id="machine-TR3">
@@ -95,6 +96,16 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-TR3">0</p>
+                        </div>
+                        <div class="run-time-container trz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-TR3">0</p>
+                                <p id="down-time-TR3">0</p>
+                            </div>                            
                         </div>  
                     </section>  
                 </div>
@@ -347,6 +358,7 @@
             </section>
         </section>               
     </section>
+    
 <script src="templates/global.js"></script>    
 <script src="templates/machineDashboardEventHandlers.js"></script>
 
