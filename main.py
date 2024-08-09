@@ -428,20 +428,22 @@ async def handle_fetch_defects(order_id: Optional[str] = None,
     
 
 # @app.get('/api/fetch-uptime-downtime')
-# async def handle_fetch_uptime_downtime(resource):
-#     try: 
-#         result = fetch_uptime_downtime(resource)
+# async def handle_fetch_uptime_downtime(resources: List[str] = Query(WORK_STATIONS)):
+#     try:
+#         result = fetch_uptime_downtime_multiple(resources)
 #         return result
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
-
+    
 
 @app.get('/api/fetch-uptime-downtime')
-async def handle_fetch_uptime_downtime(resources: List[str] = Query(WORK_STATIONS)):
+async def handle_fetch_uptime_downtime(
+    resources: List[str] = Query(WORK_STATIONS),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+    ):
     try:
-        result = fetch_uptime_downtime_multiple(resources)
+        result = fetch_uptime_downtime_multiple(resources, start_date, end_date)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-
