@@ -1154,8 +1154,8 @@ def fetch_uptime_downtime_multiple(resources, start_date=None, end_date=None):
 
             # Convert None (which is returned as NULL from the SQL query) to 'N/A'
             return {res[0]: {
-                        'upTime': res[1] if res[1] != 0 else 'N/A',
-                        'downTime': res[2] if res[2] != 0 else 'N/A'
+                        'upTime': res[1] if res[1] != 0 else 0,
+                        'downTime': res[2] if res[2] != 0 else 0
                     } for res in result}
     except Exception as e:
         if conn:

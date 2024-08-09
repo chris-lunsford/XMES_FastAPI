@@ -7,34 +7,52 @@ if (typeof scriptMap !== 'undefined') {
 }
 
 
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+const debouncedHandleInputChange = debounce(handleInputChange, 300);
+
+
 // Define named functions for event handlers
-function handleInputChange(event) {
-
-    const startDate = document.getElementById('start-date').value;
-    const endDate = document.getElementById('end-date').value;
-
+async function handleInputChange(event) {
     if (event.target.matches('input[name="date-range"]')) {
         updateDateInputs(event.target.value);
+
         if (event.target.value !== 'custom') {
             event.preventDefault(); // Prevent default form submission
             handleFormSubmit(document.getElementById('dateForm'));
-            updateRunTimes(startDate, endDate);
+
+            // Defer the updateRunTimes call to ensure date inputs are updated
+            setTimeout(async () => {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                console.log('Submitting dates:', { startDate, endDate });
+                await updateRunTimes(startDate, endDate);
+            }, 0);
         }
     } else if (event.target.matches('#start-date, #end-date')) {
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
-        if (startDate && endDate) {
-            event.preventDefault(); // Prevent default form submission
-            handleFormSubmit(document.getElementById('dateForm'));
-            updateRunTimes(startDate, endDate);
-        }
+        event.preventDefault(); // Prevent default form submission
+        handleFormSubmit(document.getElementById('dateForm'));
+
+        // Defer the updateRunTimes call to ensure date inputs are updated
+        setTimeout(async () => {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            console.log('Submitting dates:', { startDate, endDate });
+            await updateRunTimes(startDate, endDate);
+        }, 0);
     }
 }
 
 function handleSubmit(event) {
     if (event.target.id === 'dateForm') {
         event.preventDefault();
-        handleFormSubmit(event.target);
+        handleFormSubmit(event.target);        
     }
 }
 
@@ -44,10 +62,10 @@ function initializeMachineDashboard() {
     listenerManager.removeListeners();
     initializeDateInputs();
     autoSubmitForm();
-
+    
     
     // Now add new listeners as needed
-    listenerManager.addListener(document.body, 'change', handleInputChange);
+    listenerManager.addListener(document.body, 'change', debouncedHandleInputChange);
     listenerManager.addListener(document.body, 'submit', handleSubmit);
 
     if (window.machineDashboardInitialized) return;
@@ -84,35 +102,36 @@ function initializeMachineDashboard() {
 // }
 
 
-function updateRunTimes(startDate, endDate) {
-    resetRunTimes(); // Reset run times before fetching new data
-
+async function updateRunTimes(startDate, endDate) {
+    resetRunTimes();
+    console.log('Fetching data for:', { startDate, endDate }); 
     const resourceQuery = new URLSearchParams();
     if (startDate) resourceQuery.append('start_date', startDate);
     if (endDate) resourceQuery.append('end_date', endDate);
 
-    // Append a unique timestamp to the query parameters to prevent caching
-    resourceQuery.append('_ts', new Date().getTime());
-
-    fetch(`/api/fetch-uptime-downtime?${resourceQuery.toString()}`, {
-        headers: {
-            'Cache-Control': 'no-cache' // This instructs the browser not to cache the response
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            Object.keys(data).forEach(machineId => {
-                const upTimeElement = document.getElementById(`up-time-${machineId}`);
-                const downTimeElement = document.getElementById(`down-time-${machineId}`);
-
-                if (upTimeElement && downTimeElement) {
-                    upTimeElement.textContent = data[machineId].upTime !== 'N/A' ? data[machineId].upTime : 'N/A';
-                    downTimeElement.textContent = data[machineId].downTime !== 'N/A' ? data[machineId].downTime : 'N/A';
-                }
-            });
-        })
-        .catch(error => console.error('Error fetching uptime/downtime data:', error));
+    try {
+        const response = await fetch(`/api/fetch-uptime-downtime?${resourceQuery.toString()}`);
+        const data = await response.json();
+        console.log('Received data:', data);
+        updateUI(data); // Update the UI only after data is fetched
+    } catch (error) {
+        console.error('Error fetching uptime/downtime data:', error);
+    }
 }
+
+
+function updateUI(data) {
+    console.log('updating UI runtimes');
+    Object.keys(data).forEach(machineId => {
+        const upTimeElement = document.getElementById(`up-time-${machineId}`);
+        const downTimeElement = document.getElementById(`down-time-${machineId}`);
+        if (upTimeElement && downTimeElement) {
+            upTimeElement.textContent = data[machineId].upTime !== 0 ? data[machineId].upTime : 'N/A';
+            downTimeElement.textContent = data[machineId].downTime !== 0 ? data[machineId].downTime : 'N/A';
+        }
+    });
+}
+
 
 function resetRunTimes() {
     // Example of resetting UI elements for each machine ID
@@ -132,6 +151,6 @@ function autoSubmitForm() {
         const endDate = document.getElementById('end-date').value;
 
         handleFormSubmit(formData); 
-        updateRunTimes(startDate, endDate);  // Update run times with date filters
+        updateRunTimes(startDate, endDate);  
     }
 }
