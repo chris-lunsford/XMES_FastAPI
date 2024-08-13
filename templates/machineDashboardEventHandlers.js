@@ -6,6 +6,10 @@ if (typeof scriptMap !== 'undefined') {
     scriptMap['/machine-dashboard'].callback = initializeMachineDashboard;
 }
 
+// Check if debouncedHandleInputChange has been defined
+if (typeof debouncedHandleInputChange === 'undefined') {
+    var debouncedHandleInputChange = debounce(handleInputChange, 300); // Using var to ensure it's hoisted
+}
 
 function debounce(func, wait) {
     let timeout;
@@ -15,7 +19,7 @@ function debounce(func, wait) {
     };
 }
 
-const debouncedHandleInputChange = debounce(handleInputChange, 300);
+// const debouncedHandleInputChange = debounce(handleInputChange, 300);
 
 
 // Define named functions for event handlers
