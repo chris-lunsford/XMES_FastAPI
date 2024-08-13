@@ -32,7 +32,8 @@ async function handleInputChange(event) {
                 const startDate = document.getElementById('start-date').value;
                 const endDate = document.getElementById('end-date').value;
                 console.log('Submitting dates:', { startDate, endDate });
-                await updateRunTimes(startDate, endDate);
+                await updateUpTimes(startDate, endDate); 
+                await updateDownTimes(startDate, endDate);
             }, 0);
         }
     } else if (event.target.matches('#start-date, #end-date')) {
@@ -44,7 +45,8 @@ async function handleInputChange(event) {
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
             console.log('Submitting dates:', { startDate, endDate });
-            await updateRunTimes(startDate, endDate);
+            await updateUpTimes(startDate, endDate); 
+            await updateDownTimes(startDate, endDate);
         }, 0);
     }
 }
@@ -80,67 +82,6 @@ function initializeMachineDashboard() {
 }
 
 
-// Function to fetch and update run times for all machines
-// function updateRunTimes() {
-//     fetch('/api/fetch-uptime-downtime')
-//         .then(response => response.json())
-//         .then(data => {
-//             // Iterate over each machine in the returned data
-//             Object.keys(data).forEach(machineId => {
-//                 // Update the DOM elements with the received data
-//                 const upTimeElement = document.getElementById(`up-time-${machineId}`);
-//                 const downTimeElement = document.getElementById(`down-time-${machineId}`);
-                
-//                 // Set the text content with the up and down times
-//                 if (upTimeElement && downTimeElement) {
-//                     upTimeElement.textContent = data[machineId].upTime !== 'N/A' ? data[machineId].upTime : 'N/A';
-//                     downTimeElement.textContent = data[machineId].downTime !== 'N/A' ? data[machineId].downTime : 'N/A';
-//                 }
-//             });
-//         })
-//         .catch(error => console.error('Error fetching uptime/downtime data:', error));
-// }
-
-
-async function updateRunTimes(startDate, endDate) {
-    resetRunTimes();
-    console.log('Fetching data for:', { startDate, endDate }); 
-    const resourceQuery = new URLSearchParams();
-    if (startDate) resourceQuery.append('start_date', startDate);
-    if (endDate) resourceQuery.append('end_date', endDate);
-
-    try {
-        const response = await fetch(`/api/fetch-uptime-downtime?${resourceQuery.toString()}`);
-        const data = await response.json();
-        console.log('Received data:', data);
-        updateUI(data); // Update the UI only after data is fetched
-    } catch (error) {
-        console.error('Error fetching uptime/downtime data:', error);
-    }
-}
-
-
-function updateUI(data) {
-    console.log('updating UI runtimes');
-    Object.keys(data).forEach(machineId => {
-        const upTimeElement = document.getElementById(`up-time-${machineId}`);
-        const downTimeElement = document.getElementById(`down-time-${machineId}`);
-        if (upTimeElement && downTimeElement) {
-            upTimeElement.textContent = data[machineId].upTime !== 0 ? data[machineId].upTime : 'N/A';
-            downTimeElement.textContent = data[machineId].downTime !== 0 ? data[machineId].downTime : 'N/A';
-        }
-    });
-}
-
-
-function resetRunTimes() {
-    // Example of resetting UI elements for each machine ID
-    document.querySelectorAll('[id^="up-time-"], [id^="down-time-"]').forEach(element => {
-        element.textContent = 'Loading...'; // Or set to '0' depending on your preference
-    });
-    console.log("Run times have been reset.");
-}
-
 
 // Update the autoSubmitForm and other relevant calls to pass startDate and endDate
 function autoSubmitForm() {
@@ -151,6 +92,84 @@ function autoSubmitForm() {
         const endDate = document.getElementById('end-date').value;
 
         handleFormSubmit(formData); 
-        updateRunTimes(startDate, endDate);  
+        updateUpTimes(startDate, endDate); 
+        updateDownTimes(startDate, endDate);  
     }
 }
+
+
+
+
+async function updateUpTimes(startDate, endDate) {
+    resetUpTimes();
+    console.log('Fetching data for:', { startDate, endDate }); 
+    const resourceQuery = new URLSearchParams();
+    if (startDate) resourceQuery.append('start_date', startDate);
+    if (endDate) resourceQuery.append('end_date', endDate);
+
+    try {
+        const response = await fetch(`/api/fetch-uptime-all?${resourceQuery.toString()}`);
+        const data = await response.json();
+        console.log('Received data:', data);
+        updateUIUpTimes(data); // Update the UI only after data is fetched
+    } catch (error) {
+        console.error('Error fetching uptime data:', error);
+    }
+}
+
+
+function updateUIUpTimes(data) {
+    document.querySelectorAll('[id^="up-time-"]').forEach(element => {
+        const machineId = element.id.replace('up-time-', '');
+        const upTime = Number(data[machineId] || 0);
+        console.log(`Updating ${machineId}:`, upTime);
+        element.textContent = (upTime / 60).toFixed(2) + ' hrs';
+    });
+}
+
+
+function resetUpTimes() {
+    // Example of resetting UI elements for each machine ID
+    document.querySelectorAll('[id^="up-time-"]').forEach(element => {
+        element.textContent = 'Loading...'; // Or set to '0' depending on your preference
+    });
+    console.log("Run times have been reset.");
+}
+
+
+async function updateDownTimes(startDate, endDate) {
+    resetDownTimes();
+    console.log('Fetching data for:', { startDate, endDate }); 
+    const resourceQuery = new URLSearchParams();
+    if (startDate) resourceQuery.append('start_date', startDate);
+    if (endDate) resourceQuery.append('end_date', endDate);
+
+    try {
+        const response = await fetch(`/api/fetch-downtime-all?${resourceQuery.toString()}`);
+        const data = await response.json();
+        console.log('Received data:', data);
+        updateUIDownTimes(data); // Update the UI only after data is fetched
+    } catch (error) {
+        console.error('Error fetching downtime data:', error);
+    }
+}
+
+
+function updateUIDownTimes(data) {
+    document.querySelectorAll('[id^="down-time-"]').forEach(element => {
+        const machineId = element.id.replace('down-time-', '');
+        const downTime = Number(data[machineId] || 0);
+        console.log(`Updating ${machineId}:`, downTime);
+        element.textContent = (downTime / 60).toFixed(2) + ' hrs';
+    });
+}
+
+
+function resetDownTimes() {
+    // Example of resetting UI elements for each machine ID
+    document.querySelectorAll('[id^="down-time-"]').forEach(element => {
+        element.textContent = 'Loading...'; // Or set to '0' depending on your preference
+    });
+    console.log("Run times have been reset.");
+}
+
