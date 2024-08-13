@@ -58,12 +58,29 @@
                     <span>15+ minutes</span>
                 </div>            
             </div>
+            <div class="batch-options">
+                <div>
+                <input type="radio" id="both-batch" name="batch-select" value="both" checked>
+                <label for="both-batch">Both</label>
+                </div>
+
+                
+                <div>
+                <input type="radio" id="large-batch" name="batch-select" value="large-batch">
+                <label for="large-batch">Large Batch</label>
+                </div>
+                 
+                <div>
+                <input type="radio" id="small-batch" name="batch-select" value="small-batch">
+                <label for="small-batch">Small Batch</label>
+                </div>                   
+            </div>
         </form>
     </section>
 
     <section class="machdash-data-display">
     <!-- Small Batch Machines -->
-        <section class="machine-batch">
+        <section class="machine-batch" id="small-batch-section">
             <section class="machine-row">
                 <div class="machine-container psz" id="machine-PS4">
                     <section class="psz-container">
@@ -257,7 +274,7 @@
         </section>
 
     <!-- Large Batch Machines -->
-        <section class="machine-batch">
+        <section class="machine-batch" id="large-batch-section">
             <section class="machine-row">
                 <div class="machine-container psz" id="machine-PS1">
                     <section class="psz-container">
@@ -534,9 +551,9 @@
                 </div>            
             </section>
 
-            <section class="machine-row">
+            <!-- <section class="machine-row">
                                          
-            </section>
+            </section> -->
 
         </section>               
     </section>

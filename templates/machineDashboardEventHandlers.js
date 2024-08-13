@@ -64,11 +64,19 @@ function initializeMachineDashboard() {
     listenerManager.removeListeners();
     initializeDateInputs();
     autoSubmitForm();
+    // Update display based on current batch selection
+    updateBatchDisplay();
     
     
     // Now add new listeners as needed
     listenerManager.addListener(document.body, 'change', debouncedHandleInputChange);
     listenerManager.addListener(document.body, 'submit', handleSubmit);
+    listenerManager.addListener(document.body, 'change', function(event) {
+        debouncedHandleInputChange(event);
+        if (event.target.name === 'batch-select') {
+            updateBatchDisplay();
+        }
+    });
 
     if (window.machineDashboardInitialized) return;
     window.machineDashboardInitialized = true;
@@ -77,7 +85,6 @@ function initializeMachineDashboard() {
     if (!window.autoSubmitIntervalSet) {
         window.autoSubmitIntervalSet = true;
         setInterval(autoSubmitForm, 60000); // Auto submit form every minute
-        // setInterval(updateRunTimes, 60000); 
     }
 }
 
@@ -138,7 +145,7 @@ function resetUpTimes() {
 
 
 async function updateDownTimes(startDate, endDate) {
-    resetDownTimes();
+    // resetDownTimes();
     console.log('Fetching data for:', { startDate, endDate }); 
     const resourceQuery = new URLSearchParams();
     if (startDate) resourceQuery.append('start_date', startDate);
@@ -173,3 +180,25 @@ function resetDownTimes() {
     console.log("Run times have been reset.");
 }
 
+
+
+function updateBatchDisplay() {
+    const smallBatchSection = document.getElementById('small-batch-section');
+    const largeBatchSection = document.getElementById('large-batch-section');
+    const selectedBatch = document.querySelector('input[name="batch-select"]:checked').value;
+
+    switch (selectedBatch) {
+        case 'both':
+            smallBatchSection.style.display = '';  // or 'block' if you want to specifically set it
+            largeBatchSection.style.display = '';
+            break;
+        case 'large-batch':
+            smallBatchSection.style.display = 'none';
+            largeBatchSection.style.display = '';
+            break;
+        case 'small-batch':
+            smallBatchSection.style.display = '';
+            largeBatchSection.style.display = 'none';
+            break;
+    }
+}

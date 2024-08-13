@@ -83,6 +83,19 @@ html, body {
     flex-wrap: nowrap;
 }
 
+.batch-options {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 25px;
+}
+
+.batch-options label {
+    cursor: pointer;
+    color: black;
+}
+
+
 .machdash-date-selection .date-options label{
     cursor: pointer;
     margin-right: 15px;
@@ -109,25 +122,7 @@ input[type="date"] {
     appearance: auto;
 }
 
-#submit_button{
-    display: flex;   
-    align-items: center;
-    justify-content: center;
-    background-color: #969191;
-    color: black;
-    width: 100px;
-    height: 28px;
-    border: 3px solid #969191;
-    border-radius: 5px;
-    cursor: pointer;
-    /* font-weight: bold; */
-}
 
-#submit_button:hover:not(.active){
-    background-color: #969191;
-    color: black;
-    border: 3px solid #696969;
-}
 
 .machdash-data-display {
     display: flex;
