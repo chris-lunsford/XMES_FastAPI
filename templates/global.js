@@ -1055,7 +1055,7 @@ function updatePartsTable(parts) {
 
     if (parts.length === 0) {
         const row = `<tr>
-                        <td colspan="6">No parts found</td>
+                        <td colspan="6">No parts found.</td>
                      </tr>`;
         tableBody.innerHTML = row;
 
