@@ -19,6 +19,7 @@ WORK_STATION_GROUPS = {
     "HD1": "HDZ",
     "HD2": "HDZ",
     "GM1": "GMZ",
+    "GM2": "GMZ",
     "SC1": "SCZ",
     "SC2": "SCZ",
     # Add other mappings as necessary

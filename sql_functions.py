@@ -846,3 +846,388 @@ def fetch_defect_list(order_id=None, defect_type=None, defect_action=None, work_
     finally:
         conn.close()
 
+
+
+############################################################
+
+def fetch_uptime_downtime(resource):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")    
+    try:
+        with conn.cursor() as cursor:
+            query = """
+            DECLARE @resource NVARCHAR(50) = %s;
+            DECLARE @today DATE = CAST(GETDATE() AS DATE);
+            DECLARE @gap INT = 15;
+
+            WITH Scans AS (
+                SELECT
+                    *,
+                    LAG(Timestamp) OVER (PARTITION BY Resource ORDER BY Timestamp) AS PrevTimestamp
+                FROM
+                    [DBA].[Fact_WIP]
+                WHERE
+                    Resource = @resource
+                    AND CAST(Timestamp AS DATE) = @today
+            ),
+            Gaps AS (
+                SELECT
+                    *,
+                    CASE 
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) > @gap OR PrevTimestamp IS NULL THEN 1
+                        ELSE 0
+                    END AS IsGap,
+                    DATEDIFF(MINUTE, PrevTimestamp, Timestamp) AS GapDuration
+                FROM
+                    Scans
+            ),
+            GroupedScans AS (
+                SELECT
+                    *,
+                    SUM(IsGap) OVER (ORDER BY Timestamp ROWS UNBOUNDED PRECEDING) AS GroupID
+                FROM
+                    Gaps
+            ),
+            RunTimes AS (
+                SELECT
+                    Resource,
+                    GroupID,
+                    MIN(Timestamp) AS StartTime,
+                    MAX(Timestamp) AS EndTime
+                FROM
+                    GroupedScans
+                GROUP BY
+                    Resource,
+                    GroupID
+            ),
+            Downtime AS (
+                SELECT
+                    SUM(GapDuration) AS TotalDowntimeInMinutes
+                FROM
+                    Gaps
+                WHERE
+                    GapDuration > @gap
+            ),
+            RunTime AS (
+                SELECT
+                    SUM(DATEDIFF(MINUTE, StartTime, EndTime)) AS TotalRunTimeInMinutes
+                FROM
+                    RunTimes
+            )
+            SELECT
+                R.TotalRunTimeInMinutes,
+                D.TotalDowntimeInMinutes
+            FROM
+                RunTime R, Downtime D;
+            """
+            cursor.execute(query, (resource))
+            result = cursor.fetchall()        
+            return result
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise Exception(f"Database query failed {e}")
+    finally:
+        conn.close()
+
+
+
+
+def connect_and_prepare_query(resources, start_date=None, end_date=None):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")
+    
+    resource_placeholders = ','.join(['%s'] * len(resources))
+    params = tuple(resources)
+
+    if start_date:
+        params += (start_date,)
+    if end_date:
+        params += (end_date,)
+
+    return conn, resource_placeholders, params
+
+
+
+def fetch_uptime_all(resources, start_date=None, end_date=None):
+    conn, resource_placeholders, params = connect_and_prepare_query(resources, start_date, end_date)
+    
+    try:
+        with conn.cursor() as cursor:
+            query = f"""
+            DECLARE @gap INT = 15;
+
+            WITH Scans AS (
+                SELECT
+                    Resource,
+                    Timestamp,
+                    CAST(Timestamp AS DATE) AS ScanDate,
+                    LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+                FROM
+                    [DBA].[Fact_WIP]
+                WHERE
+                    Resource IN ({resource_placeholders})
+            """
+
+            if start_date:
+                query += " AND CAST(Timestamp AS DATE) >= %s"
+                params += (start_date,)
+            if end_date:
+                query += " AND CAST(Timestamp AS DATE) <= %s"
+                params += (end_date,)
+
+            query += f"""
+            ),
+            Gaps AS (
+                SELECT
+                    Resource,
+                    ScanDate,
+                    Timestamp,
+                    PrevTimestamp,
+                    CASE 
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
+                        ELSE 0
+                    END AS GapDuration
+                FROM
+                    Scans
+            ),
+            DailyUptime AS (
+                SELECT
+                    Resource,
+                    ScanDate,
+                    SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, Timestamp) - GapDuration END) AS UptimeMinutes
+                FROM
+                    Gaps
+                GROUP BY
+                    Resource,
+                    ScanDate
+            ),
+            TotalUptime AS (
+                SELECT
+                    Resource,
+                    SUM(UptimeMinutes) AS TotalUptimeMinutes
+                FROM
+                    DailyUptime
+                GROUP BY
+                    Resource
+            )
+            SELECT
+                Resource,
+                TotalUptimeMinutes
+            FROM
+                TotalUptime
+            """
+
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            return {res[0]: res[1] for res in results}
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+
+def fetch_downtime_all(resources, start_date=None, end_date=None):
+    conn, resource_placeholders, params = connect_and_prepare_query(resources, start_date, end_date)
+    
+    try:
+        with conn.cursor() as cursor:
+            query = f"""
+            DECLARE @gap INT = 15;
+
+            WITH Scans AS (
+                SELECT
+                    Resource,
+                    Timestamp,
+                    CAST(Timestamp AS DATE) AS ScanDate,
+                    LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+                FROM
+                    [DBA].[Fact_WIP]
+                WHERE
+                    Resource IN ({resource_placeholders})
+            """
+
+            if start_date:
+                query += " AND CAST(Timestamp AS DATE) >= %s"
+                params += (start_date,)
+            if end_date:
+                query += " AND CAST(Timestamp AS DATE) <= %s"
+                params += (end_date,)
+
+            query += f"""
+            ),
+            Gaps AS (
+                SELECT
+                    Resource,
+                    ScanDate,
+                    CASE 
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
+                        ELSE 0
+                    END AS GapDuration
+                FROM
+                    Scans
+            ),
+            DailyDowntime AS (
+                SELECT
+                    Resource,
+                    ScanDate,
+                    SUM(GapDuration) AS DowntimeMinutes
+                FROM
+                    Gaps
+                GROUP BY
+                    Resource,
+                    ScanDate
+            ),
+            TotalDowntime AS (
+                SELECT
+                    Resource,
+                    SUM(DowntimeMinutes) AS TotalDowntimeMinutes
+                FROM
+                    DailyDowntime
+                GROUP BY
+                    Resource
+            )
+            SELECT
+                Resource,
+                TotalDowntimeMinutes
+            FROM
+                TotalDowntime
+            """
+
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            return {res[0]: res[1] for res in results}
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+
+# def fetch_uptime_downtime_multiple(resources, start_date=None, end_date=None):
+#     conn = connect_to_db()
+#     if conn is None:
+#         raise Exception("Failed to connect to database.")
+    
+#     try:
+#         with conn.cursor() as cursor:
+#             # Create placeholders for each resource
+#             resource_placeholders = ','.join(['%s'] * len(resources))
+#             # Base SQL query
+#             query = f"""
+#             DECLARE @gap INT = 15;
+
+#             WITH Scans AS (
+#                 SELECT
+#                     Resource,
+#                     Timestamp,
+#                     LAG(Timestamp) OVER (PARTITION BY Resource ORDER BY Timestamp) AS PrevTimestamp
+#                 FROM
+#                     [DBA].[Fact_WIP]
+#                 WHERE
+#                     Resource IN ({resource_placeholders})
+#             """
+
+#             # Parameters start with the resources
+#             params = tuple(resources)
+
+#             # Add date conditions to the query if provided
+#             if start_date:
+#                 query += " AND CAST(Timestamp AS DATE) >= %s"
+#                 params += (start_date,)
+#             if end_date:
+#                 query += " AND CAST(Timestamp AS DATE) <= %s"
+#                 params += (end_date,)
+
+            
+#             # Now create a full params list that includes the resources twice (for both uses) and the dates only once
+#             full_params = params + tuple(resources)  # Add only resources the second time
+
+#             query += f"""
+#             ),
+#             Gaps AS (
+#                 SELECT
+#                     Resource,
+#                     Timestamp,
+#                     PrevTimestamp,
+#                     CASE 
+#                         WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) > @gap OR PrevTimestamp IS NULL THEN 1
+#                         ELSE 0
+#                     END AS IsGap,
+#                     DATEDIFF(MINUTE, PrevTimestamp, Timestamp) AS GapDuration
+#                 FROM
+#                     Scans
+#             ),
+#             GroupedScans AS (
+#                 SELECT
+#                     Resource,
+#                     Timestamp,
+#                     PrevTimestamp,
+#                     IsGap,
+#                     GapDuration,
+#                     SUM(IsGap) OVER (PARTITION BY Resource ORDER BY Timestamp ROWS UNBOUNDED PRECEDING) AS GroupID
+#                 FROM
+#                     Gaps
+#             ),
+#             RunTimes AS (
+#                 SELECT
+#                     Resource,
+#                     GroupID,
+#                     MIN(Timestamp) AS StartTime,
+#                     MAX(Timestamp) AS EndTime
+#                 FROM
+#                     GroupedScans
+#                 GROUP BY
+#                     Resource,
+#                     GroupID
+#             ),
+#             Downtime AS (
+#                 SELECT
+#                     Resource,
+#                     SUM(GapDuration) AS TotalDowntimeInMinutes
+#                 FROM
+#                     Gaps
+#                 WHERE
+#                     GapDuration > @gap
+#                 GROUP BY Resource
+#             ),
+#             RunTime AS (
+#                 SELECT
+#                     Resource,
+#                     SUM(DATEDIFF(MINUTE, StartTime, EndTime)) AS TotalRunTimeInMinutes
+#                 FROM
+#                     RunTimes
+#                 GROUP BY Resource
+#             )
+#             SELECT
+#                 AllResources.Resource,
+#                 COALESCE(R.TotalRunTimeInMinutes, 0) AS TotalRunTimeInMinutes,
+#                 COALESCE(D.TotalDowntimeInMinutes, 0) AS TotalDowntimeInMinutes
+#             FROM
+#                 (SELECT DISTINCT Resource FROM [DBA].[Fact_WIP] WHERE Resource IN ({resource_placeholders})) AS AllResources
+#             LEFT JOIN
+#                 RunTime R ON AllResources.Resource = R.Resource
+#             LEFT JOIN
+#                 Downtime D ON AllResources.Resource = D.Resource
+#             """
+#             # print(query)
+#             # Execute the query with parameters
+#             full_params = params * 2
+#             cursor.execute(query, full_params)
+#             result = cursor.fetchall()
+#             print(result)
+
+#             # Convert None (which is returned as NULL from the SQL query) to 'N/A'
+#             return {res[0]: {
+#                         'upTime': res[1] if res[1] != 0 else 0,
+#                         'downTime': res[2] if res[2] != 0 else 0
+#                     } for res in result}
+#     except Exception as e:
+#         if conn:
+#             conn.rollback()
+#         raise Exception(f"Database query failed: {e}")
+#     finally:
+#         conn.close()

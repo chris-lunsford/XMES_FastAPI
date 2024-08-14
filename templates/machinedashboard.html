@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
     
     
+    
     <title>Document</title>
 </head>
 <body class="machining-dashboard">
@@ -57,22 +58,29 @@
                     <span>15+ minutes</span>
                 </div>            
             </div>
+            <div class="batch-options">
+                <div>
+                <input type="radio" id="both-batch" name="batch-select" value="both" checked>
+                <label for="both-batch">Both</label>
+                </div>
+
+                
+                <div>
+                <input type="radio" id="large-batch" name="batch-select" value="large-batch">
+                <label for="large-batch">Large Batch</label>
+                </div>
+                 
+                <div>
+                <input type="radio" id="small-batch" name="batch-select" value="small-batch">
+                <label for="small-batch">Small Batch</label>
+                </div>                   
+            </div>
         </form>
-        <!-- <div class="legend">
-            <div class="green-box">
-                <span>0-5 minutes</span>
-            </div>
-            <div class="yellow-box">
-                <span>5-15 minutes</span>
-            </div>
-            <div class="red-box">
-                <span>15+ minutes</span>
-            </div>            
-        </div> -->
     </section>
+
     <section class="machdash-data-display">
     <!-- Small Batch Machines -->
-        <section class="machine-batch">
+        <section class="machine-batch" id="small-batch-section">
             <section class="machine-row">
                 <div class="machine-container psz" id="machine-PS4">
                     <section class="psz-container">
@@ -84,6 +92,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-PS4">0</p>
                         </div>  
+                        <div class="run-time-container psz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PS4">0</p>
+                                <p id="down-time-PS4">0</p>
+                            </div>                            
+                        </div>
                     </section>
                 </div>
                 <div class="machine-container trz" id="machine-TR3">
@@ -95,6 +113,16 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-TR3">0</p>
+                        </div>
+                        <div class="run-time-container trz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-TR3">0</p>
+                                <p id="down-time-TR3">0</p>
+                            </div>                            
                         </div>  
                     </section>  
                 </div>
@@ -110,7 +138,17 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-EB4">0</p>
-                        </div>  
+                        </div>
+                        <div class="run-time-container ebz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-EB4">0</p>
+                                <p id="down-time-EB4">0</p>
+                            </div>                            
+                        </div>   
                     </section>
                 </div>               
             </section>
@@ -125,7 +163,17 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-PR3">0</p>
-                        </div>  
+                        </div>
+                        <div class="run-time-container prz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PR3">0</p>
+                                <p id="down-time-PR3">0</p>
+                            </div>                            
+                        </div>   
                     </section>
                 </div>
                 <div class="machine-container hrz" id="machine-HR1">
@@ -138,6 +186,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-HR1">0</p>
                         </div>  
+                        <div class="run-time-container hrz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-HR1">0</p>
+                                <p id="down-time-HR1">0</p>
+                            </div>                            
+                        </div> 
                     </section>  
                 </div>
                 <div class="machine-container hdz" id="machine-HD2">
@@ -150,6 +208,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-HD2">0</p>
                         </div>  
+                        <div class="run-time-container hdz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-HD2">0</p>
+                                <p id="down-time-HD2">0</p>
+                            </div>                            
+                        </div> 
                     </section>  
                 </div>
             </section>
@@ -165,6 +233,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-GM1">0</p>
                         </div>  
+                        <div class="run-time-container gmz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-GM1">0</p>
+                                <p id="down-time-GM1">0</p>
+                            </div>                            
+                        </div> 
                     </section>  
                 </div>
             </section>
@@ -180,13 +258,23 @@
                             <p>Part Count:</p>
                             <p id="part-count-SC2">0</p>
                         </div>  
+                        <div class="run-time-container scz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-SC2">0</p>
+                                <p id="down-time-SC2">0</p>
+                            </div>                            
+                        </div> 
                     </section>
                 </div>            
             </section>
         </section>
 
     <!-- Large Batch Machines -->
-        <section class="machine-batch">
+        <section class="machine-batch" id="large-batch-section">
             <section class="machine-row">
                 <div class="machine-container psz" id="machine-PS1">
                     <section class="psz-container">
@@ -197,6 +285,16 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-PS1">0</p>
+                        </div>
+                        <div class="run-time-container psz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PS1">0</p>
+                                <p id="down-time-PS1">0</p>
+                            </div>                            
                         </div>  
                     </section>
                 </div>
@@ -209,6 +307,16 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-PS2">0</p>
+                        </div>
+                        <div class="run-time-container psz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PS2">0</p>
+                                <p id="down-time-PS2">0</p>
+                            </div>                            
                         </div>  
                     </section>
                 </div>
@@ -222,6 +330,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-TR1">0</p>
                         </div>  
+                        <div class="run-time-container trz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-TR1">0</p>
+                                <p id="down-time-TR1">0</p>
+                            </div>                            
+                        </div>
                     </section>
                 </div>
                 <div class="machine-container trz" id="machine-TR2">
@@ -233,7 +351,17 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-TR2">0</p>
-                        </div>  
+                        </div> 
+                        <div class="run-time-container trz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-TR2">0</p>
+                                <p id="down-time-TR2">0</p>
+                            </div>                            
+                        </div> 
                     </section>    
                 </div>
             </section>
@@ -248,7 +376,17 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-EB1">0</p>
-                        </div>  
+                        </div> 
+                        <div class="run-time-container ebz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-EB1">0</p>
+                                <p id="down-time-EB1">0</p>
+                            </div>                            
+                        </div> 
                     </section>
                 </div>
                 <div class="machine-container ebz" id="machine-EB2">
@@ -260,6 +398,16 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-EB2">0</p>
+                        </div>
+                        <div class="run-time-container ebz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-EB2">0</p>
+                                <p id="down-time-EB2">0</p>
+                            </div>                            
                         </div>  
                     </section>
                 </div>
@@ -272,7 +420,17 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-EB3">0</p>
-                        </div>  
+                        </div> 
+                        <div class="run-time-container ebz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-EB3">0</p>
+                                <p id="down-time-EB3">0</p>
+                            </div>                            
+                        </div> 
                     </section>
                 </div>                
             </section>
@@ -288,6 +446,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-PR1">0</p>
                         </div>  
+                        <div class="run-time-container prz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PR1">0</p>
+                                <p id="down-time-PR1">0</p>
+                            </div>                            
+                        </div>
                     </section>
                 </div>
                 <div class="machine-container prz" id="machine-PR2">
@@ -300,6 +468,38 @@
                             <p>Part Count:</p>
                             <p id="part-count-PR2">0</p>
                         </div>  
+                        <div class="run-time-container prz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PR2">0</p>
+                                <p id="down-time-PR2">0</p>
+                            </div>                            
+                        </div>
+                    </section>
+                </div>
+                <div class="machine-container prz" id="machine-PR4">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <p>Pod Router</p>
+                            <p>[PR4]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Part Count:</p>
+                            <p id="part-count-PR2">0</p>
+                        </div>  
+                        <div class="run-time-container prz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PR4">0</p>
+                                <p id="down-time-PR4">0</p>
+                            </div>                            
+                        </div>
                     </section>
                 </div>
                 <div class="machine-container hdz" id="machine-HD1">
@@ -312,6 +512,16 @@
                             <p>Part Count:</p>
                             <p id="part-count-HD1">0</p>
                         </div>  
+                        <div class="run-time-container hdz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-HD1">0</p>
+                                <p id="down-time-HD1">0</p>
+                            </div>                            
+                        </div>
                     </section>  
                 </div>
             </section>
@@ -326,27 +536,28 @@
                         <div class="part-count">
                             <p>Part Count:</p>
                             <p id="part-count-GM2">0</p>
-                        </div>  
+                        </div> 
+                        <div class="run-time-container gmz">
+                            <div class="run-time">
+                                <p>Up Time</p>
+                                <p>Down Time</p>                                
+                            </div>
+                            <div class="times">
+                                <p id="up-time-GM2">0</p>
+                                <p id="down-time-GM2">0</p>
+                            </div>                            
+                        </div> 
                     </section>  
                 </div>            
             </section>
 
-            <section class="machine-row">
-                <div class="machine-container scz" id="machine-SC1">
-                    <section class="scz-container">
-                        <div class="machine-name">
-                            <p>Shipping / Crating</p>
-                            <p>[SC1]</p>            
-                        </div>
-                        <div class="part-count">
-                            <p>Part Count:</p>
-                            <p id="part-count-SC1">0</p>
-                        </div>  
-                    </section>
-                </div>                           
-            </section>
+            <!-- <section class="machine-row">
+                                         
+            </section> -->
+
         </section>               
     </section>
+    
 <script src="templates/global.js"></script>    
 <script src="templates/machineDashboardEventHandlers.js"></script>
 
