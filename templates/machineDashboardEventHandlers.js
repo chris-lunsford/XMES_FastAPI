@@ -149,7 +149,7 @@ function resetUpTimes() {
 
 
 async function updateDownTimes(startDate, endDate) {
-    // resetDownTimes();
+    resetDownTimes();
     console.log('Fetching data for:', { startDate, endDate }); 
     const resourceQuery = new URLSearchParams();
     if (startDate) resourceQuery.append('start_date', startDate);
