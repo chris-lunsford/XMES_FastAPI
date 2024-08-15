@@ -3,7 +3,7 @@
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/production'].callback = initializeProductionDashboard;
+    scriptMap['/machine-production'].callback = initializeMachiningProduction;
 }
 
 
@@ -35,7 +35,7 @@ async function handleBarcodeKeyPress(event) {
 }
 
 
-function initializeProductionDashboard() {
+function initializeMachiningProduction() {
     console.log("Initializing Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();

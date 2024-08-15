@@ -3,7 +3,7 @@
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/production'].callback = initializeProductionDashboard;
+    scriptMap['/assembly-production'].callback = initializeAssemblyProduction;
 }
 
 
@@ -35,7 +35,7 @@ async function handleBarcodeKeyPress(event) {
 }
 
 
-function initializeProductionDashboard() {
+function initializeAssemblyProduction() {
     console.log("Initializing Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
@@ -59,9 +59,7 @@ function initializeProductionDashboard() {
 
 // Setup or re-setup event handlers
 function setupEventHandlers() {
-    console.log("Setting up event handlers");
-    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
-    listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
+    console.log("Setting up event handlers"); listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);

@@ -42,9 +42,13 @@ async def index(request: Request):
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get('/production')
+@app.get('/machine-production')
 async def production(request: Request):
-    return templates.TemplateResponse("production.html", {"request": request})
+    return templates.TemplateResponse("machineproduction.html", {"request": request})
+
+@app.get('/assembly-production')
+async def production(request: Request):
+    return templates.TemplateResponse("assemblyproduction.html", {"request": request})
 
 @app.get('/machine-dashboard')
 async def machine_dashboard(request: Request):
