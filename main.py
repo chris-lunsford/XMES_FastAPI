@@ -4,11 +4,12 @@ import pytz
 import asyncio
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import FastAPI, Request, HTTPException, Query
+from fastapi import FastAPI, Request, HTTPException, Query, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
@@ -19,10 +20,26 @@ from notification_types import NOTIFICATION_TYPES
 from defect_types import DEFECT_TYPES
 from defect_actions import DEFECT_ACTIONS
 from sql_functions import *
+from ttc_plugin import router as ttc_router
 
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://10.40.1.57:80"],  # Add the correct origin here
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include TTC Plugin router with a specific prefix
+app.include_router(
+    ttc_router,
+    prefix="/ttc-plugin",  # Prefix all TTC plugin routes
+    tags=["TTC Plugin"]    # Organize documentation by tags
+)
 
 templates  = Jinja2Templates(directory="templates")
 
@@ -62,6 +79,16 @@ async def order_dashboard(request: Request):
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
+@app.get('/ttc-plugin', response_class=HTMLResponse)
+async def ttc_plugin(request: Request, response: Response):
+    # Set the cookie if it's not already set
+    if "my_cookie" not in request.cookies:
+        response.set_cookie(key="my_cookie", value="cookie_value", samesite="None")
+    
+    # Render the TTC Plugin template
+    return templates.TemplateResponse("ttcplugin.html", {"request": request})
+
+ 
 
 @app.get('/api/work-stations')
 async def get_work_stations():

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTC Plugin</title>
+    <link rel="stylesheet" type="text/css" href="templates/css/ttcplugin.css">
+</head>
+<body class="ttc-plugin">
+    <h1 class="centered">
+        <span class="title">TTC Plugin</span>
+    </h1>
+    <section class="plugin-container">
+        <form id="file-upload-form" action="/ttc-plugin/process/" method="post" enctype="multipart/form-data">
+            <label for="order-id">Order ID:</label>
+            <input type="text" name="order_id" id="order-id" required>
+        
+            <label for="file-input">Upload File:</label>
+            <input type="file" id="file-input" name="file" multiple required>
+        
+            <button type="submit">Upload Files</button>
+        </form>
+    </section>
+    <script src="templates/ttcPluginEventHandlers.js"></script>
+</body>
+</html>
