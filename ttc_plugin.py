@@ -1,7 +1,8 @@
 import sys
 import os
 import pandas as pd
-from io import BytesIO
+import io
+from io import BytesIO, StringIO
 from azure.storage.blob import BlobServiceClient
 from ttc_routing_groups import ttc_saw_routing_groups, ttc_nested_routing_groups
 
@@ -21,15 +22,29 @@ async def process_file(response: Response, file: UploadFile = File(...), order_i
         content = await file.read()
 
         if file.filename.endswith('.csv'):
-            data = BytesIO(content)
-            df = pd.read_csv(data)
+            # Decode content and remove trailing commas from each line
+            content_str = content.decode('utf-8')
+            content_str = '\n'.join(line.rstrip(',') for line in content_str.splitlines())
+
+            # Use the cleaned string as the CSV data
+            data = io.StringIO(content_str)
+            df = pd.read_csv(data, header=0)  # Assuming the first row is the header
+            print("process DF:\n", df)
+
+            # Process the DataFrame
             new_df = modify_csv_in_memory(order_id, df)
+
+            # Prepare the processed data for download
             output = BytesIO()
             new_df.to_csv(output, index=False, header=True)
             output.seek(0)
+            upload_to_blob(output.getvalue(), "xmes/Tailor Closet/Buy Outs", f'{order_id}TTC-NonManuf.csv')
+
+
             return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={order_id}TTC-Productlist-NonManuf.csv"})
 
         elif file.filename.endswith('.pnx'):
+            # Process PNX file
             df = modify_pnx_in_memory(order_id, content)
             output_pnx = BytesIO()
             df.to_csv(output_pnx, index=False, header=False, sep=',')
@@ -44,7 +59,7 @@ async def process_file(response: Response, file: UploadFile = File(...), order_i
 
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type")
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -103,40 +118,51 @@ def find_routing(desc):
     return 'DEFAULT_ROUTING'
     
 
-def modify_csv_in_memory(order_id, df):
+def modify_csv_in_memory(order_id, csv_data):
     try:
-        # Convert columns to strings to ensure consistent data handling
-        df['Description'] = df['Description'].astype(str).str.strip()
-        # Adjustments for specific columns if they are numeric
-        for col in ['Cut Width', 'Cut Height', 'Cut Depth']:  # Example column names
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-                df[col] *= 25.4  # Convert inches to mm only if the column exists
-                df[col].fillna(0, inplace=True)  # Replace NaN with 0 if conversion fails
+        # Check if csv_data is already a DataFrame and correctly structured
+        if not isinstance(csv_data, pd.DataFrame):
+            raise ValueError("Expected csv_data to be a DataFrame with correct columns")
 
-        # Handling 'Qty' more robustly to avoid issues with non-numeric values
-        if 'Qty' in df.columns:
-            df['Qty'] = pd.to_numeric(df['Qty'], errors='coerce').fillna(1).astype(int)
+        # Print the DataFrame for debugging to ensure columns are aligned correctly
+        print("Initial DataFrame:\n", csv_data.head())
 
+        # Ensure 'Qty' is numeric and correctly aligned
+        csv_data['Qty'] = pd.to_numeric(csv_data['Qty'], errors='raise')
+
+        # Additional data cleaning and type adjustments
+        numeric_columns = ['Cut Width', 'Cut Height', 'Cut Depth', 'Cost', 'Weight']
+        for col in numeric_columns:
+            csv_data[col] = pd.to_numeric(csv_data[col], errors='coerce').fillna(0)
+            if col in ['Cut Width', 'Cut Height', 'Cut Depth']:
+                csv_data[col] *= 25.4  # Convert from inches to millimeters
+
+        # Expand rows based on 'Qty'
         expanded_rows = []
-        for idx, row in df.iterrows():
-            for _ in range(int(row['Qty'])):  # Ensure Qty is treated as int safely
+        for _, row in csv_data.iterrows():
+            qty = int(row['Qty'])  # Get the original quantity for expansion
+            for _ in range(qty):
                 new_row = row.copy()
-                new_row['Qty'] = 1
+                new_row['Qty'] = 1  # Set 'Qty' to 1 for each expanded row
                 expanded_rows.append(new_row)
 
+        # Create new DataFrame from expanded rows
         new_df = pd.DataFrame(expanded_rows)
+        new_df.reset_index(drop=True, inplace=True)  # Reset index to avoid any duplicate index issues
+
+        # Add ORDERID and BARCODE to the new DataFrame
         new_df['ORDERID'] = f'{order_id}TTC'
         new_df['BARCODE'] = [f'{order_id}TTC{5000 + i}' for i in range(len(new_df))]
-        new_df['ROUTING'] = new_df['Description'].apply(find_routing)  # Correct column for descriptions
-        print(new_df[['Description', 'ORDERID', 'ROUTING']].head())
-        print(new_df)
+        new_df['ROUTING'] = new_df.iloc[:, 2].apply(find_routing)
 
         return new_df
 
+    except ValueError as ve:
+        print(f"Value error occurred: {ve}")
+        raise HTTPException(status_code=400, detail=f"Data formatting error: {ve}")
     except Exception as e:
         print(f"An error occurred: {e}")
-        raise e # Reraise the exception after logging
+        raise HTTPException(status_code=500, detail=str(e))
     
 
 def modify_pnx_in_memory(order_id, file_content: bytes):
