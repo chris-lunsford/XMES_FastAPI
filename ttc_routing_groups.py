@@ -6,6 +6,8 @@ ttc_saw_routing_groups = {
         'Garage Carcass Upper Back',
         'Folding Station Riser',        
         'RPM|CTOP - Laminate',
+        'Stainless Steel Countertop'
+
     ],
 
     'PSZEBZSCZ': [
@@ -123,6 +125,8 @@ ttc_saw_routing_groups = {
         'Closet Upright Top Stacking Thru',
         'Closet Upright Top Stacking Right',
         'Closet Upright Top Stacking Left',
+        'Closet Upright Hanging Radius Left',
+
 
 
         
