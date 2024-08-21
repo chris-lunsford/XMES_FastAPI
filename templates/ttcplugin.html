@@ -12,12 +12,21 @@
         <span class="title">TTC Plugin</span>
     </h1>
     <section class="plugin-container">
-        <form id="file-upload-form" action="/ttc-plugin/process/" method="post" enctype="multipart/form-data">
+        <div>
             <label for="order-id">Order ID:</label>
             <input type="text" name="order_id" id="order-id" required>
+        </div>
         
+        <div class="message-display">
+            <!-- <p>Messages:&nbsp</p> -->
+            <span id="statusOutput">Enter Order ID and select file.</span>
+        </div>
+        <form id="file-upload-form" action="/ttc-plugin/process/" method="post" enctype="multipart/form-data">                        
+            
+            <section>        
             <label for="file-input">Upload File:</label>
             <input type="file" id="file-input" name="file" multiple required>
+            </section>
         
             <button type="submit">Upload Files</button>
         </form>
