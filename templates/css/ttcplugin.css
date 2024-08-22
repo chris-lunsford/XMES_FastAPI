@@ -55,8 +55,8 @@ h1.centered {
     justify-content: center;
     align-items: center;
     border: 2px dotted black;
-    border-radius: 25px;
-    width: 80%;
+    border-radius: 20px;
+    width: 60%;
     height: 80%;
     text-align: center;
 }

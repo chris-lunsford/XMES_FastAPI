@@ -97,20 +97,20 @@ def find_routing(desc):
     desc = str(desc).strip()
 
     # Print the description being checked for debugging
-    print(f"Routing Check for: {desc}")
+    # print(f"Routing Check for: {desc}")
 
     # Special cases handling with debug output
     if 'RPM' in desc:
-        print("Matched RPM Special Case")
+        # print("Matched RPM Special Case")
         return 'SCZ'
     if 'CTOP - Laminate' in desc:
-        print("Matched CTOP - Laminate Special Case")
+        # print("Matched CTOP - Laminate Special Case")
         return 'PSZ'
 
     # Exact matches check with debug output
     for routing, parts in routing_dict.items():
         if desc in parts:  # This checks if description is exactly in the list
-            print(f"Matched Exact Description for Routing: {routing}")
+            # print(f"Matched Exact Description for Routing: {routing}")
             return routing
 
     # Default fallback with debug output
