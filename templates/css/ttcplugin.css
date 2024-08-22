@@ -45,24 +45,35 @@ h1.centered {
     height: 80%;
 }
 
+.file-select {
+    display: flex;
+    gap: 20px;
+}
+
 .drop-area {    
     display: flex;
-    flex-direction: column;
-    justify-items: center;
+    justify-content: center;
     align-items: center;
     border: 2px dotted black;
     width: 80%;
     height: 80%;
+    text-align: center;
 }
 
-.drop-box div {    
-    display: flex;
-    flex-direction: column;
-    border: 2px dotted black;
+.drop-area div {   
     width: 100%;
-    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.drop-area span {
+    opacity: 1;
+    font-size: 16px; /* Adjust the font size as needed */
+    color: #333; /* Adjust the text color as needed */
 }
 
 .drop-area.highlight {
-    border-color: green;
+    background-color: rgb(124, 199, 124);
+    opacity: 0.3;
 }

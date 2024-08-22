@@ -29,15 +29,21 @@
             
             <div class="message-display">
                 <!-- <p>Messages:&nbsp</p> -->
-                <span id="status-output">Enter Order ID and select file.</span>
+                <span id="status-output">Enter Order ID and select a file.</span>
             </div>
             
-            <div>        
-                <label for="file-input">Upload File:</label>
-                <input type="file" id="file-input" name="file" multiple required>
-                <button type="submit">Upload Files</button>
+            <div class="file-select">
+                <div>        
+                    <label for="file-input">Select File:</label>
+                    <input type="file" id="file-input" name="file" required>
+                </div>    
+                <div>
+                    <button type="submit">Upload File</button>
+                    <button type="button" id="clear-button">Clear</button>
+                </div>
             </div>
             <section class="drop-area" id="drop-area">
+                <div><span>Drag & Drop file.</span></div>
             </section>        
         </form>
     </section>
