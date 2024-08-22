@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTC Plugin</title>
+    <link rel="stylesheet" type="text/css" href="templates/css/ttcplugin.css">
+    <link rel="icon" type="image/png" href="/assets/favicon.ico">
+</head>
+<body class="ttc-plugin">
+    <h1 class="centered">
+        <span class="title">TTC Plugin</span>
+    </h1>
+    <section class="plugin-container">
+        <!-- <div>
+            <label for="order-id">Order ID:</label>
+            <input type="text" name="order_id" id="order-id" required>
+        </div>
+        
+        <div class="message-display"> -->
+            <!-- <p>Messages:&nbsp</p> -->
+            <!-- <span id="statusOutput">Enter Order ID and select file.</span>
+        </div> -->
+        <form id="file-upload-form" action="/ttc-plugin/process/" method="post" enctype="multipart/form-data">                        
+            <div>
+                <label for="order-id">Infor #:</label>
+                <input type="text" name="order_id" id="order-id" required pattern="^\d{5}$" title="Order ID must be exactly 5 digits">
+            </div>
+            
+            <div class="message-display">
+                <!-- <p>Messages:&nbsp</p> -->
+                <span id="status-output">Enter Order ID and select a file.</span>
+            </div>
+            
+            <div class="file-select">
+                <div>        
+                    <label for="file-input">Select File:</label>
+                    <input type="file" id="file-input" name="file" required>
+                </div>    
+                <div>
+                    <button type="submit">Upload File</button>
+                    <button type="button" id="clear-button">Clear</button>
+                </div>
+            </div>
+            <section class="drop-area" id="drop-area">
+                <div><span>Drag & Drop file.</span></div>
+            </section>        
+        </form>
+    </section>
+    <script src="templates/ttcPluginEventHandlers.js"></script>
+</body>
+</html>

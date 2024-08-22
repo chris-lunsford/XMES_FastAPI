@@ -1,0 +1,80 @@
+/********* Home ************/
+
+
+html, body {
+    background-color: #e2e2e2;
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
+
+
+h1.centered {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+    font-size: 2rem;
+    text-align: center;
+}
+
+.plugin-container { 
+    /* border: 2px solid blue; */
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    margin-top: 50px;
+    gap: 20px;
+    width: 100%;
+    height: 80%;
+}
+
+.plugin-container form{ 
+    /* border: 2px solid blue; */
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
+    text-align: center;
+    margin-top: 5px;
+    gap: 20px;
+    width: 100%;
+    height: 80%;
+}
+
+.file-select {
+    display: flex;
+    gap: 20px;
+}
+
+.drop-area {    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dotted black;
+    border-radius: 20px;
+    width: 60%;
+    height: 80%;
+    text-align: center;
+}
+
+.drop-area div {   
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.drop-area span {
+    opacity: 1;
+    font-size: 16px; /* Adjust the font size as needed */
+    color: #333; /* Adjust the text color as needed */
+}
+
+.drop-area.highlight {
+    background-color: rgb(124, 199, 124);
+    opacity: 0.3;
+}
