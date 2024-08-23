@@ -7,4 +7,4 @@ To install all requirements:
 
 To generate requirements.txt:
     
-    pip install pipreqs
+    pipreqs --force
