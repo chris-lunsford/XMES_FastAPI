@@ -1,4 +1,4 @@
-/***** Machining Production Dashboard *****/
+/***** Production Dashboard *****/
 
 
 // After this script loads, set its callback in scriptMap if necessary.
