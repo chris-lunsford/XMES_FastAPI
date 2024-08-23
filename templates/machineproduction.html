@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/production.css">    
+    <title>Machining Production</title>
+</head>
+<body class="production-dashboard"> 
+    <section class="title-info">
+        <div class="page-name">
+            <span>Machining Production</span>
+        </div>        
+    </section>   
+    <section class="input-fields">
+        <form class="data-submition">
+            <div>
+                <label for="employee-id">Employee ID:</label>
+                <input type="text" name="scan_info" id="employee-id" required>
+            </div>    
+            <div>
+                <label for="work-area">Work Area:</label>
+                <select name="scan_info" id="work-area" required>
+                </select>
+            </div>    
+            <div>
+                <label for="customer-id">Customer ID:</label>
+                <select name="scan_info" id="customer-id" required>
+                </select>
+            </div>    
+            <div>
+                <label for="order-id">Order ID:</label>
+                <input type="text" value="" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
+            </div>    
+            <div>
+                <label for="barcode">Barcode:</label>
+                <input type="text" name="scan_info" id="barcode" required>
+            </div>
+        </form>
+        <div class="message-display">
+            <p>Messages:&nbsp</p>
+            <p id="status-message">Enter required fields and scan barcode.</p>
+        </div>
+    </section>
+    <section class="display-container">
+        <div class="notification-display">
+            <p>Notifications:</p>
+            <div id="notification-list">
+                 <!-- <ul>Dynamically created by JS</ul>-->
+            </div>            
+        </div>
+        <div class="order-data-display">
+            <div class="order-data-container">
+                <p>Scans for current order:</p>
+                <div class="order-data-types">
+                    <div class="ordercount-area">
+                        <p id="ordercount-area-label">This Area:</p>
+                        <p id="ordercount-area">0</p>
+                    </div>
+                    <div class="part-count">
+                        <p>Total Progress:</p>                            
+                        <p><span id="ordercount-scanned-area">0</span> of <span id="ordercount-total-area">0</span></p>                            
+                    </div>
+                    <div class="progressbar-container">
+                        <progress id="progress-bar" value="0" max="100"></progress>
+                        <span id="progress-text">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="data-display">
+            <div class="data-type-container">
+                <p>Scans for current day:</p>
+                <div class="data-types">
+                    <div class="partcount-workarea">
+                        <p id="partcount-area-label">Work Area:</p>
+                        <p id="partcount-area">0</p>
+                    </div>            
+                    <div class="partcount-employee">
+                        <p>Total parts:</p>
+                        <p id="partcount-emp">0</p>
+                    </div>
+                    <div class="past-scans">
+                        <div>Jobs:</div>
+                        <div class="job-list">
+                            <!-- <ul>Dynamically created by JS</ul>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>    
+    </section>
+    <section class="report-defect-display">
+        <div>
+            <button type="button" id="report-defect">Report Defective Part</button>
+        </div>
+    </section>
+    <section class="missing-part-display">
+        <div>
+            <button type="button" id="not-scanned-parts">Parts Not Scanned by Area</button>
+        </div>
+        <div class="missing-parts-table">
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th class="part-barcode">Barcode</th>
+                        <th>Part Program</th>
+                        <th>Description</th>
+                        <th>Routing</th>
+                        <th>Last Scan</th>
+                        <th>Last Scan Time</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <div id="scan-result-overlay" class="scan-result-overlay">
+        <div id="scan-result-icon"></div>
+    </div>
+    <!-- Modal Structure -->
+        <div id="defectModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="title">Submit Defective Part</span>  
+                    <span class="close">&times;</span>                  
+                </div>
+            <form id="defect-submission">
+                <section class="defect-header">
+                    <div class="defect-input-fields">
+                        <div>
+                            <label for="defect-barcode">Barcode:</label>
+                            <input type="text" name="defect_info" id="defect-barcode" required>
+                        </div>                                  
+                        <div>
+                            <label for="order-id-defect">Order ID:</label>
+                            <input type="text" name="defect_info" id="order-id-defect" required>
+                        </div>  
+                        <div>
+                            <label for="defect-employee-id">Employee ID:</label>
+                            <input type="text" name="defect_info" id="defect-employee-id" required>
+                        </div>
+                        <div>
+                            <label for="work-area-defect">Work Area:</label>
+                            <select name="defect_info" id="work-area-defect" required></select>
+                        </div>
+                        <div>
+                            <label for="defect-type">Defect Type:</label>
+                            <select name="defect_info" id="defect-type" required></select>                            
+                        </div>
+                        <div>
+                            <label for="defect-action">Action:</label>
+                            <select name="defect_info" id="defect-action" required></select>                            
+                        </div>                          
+                    </div>
+                </section>
+                <section class="defect-description">
+                    <div class="detail-body">
+                        <label for="defect-detail">Description of issue:</label>
+                        <textarea name="" id="defect-detail" cols="50" rows="10" required></textarea>                        
+                    </div>
+                    <button type="submit" id="submit-defect-button">Submit Defect</button>
+                </section>                                
+            </form>                        
+        </div>
+    <script src="templates/global.js"></script>    
+</body>
+</html>
