@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-document.getElementById('clear-button').addEventListener('click', function() {
-    document.getElementById('file-upload-form').reset();
+document.getElementById('reset-button').addEventListener('click', function() {
     document.getElementById('status-output').textContent = "Enter Order ID and select a file.";
 });

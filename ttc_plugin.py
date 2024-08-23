@@ -63,12 +63,6 @@ async def process_file(response: Response, file: UploadFile = File(...), order_i
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.get("/status/")
-async def check_status():
-    # Endpoint to check the status or health of the TTC plugin
-    return {"status": "running"}
-
 # Additional TTC-specific endpoints can be added here
 
 

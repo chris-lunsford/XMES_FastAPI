@@ -26,13 +26,6 @@ from ttc_plugin import router as ttc_router
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://10.40.1.57:80"],  # Add the correct origin here
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include TTC Plugin router with a specific prefix
 app.include_router(
@@ -41,45 +34,48 @@ app.include_router(
     tags=["TTC Plugin"]    # Organize documentation by tags
 )
 
+
 templates  = Jinja2Templates(directory="templates")
+
 
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     return PlainTextResponse(str(exc), status_code=400)
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get('/', tags=["Pages"], response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get('/home', response_class=HTMLResponse)
+@app.get('/home', tags=["Pages"], response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get('/production')
+@app.get('/production', tags=["Pages"])
 async def production(request: Request):
     return templates.TemplateResponse("production.html", {"request": request})
 
-@app.get('/machine-dashboard')
+@app.get('/machine-dashboard', tags=["Pages"])
 async def machine_dashboard(request: Request):
     return templates.TemplateResponse("machinedashboard.html", {"request": request})
 
-@app.get('/notification')
+@app.get('/notification', tags=["Pages"])
 async def notification(request: Request):
     return templates.TemplateResponse("submitnotification.html", {"request": request})
 
-@app.get('/order-dashboard')
+@app.get('/order-dashboard', tags=["Pages"])
 async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
 
-@app.get('/defect-dashboard')
+@app.get('/defect-dashboard', tags=["Pages"])
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
-@app.get('/ttc-plugin', response_class=HTMLResponse)
+@app.get('/ttc-plugin', tags=["Pages"], response_class=HTMLResponse)
 async def ttc_plugin(request: Request, response: Response):
     # Set the cookie if it's not already set
     if "my_cookie" not in request.cookies:
@@ -90,7 +86,7 @@ async def ttc_plugin(request: Request, response: Response):
 
  
 
-@app.get('/api/work-stations')
+@app.get('/api/work-stations', tags=["Lists"])
 async def get_work_stations():
     return WORK_STATIONS
 
@@ -98,24 +94,24 @@ async def get_work_stations():
 class WorkStationGroups(BaseModel):
     groups: Dict[str, str]
 
-@app.get("/api/work-station-groups", response_model=WorkStationGroups)
+@app.get("/api/work-station-groups", tags=["Lists"], response_model=WorkStationGroups)
 async def get_work_station_groups():
     return WorkStationGroups(groups=WORK_STATION_GROUPS)
 
 
-@app.get('/api/customer-ids')
+@app.get('/api/customer-ids', tags=["Lists"])
 async def get_customer_ids():
     return CUSTOMER_IDS
 
-@app.get('/api/defect-types')
+@app.get('/api/defect-types', tags=["Lists"])
 async def get_defect_types():
     return DEFECT_TYPES
 
-@app.get('/api/defect-actions')
+@app.get('/api/defect-actions', tags=["Lists"])
 async def get_defect_actions():
     return DEFECT_ACTIONS
 
-@app.get("/api/machine-status")
+@app.get("/api/machine-status", tags=["Machine Status"])
 async def machine_status():
     last_timestamps = fetch_last_timestamp()
     return last_timestamps
@@ -126,7 +122,7 @@ class DateForm(BaseModel):
     startDate: Optional[str]
     endDate: Optional[str] 
 
-@app.post('/api/dateForm')
+@app.post('/api/dateForm', tags=["Machine Status"])
 async def machine_part_counts(form_data: DateForm):
     if form_data.startDate is None or form_data.endDate is None:
         raise HTTPException(status_code=400, detail="Start date and end date are required.")
@@ -145,7 +141,7 @@ class BarcodeData(BaseModel):
     CustomerID: str
     forceContinue: bool = False  
 
-@app.post('/api/barcode-scan-Submit')
+@app.post('/api/barcode-scan-Submit', tags=["Machine Production"])
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
         # Create a timezone object for Eastern Time
@@ -190,7 +186,7 @@ class BarcodeRecutData(BaseModel):
     Resource: str
     Recut: int
 
-@app.post('/api/update-recut-status')
+@app.post('/api/update-recut-status', tags=["Machine Production"])
 async def update_recut_status(data: BarcodeRecutData):
     try:
         print("Received data for recut:", data)
@@ -199,7 +195,7 @@ async def update_recut_status(data: BarcodeRecutData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get('/api/employee-areaparts-count')
+@app.get('/api/employee-areaparts-count', tags=["Part Counts"])
 async def employee_areaparts_count(EmployeeID, Resource):
     try:
         count = get_employee_areaparts_count(EmployeeID, Resource)
@@ -207,7 +203,7 @@ async def employee_areaparts_count(EmployeeID, Resource):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get('/api/employee-totalparts-count')
+@app.get('/api/employee-totalparts-count', tags=["Part Counts"])
 async def employee_totalparts_count(EmployeeID):
     try:
         count = get_employee_totalparts_count(EmployeeID)
@@ -216,7 +212,7 @@ async def employee_totalparts_count(EmployeeID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/order-area-scanned-count')
+@app.get('/api/order-area-scanned-count', tags=["Part Counts"])
 async def order_area_scanned_count(OrderID, Resource, EmployeeID):
     try:
         count = get_order_area_scanned_count(OrderID, Resource, EmployeeID)
@@ -225,7 +221,7 @@ async def order_area_scanned_count(OrderID, Resource, EmployeeID):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get('/api/order-total-area-count')
+@app.get('/api/order-total-area-count', tags=["Part Counts"])
 async def order_totalarea_count(OrderID, Resource):
     Resource_Group = get_resource_group(Resource)
     try:
@@ -235,7 +231,7 @@ async def order_totalarea_count(OrderID, Resource):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/order-machinegroup-scan-count')
+@app.get('/api/order-machinegroup-scan-count', tags=["Part Counts"])
 async def order_machinegroup_scan_count(OrderID, Resource):
     try:
         count = get_order_machinegroup_scan_count(OrderID, Resource)
@@ -244,7 +240,7 @@ async def order_machinegroup_scan_count(OrderID, Resource):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get('/api/order-total-count')
+@app.get('/api/order-total-count', tags=["Part Counts"])
 async def order_total_count(OrderID):
     try:
         count = get_order_total_count(OrderID)
@@ -253,7 +249,7 @@ async def order_total_count(OrderID):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get('/api/employee-joblist-day/')
+@app.get('/api/employee-joblist-day/', tags=["Machine Production"])
 async def employee_joblist_day(EmployeeID):
     try:
         job_list = get_employee_joblist_day(EmployeeID)
@@ -262,7 +258,7 @@ async def employee_joblist_day(EmployeeID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/jobid-notifications')
+@app.get('/api/jobid-notifications', tags=["Job Notifications"])
 async def jobid_notifications(OrderID):
     try:
         notification_list = get_jobid_notifications(OrderID)
@@ -271,7 +267,7 @@ async def jobid_notifications(OrderID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/notification-types')
+@app.get('/api/notification-types', tags=["Lists"])
 async def get_notification_types():
     return NOTIFICATION_TYPES
 
@@ -283,7 +279,7 @@ class NotificationData(BaseModel):
     SubmittedBy: str
 
 
-@app.post('/api/submit-order-notification')
+@app.post('/api/submit-order-notification', tags=["Job Notifications"])
 async def handle_submit_order_notification(data: NotificationData):
     try:
         result = submit_order_notification(
@@ -298,7 +294,7 @@ async def handle_submit_order_notification(data: NotificationData):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.delete('/api/delete-order-notification')
+@app.delete('/api/delete-order-notification', tags=["Job Notifications"])
 async def handle_delete_order_notificatino(notificationID: int):
     try:
         result = delete_order_notification(notificationID)
@@ -310,7 +306,7 @@ async def handle_delete_order_notificatino(notificationID: int):
     
 
 
-@app.get('/api/order-part-counts')
+@app.get('/api/order-part-counts', tags=["Part Counts"])
 async def handle_order_part_counts(OrderID):
     try:
         counts = get_order_part_counts(OrderID)
@@ -319,7 +315,7 @@ async def handle_order_part_counts(OrderID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/scanned-order-part-counts')
+@app.get('/api/scanned-order-part-counts', tags=["Part Counts"])
 async def handle_scanned_order_part_counts(OrderID: str):
     loop = asyncio.get_running_loop()
     executor = ThreadPoolExecutor(max_workers=1)
@@ -333,7 +329,7 @@ async def handle_scanned_order_part_counts(OrderID: str):
         executor.shutdown(wait=True)
     
 
-@app.get('/api/parts-not-scanned-by-shipping')
+@app.get('/api/parts-not-scanned-by-shipping', tags=["Part Not Scanned"])
 async def handle_parts_not_scanned_by_shipping(OrderID: str):
     try:
         return await get_not_scanned_parts(OrderID)
@@ -341,7 +337,7 @@ async def handle_parts_not_scanned_by_shipping(OrderID: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/parts-not-scanned-by-area')
+@app.get('/api/parts-not-scanned-by-area', tags=["Part Not Scanned"])
 async def handle_parts_not_scanned_by_area(OrderID: str, Resource: str):
     try:
         return await get_not_scanned_byarea(OrderID, Resource)
@@ -349,7 +345,7 @@ async def handle_parts_not_scanned_by_area(OrderID: str, Resource: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/parts-not-scanned-by-group')
+@app.get('/api/parts-not-scanned-by-group', tags=["Part Not Scanned"])
 async def handle_parts_not_scanned_by_group(OrderID: str, Resource: str):
     try:
         return await get_not_scanned_bymachinegroup(OrderID, Resource)
@@ -386,7 +382,7 @@ templates.env.filters['mm_to_inches'] = mm_to_inches
 templates.env.filters['format_date'] = format_date
 
 
-@app.get('/api/generate-packlist')
+@app.get('/api/generate-packlist', tags=["Packlist"])
 async def handle_generate_packlist(request: Request, OrderID: str):
     try:
         data, customer_name = generate_packlist(OrderID)
@@ -400,7 +396,7 @@ async def handle_generate_packlist(request: Request, OrderID: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/generate-packlist2')
+@app.get('/api/generate-packlist2', tags=["Packlist"])
 async def handle_generate_packlist2(request: Request, OrderID: str):
     try:
         data, customer_name = generate_packlist2(OrderID)
@@ -423,7 +419,7 @@ class DefectData(BaseModel):
     Resource: str
     Barcode: str
 
-@app.post('/api/submit-defect')
+@app.post('/api/submit-defect', tags=["Defects"])
 async def handle_submit_defect(data: DefectData):
     try:
         result = submit_defect(
@@ -442,7 +438,7 @@ async def handle_submit_defect(data: DefectData):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get('/api/fetch-defects')
+@app.get('/api/fetch-defects', tags=["Defects"])
 async def handle_fetch_defects(order_id: Optional[str] = None, 
                                defect_type: Optional[str] = None, 
                                defect_action: Optional[str] = None, 
@@ -454,7 +450,7 @@ async def handle_fetch_defects(order_id: Optional[str] = None,
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/fetch-uptime-all')
+@app.get('/api/fetch-uptime-all', tags=["Runtime"])
 async def handle_fetch_uptime_all(
     resources: List[str] = Query(WORK_STATIONS),
     start_date: Optional[str] = None,
@@ -467,7 +463,7 @@ async def handle_fetch_uptime_all(
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@app.get('/api/fetch-downtime-all')
+@app.get('/api/fetch-downtime-all', tags=["Runtime"])
 async def handle_fetch_downtime_all(
     resources: List[str] = Query(WORK_STATIONS),
     start_date: Optional[str] = None,
