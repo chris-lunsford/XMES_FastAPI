@@ -23,11 +23,11 @@
                 <select name="scan_info" id="work-area" required>
                 </select>
             </div>    
-            <div>
+            <!-- <div>
                 <label for="customer-id">Customer ID:</label>
                 <select name="scan_info" id="customer-id" required>
                 </select>
-            </div>    
+            </div>     -->
             <div>
                 <label for="order-id">Order ID:</label>
                 <input type="text" value="" name="scan_info" id="order-id" required readyonly onfocus="enableEditing(this)">
@@ -49,44 +49,42 @@
                  <!-- <ul>Dynamically created by JS</ul>-->
             </div>            
         </div>
-        <div class="order-data-display">
-            <div class="order-data-container">
-                <p>Scans for current article:</p>
-                <div class="order-data-types">
-                    <div class="ordercount-area">
-                        <p id="ordercount-area-label">This Area:</p>
-                        <p id="ordercount-area">0</p>
-                    </div>
-                    <div class="part-count">
-                        <p>Total Progress:</p>                            
-                        <p><span id="ordercount-scanned-area">0</span> of <span id="ordercount-total-area">0</span></p>                            
-                    </div>
-                    <div class="progressbar-container">
-                        <progress id="progress-bar" value="0" max="100"></progress>
-                        <span id="progress-text">0%</span>
-                    </div>
+        <div class="part-display">
+            <p>Parts in Article:</p>
+            <section>
+                <div>
+                    <input type="checkbox" id="part 1" name="part 1" checked>
+                    <label>Part 1</label>
+                    <span>Part description</span>                    
                 </div>
-            </div>
-        </div>
-        <div class="data-display">
-            <div class="data-type-container">
-                <p>Scans for current day:</p>
-                <div class="data-types">
-                    <div class="partcount-workarea">
-                        <p id="partcount-area-label">Work Area:</p>
-                        <p id="partcount-area">0</p>
-                    </div>            
-                    <div class="partcount-employee">
-                        <p>Total parts:</p>
-                        <p id="partcount-emp">0</p>
-                    </div>
-                    <div class="past-scans">
-                        <div>Jobs:</div>
-                        <div class="job-list">
-                            <!-- <ul>Dynamically created by JS</ul>-->
-                        </div>
-                    </div>
+                <div>
+                    <input type="checkbox" id="part 2" name="part 2">
+                    <label>Part 2</label> 
+                    <span>Part description</span>                   
                 </div>
+                <div>
+                    <input type="checkbox" id="part 3" name="part 3">
+                    <label>Part 3</label> 
+                    <span>Part description</span>                   
+                </div>
+                <div>
+                    <input type="checkbox" id="part 4" name="part 4">
+                    <label>Part 4</label>  
+                    <span>Part description</span>                  
+                </div>
+                <div>
+                    <input type="checkbox" id="part 5" name="part 5">
+                    <label>Part 5</label> 
+                    <span>Part description</span>                   
+                </div>
+                <div>
+                    <input type="checkbox" id="part 6" name="part 6">
+                    <label>Part 6</label>  
+                    <span>Part description</span>                  
+                </div>
+            </section>
+            <div class="part-button">
+                <button type="button" id="">Submit</button>
             </div>
         </div>    
     </section>

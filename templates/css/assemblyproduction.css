@@ -85,9 +85,9 @@ html, body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 30px;
-    /* border: 2px dotted orange; */
+    border: 2px dotted orange;
     padding: 10px;
-    min-height: 300px;
+    min-height: 400px;
 }
 
 .notification-display {
@@ -124,130 +124,65 @@ html, body {
 }
 
 
-
-/* .data-display {
+/* .part-container  {
     display: flex;
     flex-direction: column;
-    /* border: 1px dotted black; */
-    /* padding: 10px;
-    width:  30ch;
     row-gap: 30px;
-}  */
+}   */
 
-.data-type-container {
+.part-display {
     display: flex;
     flex-direction: column;
-    height: 300px;
+    justify-content: space-between;
     border: 1px dotted black;
     padding: 10px;
     margin-bottom: 30px;
-    width:  30ch;
-    row-gap: 30px;
+    width:  50%;
+    row-gap: 30px;    
 }
 
-.data-types {
+.part-display input[type="checkbox"] {
+    appearance: checkbox;
+}
+
+.part-display section {
     display: flex;
     flex-direction: column;
-    flex-basis: auto;
-    row-gap: 20px;
+    gap: 10px;
 }
 
-.partcount-workarea, .partcount-employee, .past-scans {
+.part-display div {
     display: flex;
-    justify-content: space-between;
-    gap: 35px;
+    row-gap: 10px;
+    column-gap: 15px;
 }
 
-.job-list {
-    display: flex;
-    flex-direction: column;
-}
 
-.order-data-container {
+.part-button {
     display: flex;
-    flex-direction: column;
-    height: 300px;
-    border: 1px dotted black;
-    padding: 10px;
-    margin-bottom: 30px;
-    width:  30ch;
-    row-gap: 30px;
-}
-
-.order-data-types {
-    display: flex;
-    flex-direction: column;
-    flex-basis: auto;
-    row-gap: 20px;
-}
-
-.ordercount-area, .ordercount-total-area, .ordercount-total-order{
-    display: flex;
-    justify-content: space-between;
-    gap: 35px;
-}
-
-.part-count {
-    display: flex;
-    justify-content: space-between;
+    justify-content: left;   
     width: 100%;
 }
 
-.part-count > div {
-    position: relative; /* Required for positioning the percentage text absolutely */
-    width: 100%; /* Full width to contain the progress bar */
-}
-
-progress {
-    width: 100%; /* Full width of its container */
-    height: 20px; /* Adequate height for visibility */
-    appearance: none; /* Add this line */
-    background-color: #eee; /* Light grey background */
-    border-radius: 10px;
-    padding: 0px;
-}
-
-/* Optional: Style for different browser engines */
-progress::-webkit-progress-bar {
-    background-color: #eee;
+.part-display button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px; 
     border-radius: 10px;
 }
 
-progress::-webkit-progress-value {
-    background-color: #0063cc;
-    border-radius: 10px;
+.part-display button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
 }
 
-progress::-moz-progress-bar {
-    background-color: #0063cc;
-    border-radius: 10px;
-}
 
-progress.complete {
-    background-color: limegreen; /* Green background for complete progress */
-}
-
-/* For browsers using pseudo-elements for progress bars */
-progress.complete::-webkit-progress-value {
-    background-color: limegreen;
-}
-
-progress.complete::-moz-progress-bar {
-    background-color: limegreen;
-}
-
-.progressbar-container {
-    position: relative;
-    width: 100%;
-}
-
-.progressbar-container span {
-    position: absolute;
-    left: 50%;
-    top: 35%;
-    transform: translate(-50%, -50%); /* Center the text both horizontally and vertically */
-    color: black; /* Color for visibility, change as necessary */
-}
 
 
 .report-defect-display {
@@ -335,6 +270,8 @@ progress.complete::-moz-progress-bar {
 .part-barcode {
     width: 25%;
 }
+
+
 
 
 .modal {
