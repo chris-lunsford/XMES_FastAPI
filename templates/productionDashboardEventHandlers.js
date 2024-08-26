@@ -7,6 +7,11 @@ if (typeof scriptMap !== 'undefined') {
 }
 
 
+
+
+
+
+
 // Define the barcode scanning function outside to keep its reference
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
@@ -35,6 +40,110 @@ async function handleBarcodeKeyPress(event) {
 }
 
 
+// Global variables for barcode scanning
+let barcode = '';
+let scanning = false;
+let scanTimeout;
+
+
+// Scan types configurations
+const scanTypes = [
+    {
+        pattern: /^[A-Za-z0-9]{12}$/, // 12-digit barcode
+        validator: isValidBarcode,
+        handler: handleBarcode,
+        targetId: 'barcode'
+    },
+    {
+        pattern: /^\d{4}$/, // 4-digit employee ID
+        validator: isValidEmployeeID,
+        handler: handleEmployeeID,
+        targetId: 'employee-id'
+    },
+    {
+        pattern: /^[A-Za-z0-9]{3}$/, // 3-digit resource ID (hypothetical)
+        validator: isValidResourceID, // This function would need to be defined
+        handler: handleResourceID, // This function would need to be defined
+        targetId: 'work-area' // Assumes there is an input field with this ID
+    }
+];
+
+
+// Barcode detection logic
+document.addEventListener('keydown', function (e) {
+    console.log("keydown detected");
+    // Initialize scanning state if not already set
+    if (!scanning) {
+        scanning = true;
+        barcode = '';
+        clearTimeout(scanTimeout);
+    }
+
+    // Filter out non-alphanumeric keys and Enter key
+    if (/^[A-Za-z0-9]$/.test(e.key)) {
+        barcode += e.key; // Accumulate the character if it's alphanumeric
+    } else if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent default form submission if any
+
+        // Check each scan type and handle accordingly
+        let handled = false;
+        for (let type of scanTypes) {
+            if (type.validator(barcode)) {
+                type.handler(barcode, type.targetId);
+                handled = true;
+                break;
+            }
+        }
+        if (!handled) {
+            console.log("Unrecognized scan type:", barcode);
+        }
+
+        // Reset barcode for the next scan
+        barcode = '';
+        scanning = false;
+    }
+
+    // Reset the barcode accumulation if there is a pause (to detect a new scan)
+    clearTimeout(scanTimeout);
+    scanTimeout = setTimeout(() => {
+        barcode = ''; // Clear the barcode if no keys are pressed within a short period
+        scanning = false;
+    }, 250); // Adjust the timeout as necessary for your scanner speed
+});
+
+
+
+// Validator functions
+function isValidBarcode(code) {
+    return scanTypes[0].pattern.test(code);
+}
+
+function isValidEmployeeID(code) {
+    return scanTypes[1].pattern.test(code);
+}
+
+function isValidResourceID(code) {
+    return scanTypes[2].pattern.test(code);
+}
+
+
+// Handler functions
+function handleBarcode(code, targetId) {
+    document.getElementById(targetId).value = code;
+    // document.getElementById(targetId).focus();
+}
+
+function handleEmployeeID(code, targetId) {
+    document.getElementById(targetId).value = code;
+    // document.getElementById(targetId).focus();
+}
+
+function handleResourceID(code, targetId) {
+    document.getElementById(targetId).value = code;
+    // document.getElementById(targetId).focus();
+}
+
+
 function initializeProductionDashboard() {
     console.log("Initializing Production Dashboard");
     // First, clear all managed listeners
@@ -56,7 +165,6 @@ function initializeProductionDashboard() {
     
 }
 
-
 // Setup or re-setup event handlers
 function setupEventHandlers() {
     console.log("Setting up event handlers");
@@ -66,6 +174,10 @@ function setupEventHandlers() {
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
 }
+
+
+
+
 
 
 
