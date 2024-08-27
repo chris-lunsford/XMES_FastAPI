@@ -12,7 +12,8 @@ if (typeof scriptMap !== 'undefined') {
 
 
 
-// Define the barcode scanning function outside to keep its reference
+document.getElementById('barcode').addEventListener('keydown', handleBarcodeKeyPress);
+
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
@@ -129,18 +130,62 @@ function isValidResourceID(code) {
 
 // Handler functions
 function handleBarcode(code, targetId) {
-    document.getElementById(targetId).value = code;
-    // document.getElementById(targetId).focus();
+    const barcodeInput = document.getElementById(targetId);
+    barcodeInput.value = code; // Set the value from the scan
+    // barcodeInput.focus(); // Set focus to the barcode input
+
+    // Create a new event to simulate barcode entry
+    const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+    });
+
+    // Dispatch the event to trigger handleDynamicInputs
+    barcodeInput.dispatchEvent(event);
+
+    // Directly invoke the processing logic instead of simulating an Enter key press
+    processBarcodeInput(barcodeInput);    
 }
 
 function handleEmployeeID(code, targetId) {
-    document.getElementById(targetId).value = code;
-    // document.getElementById(targetId).focus();
+    const employeeIDInput = document.getElementById(targetId);
+    console.log('Employee ID before update:', employeeIDInput.value);  // Log the current value
+    employeeIDInput.value = code;  // Update with new code
+    console.log('Employee ID after update:', employeeIDInput.value);  // Confirm it updates
+    employeeIDInput.dispatchEvent(new Event('change'));  // Ensure any change handlers are triggered
+    document.activeElement.blur();
 }
 
 function handleResourceID(code, targetId) {
-    document.getElementById(targetId).value = code;
+    const resourceIDInput = document.getElementById(targetId);
+    console.log('Resource before update:', resourceIDInput.value);
+    resourceIDInput.value = code;
+    console.log('Resource after update:', resourceIDInput.value);
+    resourceIDInput.dispatchEvent(new Event('change'));
     // document.getElementById(targetId).focus();
+    document.activeElement.blur();
+}
+
+
+async function processBarcodeInput(barcodeInput) {
+    console.log("Processing barcode input");
+    const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+
+    if (form && !form.checkValidity()) {
+        form.reportValidity(); // Show validation messages if form is invalid
+        return;
+    }
+
+    try {
+        await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
+        updatePartCountsOnScan();        // Then update parts counts
+        updateEEJobListDay();            // Update other UI elements
+        updateAreaProgressBar();
+        // resetBarcodeField();           // Handled in handleBarcodeScan_to_DB 
+        document.activeElement.blur();
+    } catch (error) {
+        console.error('Failed to process barcode input:', error);
+    }
 }
 
 
