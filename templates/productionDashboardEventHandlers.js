@@ -8,29 +8,25 @@ if (typeof scriptMap !== 'undefined') {
 
 
 
-async function initializeProductionDashboard() {
+function initializeProductionDashboard() {
     console.log("Initializing Production Dashboard");
+    // First, clear all managed listeners
+    listenerManager.removeListeners();
 
-    if (window.productionDashboardInitialized) {
-        console.warn("Production Dashboard already initialized.");
-        return;
-    }
+    // Initialize dashboard functionalities
+    populateCustomerIDs(); // Populate customer IDs
+    populateWorkAreas(); // Populate work areas
+    populateDefectTypes();
+    populateDefectActions();
 
-    try {
-        listenerManager.removeListeners();
+    // Setup event handlers at initialization
+    setupEventHandlers();
 
-        await Promise.all([
-            populateCustomerIDs(), // These functions should return promises if they are async
-            populateWorkAreas(),
-            populateDefectTypes(),
-            populateDefectActions()
-        ]);
+    // Prevent multiple initializations
+    if (window.productionDashboardInitialized) return;
+    window.productionDashboardInitialized = true;
 
-        setupEventHandlers();
-        window.productionDashboardInitialized = true;
-    } catch (error) {
-        console.error("Failed to initialize the production dashboard:", error);
-    }
+    
 }
 
 
