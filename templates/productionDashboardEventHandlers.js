@@ -8,11 +8,48 @@ if (typeof scriptMap !== 'undefined') {
 
 
 
+async function initializeProductionDashboard() {
+    console.log("Initializing Production Dashboard");
+
+    if (window.productionDashboardInitialized) {
+        console.warn("Production Dashboard already initialized.");
+        return;
+    }
+
+    try {
+        listenerManager.removeListeners();
+
+        await Promise.all([
+            populateCustomerIDs(), // These functions should return promises if they are async
+            populateWorkAreas(),
+            populateDefectTypes(),
+            populateDefectActions()
+        ]);
+
+        setupEventHandlers();
+        window.productionDashboardInitialized = true;
+    } catch (error) {
+        console.error("Failed to initialize the production dashboard:", error);
+    }
+}
+
+
+// Setup or re-setup event handlers
+function setupEventHandlers() {
+    console.log("Setting up event handlers");
+    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
+    listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
+    listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
+    listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
+    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
+
+    // Setup barcode-related event handlers
+    listenerManager.addListener(document.getElementById('barcode'), 'keydown', handleBarcodeKeyPress);
+    listenerManager.addListener(document, 'keydown', handleGlobalKeydown);
+}
 
 
 
-
-document.getElementById('barcode').addEventListener('keydown', handleBarcodeKeyPress);
 
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
@@ -70,8 +107,8 @@ const scanTypes = [
 ];
 
 
-// Barcode detection logic
-document.addEventListener('keydown', function (e) {
+// Global barcode detection logic, moved to a named function
+function handleGlobalKeydown(e) {
     console.log("keydown detected");
     // Initialize scanning state if not already set
     if (!scanning) {
@@ -110,7 +147,7 @@ document.addEventListener('keydown', function (e) {
         barcode = ''; // Clear the barcode if no keys are pressed within a short period
         scanning = false;
     }, 250); // Adjust the timeout as necessary for your scanner speed
-});
+}
 
 
 
@@ -189,36 +226,7 @@ async function processBarcodeInput(barcodeInput) {
 }
 
 
-function initializeProductionDashboard() {
-    console.log("Initializing Production Dashboard");
-    // First, clear all managed listeners
-    listenerManager.removeListeners();
 
-    // Initialize dashboard functionalities
-    populateCustomerIDs(); // Populate customer IDs
-    populateWorkAreas(); // Populate work areas
-    populateDefectTypes();
-    populateDefectActions();
-
-    // Setup event handlers at initialization
-    setupEventHandlers();
-
-    // Prevent multiple initializations
-    if (window.productionDashboardInitialized) return;
-    window.productionDashboardInitialized = true;
-
-    
-}
-
-// Setup or re-setup event handlers
-function setupEventHandlers() {
-    console.log("Setting up event handlers");
-    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
-    listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
-    listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
-    listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
-    listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
-}
 
 
 
