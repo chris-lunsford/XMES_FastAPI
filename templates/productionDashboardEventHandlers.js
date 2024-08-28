@@ -99,10 +99,10 @@ const scanTypes = [
         targetId: 'employee-id'
     },
     {
-        pattern: /^[A-Za-z0-9]{3}$/, // 3-digit resource ID (hypothetical)
-        validator: isValidResourceID, // This function would need to be defined
-        handler: handleResourceID, // This function would need to be defined
-        targetId: 'work-area' // Assumes there is an input field with this ID
+        pattern: /^[A-Za-z0-9]{3}$/, // 3-digit resource ID 
+        validator: isValidResourceID, 
+        handler: handleResourceID, 
+        targetId: 'work-area' 
     }
 ];
 
