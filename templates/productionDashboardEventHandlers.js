@@ -79,13 +79,19 @@ async function handleBarcodeKeyPress(event) {
 
 
 // Global variables for barcode scanning
-let barcode = '';
-let scanning = false;
-let scanTimeout;
+if (typeof scanning === 'undefined') {
+    var scanning = false;
+}
+if (typeof barcode === 'undefined') {
+    var barcode = '';
+}
+if (typeof scanTimeout === 'undefined') {
+    var scanTimeout = null;
+}
 
 
 // Scan types configurations
-const scanTypes = [
+var scanTypes = [
     {
         pattern: /^[A-Za-z0-9]{12}$/, // 12-digit barcode
         validator: isValidBarcode,
