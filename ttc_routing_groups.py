@@ -6,9 +6,11 @@ ttc_saw_routing_groups = {
         'Garage Carcass Upper Back',
         'Folding Station Riser',        
         'RPM|CTOP - Laminate',
-        'Stainless Steel Countertop'
-
+        'Stainless Steel Countertop',
+        'Plinth Face',
+        
     ],
+
 
     'PSZEBZSCZ': [
         'Closet Adjustable Shelf', 
