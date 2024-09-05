@@ -161,6 +161,11 @@ html, body {
 .job-list {
     display: flex;
     flex-direction: column;
+    height: 150px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-right: 5px;
+    
 }
 
 .order-data-container {
