@@ -3,12 +3,8 @@ const scriptMap = {
         path: 'templates/machineDashboardEventHandlers.js',
         callback: null  // Set to null initially
     },
-    '/machine-production': {
-        path: 'templates/machiningProductionEventHandlers.js',
-        callback: null  // Set to null initially
-    },
-    '/assembly-production': {
-        path: 'templates/assemblyProductionEventHandlers.js',
+    '/production': {
+        path: 'templates/productionDashboardEventHandlers.js',
         callback: null  // Set to null initially
     },
     '/notification': {
