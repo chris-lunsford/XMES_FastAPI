@@ -3,12 +3,39 @@
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/production'].callback = initializeProductionDashboard;
+    scriptMap['/machine-production'].callback = initializeMachiningProduction;
 }
 
 
+// Define the barcode scanning function outside to keep its reference
+async function handleBarcodeKeyPress(event) {
+    if (event.target.id === 'barcode' && event.key === "Enter") {
+        console.log("Enter pressed on barcode input");
+        event.preventDefault();
 
-function initializeProductionDashboard() {
+        // Check validity of the barcode input field
+        const barcodeInput = document.getElementById('barcode');
+        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+        
+        if (form && !form.checkValidity()) {
+            form.reportValidity(); // Show validation messages if form is invalid
+            return;
+        }
+        
+        try {
+            await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
+            updatePartCountsOnScan();        // Then update parts counts
+            updateEEJobListDay();            // Update other UI elements
+            updateAreaProgressBar();
+            // resetBarcodeField();             // Handled in handleBarcodeScan_to_DB 
+        } catch (error) {
+            console.error('Failed to scan barcode to DB:', error)
+        }
+    }
+}
+
+
+function initializeMachiningProduction() {
     console.log("Initializing Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
@@ -38,201 +65,7 @@ function setupEventHandlers() {
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
-
-    // Setup barcode-related event handlers
-    listenerManager.addListener(document.getElementById('barcode'), 'keydown', handleBarcodeKeyPress);
-    listenerManager.addListener(document, 'keydown', handleGlobalKeydown);
 }
-
-
-
-
-async function handleBarcodeKeyPress(event) {
-    if (event.target.id === 'barcode' && event.key === "Enter") {
-        console.log("Enter pressed on barcode input");
-        event.preventDefault();
-
-        // Check validity of the barcode input field
-        const barcodeInput = document.getElementById('barcode');
-        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
-        
-        if (form && !form.checkValidity()) {
-            form.reportValidity(); // Show validation messages if form is invalid
-            return;
-        }
-        
-        try {
-            await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
-            updatePartCountsOnScan();        // Then update parts counts
-            updateEEJobListDay();            // Update other UI elements
-            updateAreaProgressBar();
-            // resetBarcodeField();             // Handled in handleBarcodeScan_to_DB 
-        } catch (error) {
-            console.error('Failed to scan barcode to DB:', error)
-        }
-    }
-}
-
-
-// Global variables for barcode scanning
-if (typeof scanning === 'undefined') {
-    var scanning = false;
-}
-if (typeof barcode === 'undefined') {
-    var barcode = '';
-}
-if (typeof scanTimeout === 'undefined') {
-    var scanTimeout = null;
-}
-
-
-// Scan types configurations
-var scanTypes = [
-    {
-        pattern: /^[A-Za-z0-9]{12}$/, // 12-digit barcode
-        validator: isValidBarcode,
-        handler: handleBarcode,
-        targetId: 'barcode'
-    },
-    {
-        pattern: /^\d{4}$/, // 4-digit employee ID
-        validator: isValidEmployeeID,
-        handler: handleEmployeeID,
-        targetId: 'employee-id'
-    },
-    {
-        pattern: /^[A-Za-z0-9]{3}$/, // 3-digit resource ID 
-        validator: isValidResourceID, 
-        handler: handleResourceID, 
-        targetId: 'work-area' 
-    }
-];
-
-
-// Global barcode detection logic, moved to a named function
-function handleGlobalKeydown(e) {
-    console.log("keydown detected");
-    // Initialize scanning state if not already set
-    if (!scanning) {
-        scanning = true;
-        barcode = '';
-        clearTimeout(scanTimeout);
-    }
-
-    // Filter out non-alphanumeric keys and Enter key
-    if (/^[A-Za-z0-9]$/.test(e.key)) {
-        barcode += e.key; // Accumulate the character if it's alphanumeric
-    } else if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent default form submission if any
-
-        // Check each scan type and handle accordingly
-        let handled = false;
-        for (let type of scanTypes) {
-            if (type.validator(barcode)) {
-                type.handler(barcode, type.targetId);
-                handled = true;
-                break;
-            }
-        }
-        if (!handled) {
-            console.log("Unrecognized scan type:", barcode);
-        }
-
-        // Reset barcode for the next scan
-        barcode = '';
-        scanning = false;
-    }
-
-    // Reset the barcode accumulation if there is a pause (to detect a new scan)
-    clearTimeout(scanTimeout);
-    scanTimeout = setTimeout(() => {
-        barcode = ''; // Clear the barcode if no keys are pressed within a short period
-        scanning = false;
-    }, 250); // Adjust the timeout as necessary for your scanner speed
-}
-
-
-
-// Validator functions
-function isValidBarcode(code) {
-    return scanTypes[0].pattern.test(code);
-}
-
-function isValidEmployeeID(code) {
-    return scanTypes[1].pattern.test(code);
-}
-
-function isValidResourceID(code) {
-    return scanTypes[2].pattern.test(code);
-}
-
-
-// Handler functions
-function handleBarcode(code, targetId) {
-    const barcodeInput = document.getElementById(targetId);
-    barcodeInput.value = code; // Set the value from the scan
-    // barcodeInput.focus(); // Set focus to the barcode input
-
-    // Create a new event to simulate barcode entry
-    const event = new Event('input', {
-        bubbles: true,
-        cancelable: true,
-    });
-
-    // Dispatch the event to trigger handleDynamicInputs
-    barcodeInput.dispatchEvent(event);
-
-    // Directly invoke the processing logic instead of simulating an Enter key press
-    processBarcodeInput(barcodeInput);    
-}
-
-function handleEmployeeID(code, targetId) {
-    const employeeIDInput = document.getElementById(targetId);
-    console.log('Employee ID before update:', employeeIDInput.value);  // Log the current value
-    employeeIDInput.value = code;  // Update with new code
-    console.log('Employee ID after update:', employeeIDInput.value);  // Confirm it updates
-    employeeIDInput.dispatchEvent(new Event('change'));  // Ensure any change handlers are triggered
-    document.activeElement.blur();
-}
-
-function handleResourceID(code, targetId) {
-    const resourceIDInput = document.getElementById(targetId);
-    console.log('Resource before update:', resourceIDInput.value);
-    resourceIDInput.value = code;
-    console.log('Resource after update:', resourceIDInput.value);
-    resourceIDInput.dispatchEvent(new Event('change'));
-    // document.getElementById(targetId).focus();
-    document.activeElement.blur();
-}
-
-
-async function processBarcodeInput(barcodeInput) {
-    console.log("Processing barcode input");
-    const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
-
-    if (form && !form.checkValidity()) {
-        form.reportValidity(); // Show validation messages if form is invalid
-        return;
-    }
-
-    try {
-        await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
-        updatePartCountsOnScan();        // Then update parts counts
-        updateEEJobListDay();            // Update other UI elements
-        updateAreaProgressBar();
-        // resetBarcodeField();           // Handled in handleBarcodeScan_to_DB 
-        document.activeElement.blur();
-    } catch (error) {
-        console.error('Failed to process barcode input:', error);
-    }
-}
-
-
-
-
-
-
-
 
 
 

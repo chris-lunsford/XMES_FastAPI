@@ -9,7 +9,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
@@ -55,9 +54,13 @@ async def index(request: Request):
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get('/production', tags=["Pages"])
-async def production(request: Request):
-    return templates.TemplateResponse("production.html", {"request": request})
+@app.get('/machine-production', tags=["Pages"])
+async def machine_production(request: Request):
+    return templates.TemplateResponse("machineproduction.html", {"request": request})
+
+@app.get('/assembly-production', tags=["Pages"])
+async def assembly_production(request: Request):
+    return templates.TemplateResponse("assemblyproduction.html", {"request": request})
 
 @app.get('/machine-dashboard', tags=["Pages"])
 async def machine_dashboard(request: Request):
