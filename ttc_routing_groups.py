@@ -8,11 +8,7 @@ ttc_saw_routing_groups = {
         'RPM|CTOP - Laminate',
         'Stainless Steel Countertop',
         'Plinth Face',
-<<<<<<< HEAD
         
-=======
-
->>>>>>> parent of 91b4922 (Merge branch 'assembly-production-dashboard' into main)
     ],
 
     'PSZEBZSCZ': [
@@ -133,11 +129,10 @@ ttc_saw_routing_groups = {
         'Closet Upright Top Stacking Right',
         'Closet Upright Top Stacking Left',
         'Closet Upright Hanging Radius Left',
-
-
-
+        'HO Tall Divider',
         
     ],
+
 
     'PSZHRZPRZEBZSCZ': [
         'Garage Carcass Base Bottom', 
