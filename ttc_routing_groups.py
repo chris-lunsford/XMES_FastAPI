@@ -11,7 +11,6 @@ ttc_saw_routing_groups = {
         
     ],
 
-
     'PSZEBZSCZ': [
         'Closet Adjustable Shelf', 
         'Closet Hook Cleat', 
@@ -130,11 +129,10 @@ ttc_saw_routing_groups = {
         'Closet Upright Top Stacking Right',
         'Closet Upright Top Stacking Left',
         'Closet Upright Hanging Radius Left',
-
-
-
+        'HO Tall Divider',
         
     ],
+
 
     'PSZHRZPRZEBZSCZ': [
         'Garage Carcass Base Bottom', 
