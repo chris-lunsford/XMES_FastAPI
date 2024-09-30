@@ -45,6 +45,8 @@ function setupEventHandlers() {
 }
 
 
+let lastBarcodeSubmissionTime = 0; // Track the last barcode submission timestamp
+const BARCODE_SUBMISSION_COOLDOWN_MS = 2000; // Set a 2-second cooldown
 
 
 async function handleBarcodeKeyPress(event) {
@@ -52,23 +54,30 @@ async function handleBarcodeKeyPress(event) {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
 
+        // Check if the submission is within the cooldown period
+        const now = Date.now();
+        if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
+            console.log('Cooldown in effect, ignoring submission');
+            return; // Skip submission
+        }
+        lastBarcodeSubmissionTime = now; // Update the last submission timestamp
+
         // Check validity of the barcode input field
         const barcodeInput = document.getElementById('barcode');
         const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
-        
+
         if (form && !form.checkValidity()) {
             form.reportValidity(); // Show validation messages if form is invalid
             return;
         }
-        
+
         try {
             await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
             updatePartCountsOnScan();        // Then update parts counts
             updateEEJobListDay();            // Update other UI elements
             updateAreaProgressBar();
-            // resetBarcodeField();             // Handled in handleBarcodeScan_to_DB 
         } catch (error) {
-            console.error('Failed to scan barcode to DB:', error)
+            console.error('Failed to scan barcode to DB:', error);
         }
     }
 }
@@ -208,6 +217,15 @@ function handleResourceID(code, targetId) {
 
 async function processBarcodeInput(barcodeInput) {
     console.log("Processing barcode input");
+
+    // Check if the submission is within the cooldown period
+    const now = Date.now();
+    if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
+        console.log('Cooldown in effect, ignoring submission');
+        return; // Skip submission
+    }
+    lastBarcodeSubmissionTime = now; // Update the last submission timestamp
+
     const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
 
     if (form && !form.checkValidity()) {
@@ -220,17 +238,11 @@ async function processBarcodeInput(barcodeInput) {
         updatePartCountsOnScan();        // Then update parts counts
         updateEEJobListDay();            // Update other UI elements
         updateAreaProgressBar();
-        // resetBarcodeField();           // Handled in handleBarcodeScan_to_DB 
         document.activeElement.blur();
     } catch (error) {
         console.error('Failed to process barcode input:', error);
     }
 }
-
-
-
-
-
 
 
 
