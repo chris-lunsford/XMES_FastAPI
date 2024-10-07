@@ -82,6 +82,29 @@ function initializeMachineDashboard() {
         }
     });
 
+     // Add click event listener to all elements with class 'machine-container'
+     var machineContainers = document.getElementsByClassName('machine-container');
+     for (var i = 0; i < machineContainers.length; i++) {
+         listenerManager.addListener(machineContainers[i], 'click', handleMachineSummary);
+     }
+ 
+     // Close the modal with the close button
+     var closeButtons = document.getElementsByClassName('close');
+     for (var i = 0; i < closeButtons.length; i++) {
+         listenerManager.addListener(closeButtons[i], 'click', function() {
+             var modal = document.getElementById('machineModal');
+             modal.style.display = 'none';
+         });
+     }
+ 
+     // Close the modal by clicking outside of it
+     listenerManager.addListener(window, 'click', function(event) {
+         var modal = document.getElementById('machineModal');
+         if (event.target === modal) {
+             modal.style.display = 'none';
+         }
+     });
+
     if (window.machineDashboardInitialized) return;
     window.machineDashboardInitialized = true;
 
@@ -205,4 +228,28 @@ function updateBatchDisplay() {
             largeBatchSection.style.display = 'none';
             break;
     }
+}
+
+
+
+function handleMachineSummary(event) {
+    // Display the modal
+    var modal = document.getElementById('machineModal');
+    modal.style.display = 'block';
+
+    // Optionally, update modal content based on the clicked machine container
+    var machineContainer = event.currentTarget;
+
+    // Retrieve machine-specific data
+    var machineName = machineContainer.querySelector('.machine-name p:first-child').innerText;
+    var machineCode = machineContainer.querySelector('.machine-name p:last-child').innerText;
+    var partCount = machineContainer.querySelector('.part-count p:last-child').innerText;
+    var upTime = machineContainer.querySelector('.times p:first-child').innerText;
+    var downTime = machineContainer.querySelector('.times p:last-child').innerText;
+
+    // Update modal content
+    document.getElementById('modal-machine-name').innerHTML = machineName + '&nbsp;&nbsp;' + machineCode;
+    document.getElementById('modal-part-count').innerText = partCount;
+    document.getElementById('modal-up-time').innerText = upTime;
+    document.getElementById('modal-down-time').innerText = downTime;
 }
