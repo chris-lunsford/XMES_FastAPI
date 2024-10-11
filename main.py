@@ -474,3 +474,21 @@ async def handle_fetch_downtime_all(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/fetch-last-scan', tags=["Machine Status"])
+async def handle_fetch_last_scan(resource: str):
+    try:
+        result = fetch_last_scan(resource)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/fetch-joblist-daterange', tags=["Machine Status"])
+async def handle_fetch_joblist_daterange(resource: str, start_date: str, end_date: str):
+    try:
+        result = fetch_joblist_daterange(resource, start_date, end_date)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -227,12 +227,13 @@ input[type="date"] {
 display: flex;
 flex-direction: column;
 background-color: #f4f4f4;
-width: 60%;
+width: fit-content;
 height: auto;
 margin: 15% auto;
 padding-bottom: 5px;
 border: 2px solid black;
 border-radius: 5px;
+row-gap: 20px;
 
 }
 
@@ -278,10 +279,13 @@ cursor: pointer;
 .scan-info {
     display: flex;
     flex-direction: column;
-    gap: 10px
+    gap: 10px;
+    padding: 10px;
 
 }
 
-.job-list {
-    display:flex
+.job-list-container {
+    display:flex;
+    justify-content: flex-start;
+    column-gap: 20px;
 }

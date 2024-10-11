@@ -1107,127 +1107,58 @@ def fetch_downtime_all(resources, start_date=None, end_date=None):
 
 
 
-# def fetch_uptime_downtime_multiple(resources, start_date=None, end_date=None):
-#     conn = connect_to_db()
-#     if conn is None:
-#         raise Exception("Failed to connect to database.")
+############################################################
+
+
+
+def fetch_last_scan(resource):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")    
+    try:
+        cursor = conn.cursor()
+        query = """
+        SELECT TOP 1 Barcode, EmployeeID, Timestamp
+        FROM [DBA].[Fact_WIP]
+        WHERE Resource = %s
+        ORDER BY Timestamp DESC;
+        """
+        cursor.execute(query, (resource))
+        result = cursor.fetchone()
+        if result:
+            return {
+                'Barcode': result[0],
+                'EmployeeID': result[1],
+                'Timestamp': result[2]
+            }
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+############################################################
+
+
+
+def fetch_joblist_daterange(resource, start_date, end_date):
+    conn = connect_to_db()
+    if conn is None:
+        raise Exception("Failed to connect to database.")
+    try:
+        cursor = conn.cursor()
+        query = """
+        SELECT DISTINCT ORDERID
+        FROM [DBA].[Fact_WIP]
+        WHERE Resource = %s
+            AND Timestamp > %s AND Timestamp < %s
+        ORDER BY OrderID
+        """
+        cursor.execute(query, (resource, start_date, end_date))
+        results = cursor.fetchall() 
+        return results
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()     
     
-#     try:
-#         with conn.cursor() as cursor:
-#             # Create placeholders for each resource
-#             resource_placeholders = ','.join(['%s'] * len(resources))
-#             # Base SQL query
-#             query = f"""
-#             DECLARE @gap INT = 15;
-
-#             WITH Scans AS (
-#                 SELECT
-#                     Resource,
-#                     Timestamp,
-#                     LAG(Timestamp) OVER (PARTITION BY Resource ORDER BY Timestamp) AS PrevTimestamp
-#                 FROM
-#                     [DBA].[Fact_WIP]
-#                 WHERE
-#                     Resource IN ({resource_placeholders})
-#             """
-
-#             # Parameters start with the resources
-#             params = tuple(resources)
-
-#             # Add date conditions to the query if provided
-#             if start_date:
-#                 query += " AND CAST(Timestamp AS DATE) >= %s"
-#                 params += (start_date,)
-#             if end_date:
-#                 query += " AND CAST(Timestamp AS DATE) <= %s"
-#                 params += (end_date,)
-
-            
-#             # Now create a full params list that includes the resources twice (for both uses) and the dates only once
-#             full_params = params + tuple(resources)  # Add only resources the second time
-
-#             query += f"""
-#             ),
-#             Gaps AS (
-#                 SELECT
-#                     Resource,
-#                     Timestamp,
-#                     PrevTimestamp,
-#                     CASE 
-#                         WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) > @gap OR PrevTimestamp IS NULL THEN 1
-#                         ELSE 0
-#                     END AS IsGap,
-#                     DATEDIFF(MINUTE, PrevTimestamp, Timestamp) AS GapDuration
-#                 FROM
-#                     Scans
-#             ),
-#             GroupedScans AS (
-#                 SELECT
-#                     Resource,
-#                     Timestamp,
-#                     PrevTimestamp,
-#                     IsGap,
-#                     GapDuration,
-#                     SUM(IsGap) OVER (PARTITION BY Resource ORDER BY Timestamp ROWS UNBOUNDED PRECEDING) AS GroupID
-#                 FROM
-#                     Gaps
-#             ),
-#             RunTimes AS (
-#                 SELECT
-#                     Resource,
-#                     GroupID,
-#                     MIN(Timestamp) AS StartTime,
-#                     MAX(Timestamp) AS EndTime
-#                 FROM
-#                     GroupedScans
-#                 GROUP BY
-#                     Resource,
-#                     GroupID
-#             ),
-#             Downtime AS (
-#                 SELECT
-#                     Resource,
-#                     SUM(GapDuration) AS TotalDowntimeInMinutes
-#                 FROM
-#                     Gaps
-#                 WHERE
-#                     GapDuration > @gap
-#                 GROUP BY Resource
-#             ),
-#             RunTime AS (
-#                 SELECT
-#                     Resource,
-#                     SUM(DATEDIFF(MINUTE, StartTime, EndTime)) AS TotalRunTimeInMinutes
-#                 FROM
-#                     RunTimes
-#                 GROUP BY Resource
-#             )
-#             SELECT
-#                 AllResources.Resource,
-#                 COALESCE(R.TotalRunTimeInMinutes, 0) AS TotalRunTimeInMinutes,
-#                 COALESCE(D.TotalDowntimeInMinutes, 0) AS TotalDowntimeInMinutes
-#             FROM
-#                 (SELECT DISTINCT Resource FROM [DBA].[Fact_WIP] WHERE Resource IN ({resource_placeholders})) AS AllResources
-#             LEFT JOIN
-#                 RunTime R ON AllResources.Resource = R.Resource
-#             LEFT JOIN
-#                 Downtime D ON AllResources.Resource = D.Resource
-#             """
-#             # print(query)
-#             # Execute the query with parameters
-#             full_params = params * 2
-#             cursor.execute(query, full_params)
-#             result = cursor.fetchall()
-#             print(result)
-
-#             # Convert None (which is returned as NULL from the SQL query) to 'N/A'
-#             return {res[0]: {
-#                         'upTime': res[1] if res[1] != 0 else 0,
-#                         'downTime': res[2] if res[2] != 0 else 0
-#                     } for res in result}
-#     except Exception as e:
-#         if conn:
-#             conn.rollback()
-#         raise Exception(f"Database query failed: {e}")
-#     finally:
-#         conn.close()
