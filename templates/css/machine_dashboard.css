@@ -161,6 +161,7 @@ input[type="date"] {
     border: 4px solid grey;
     padding: 0px;
     gap: 5px;
+    cursor: pointer;
 }
 
 .machine-container section {
@@ -208,3 +209,83 @@ input[type="date"] {
     margin-right: 0px;
 }
 
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+display: flex;
+flex-direction: column;
+background-color: #f4f4f4;
+width: fit-content;
+height: auto;
+margin: 15% auto;
+padding-bottom: 5px;
+border: 2px solid black;
+border-radius: 5px;
+row-gap: 20px;
+
+}
+
+.modal-header {
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative;
+/* border: 2px solid blue; */
+margin-bottom: 20px;
+padding: 10px;
+}
+
+.title {
+font-size: 25px;
+flex-grow: 1;
+text-align: center;
+} 
+
+.close {    
+position: absolute;
+top: 0px;
+right: 10px;
+color: #aaa;
+float: right;
+font-size: 25px;
+font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+color: black;
+text-decoration: none;
+cursor: pointer;
+}
+
+.card-info {
+    display: flex;
+    justify-content: center;
+    column-gap: 20px;
+}
+
+.scan-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+
+}
+
+.job-list-container {
+    display:flex;
+    justify-content: flex-start;
+    column-gap: 20px;
+}

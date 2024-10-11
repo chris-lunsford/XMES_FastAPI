@@ -82,6 +82,29 @@ function initializeMachineDashboard() {
         }
     });
 
+     // Add click event listener to all elements with class 'machine-container'
+     var machineContainers = document.getElementsByClassName('machine-container');
+     for (var i = 0; i < machineContainers.length; i++) {
+         listenerManager.addListener(machineContainers[i], 'click', handleMachineSummary);
+     }
+ 
+     // Close the modal with the close button
+     var closeButtons = document.getElementsByClassName('close');
+     for (var i = 0; i < closeButtons.length; i++) {
+         listenerManager.addListener(closeButtons[i], 'click', function() {
+             var modal = document.getElementById('machineModal');
+             modal.style.display = 'none';
+         });
+     }
+ 
+     // Close the modal by clicking outside of it
+     listenerManager.addListener(window, 'click', function(event) {
+         var modal = document.getElementById('machineModal');
+         if (event.target === modal) {
+             modal.style.display = 'none';
+         }
+     });
+
     if (window.machineDashboardInitialized) return;
     window.machineDashboardInitialized = true;
 
@@ -205,4 +228,133 @@ function updateBatchDisplay() {
             largeBatchSection.style.display = 'none';
             break;
     }
+}
+
+
+
+function handleMachineSummary(event) {
+    // Display the modal
+    var modal = document.getElementById('machineModal');
+    modal.style.display = 'block';
+
+    // Optionally, update modal content based on the clicked machine container
+    var machineContainer = event.currentTarget;
+
+    // Retrieve machine-specific data
+    var machineName = machineContainer.querySelector('.machine-name p:first-child').innerText;
+    var machineCode = machineContainer.querySelector('.machine-name p:last-child').innerText;
+
+    // Clean up machineCode by removing square brackets (e.g., '[EB4]' becomes 'EB4')
+    var cleanedMachineCode = machineCode.replace(/\[|\]/g, '');
+
+    var partCount = machineContainer.querySelector('.part-count p:last-child').innerText;
+    var upTime = machineContainer.querySelector('.times p:first-child').innerText;
+    var downTime = machineContainer.querySelector('.times p:last-child').innerText;
+
+
+    // Update modal content
+    document.getElementById('modal-machine-name').innerHTML = machineName + '&nbsp;&nbsp;' + machineCode;
+    document.getElementById('modal-part-count').innerText = partCount;
+    document.getElementById('modal-up-time').innerText = upTime;
+    document.getElementById('modal-down-time').innerText = downTime;
+
+
+    // Fetch the last scan data from the API
+    fetch(`/api/fetch-last-scan?resource=${cleanedMachineCode}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch last scan data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Assuming data contains the Barcode, OrderID, and Timestamp
+            if (data) {
+                // Format the timestamp if needed
+                const formattedTimestamp = new Date(data.Timestamp).toLocaleString();
+
+                // Update the Last Scan section with the fetched data
+                document.querySelector('.scan-info div p').innerHTML = `Last Scan:&nbsp&nbsp Barcode: ${data.Barcode}&nbsp&nbsp EmployeeID: ${data.EmployeeID}&nbsp&nbsp Time: ${formattedTimestamp}`;
+            } else {
+                // Handle case where there is no scan data
+                document.querySelector('.scan-info div p').innerHTML = 'Last Scan: No data available.';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching last scan:', error);
+            document.querySelector('.scan-info div p').innerHTML = 'Last Scan: Error loading data.';
+        });
+
+    
+    // Get the selected date range from the form
+    const dateRange = document.querySelector('input[name="date-range"]:checked').value;
+    let startDate, endDate;
+
+    if (dateRange === 'today') {
+        startDate = document.getElementById('today-start-date').value;
+        endDate = document.getElementById('today-end-date').value;
+    } else if (dateRange === 'week') {
+        // Calculate week range (e.g., Monday to Sunday) or pass dynamic start/end dates
+        startDate = calculateStartOfWeek();
+        endDate = calculateEndOfWeek();
+    } else if (dateRange === 'month') {
+        startDate = calculateStartOfMonth();
+        endDate = calculateEndOfMonth();
+    } else if (dateRange === 'custom') {
+        startDate = document.getElementById('start-date').value;
+        endDate = document.getElementById('end-date').value;
+    }
+
+    // Fetch the job list data from the API based on the date range
+    fetch(`/api/fetch-joblist-daterange?resource=${cleanedMachineCode}&start_date=${startDate}&end_date=${endDate}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch job list data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Assuming data is an array of arrays, where each inner array contains a single ORDERID
+            const jobListContainer = document.querySelector('.job-list');
+            jobListContainer.innerHTML = ''; // Clear any existing job entries
+
+            if (data && data.length > 0) {
+                data.forEach(job => {
+                    // job[0] contains the ORDERID string
+                    const orderId = job[0]; // Access the first element of each array
+                    const jobItem = document.createElement('li'); // Create an <li> element
+                    jobItem.textContent = orderId; // Insert the ORDERID into the <li>
+                    jobListContainer.appendChild(jobItem); // Append the <li> to the job list container
+                });
+            } else {
+                jobListContainer.innerHTML = '<li>No jobs found in the selected date range.</li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching job list:', error);
+            document.querySelector('.job-list').innerHTML = '<li>Error loading job list.</li>';
+        });  
+}
+
+
+function calculateStartOfWeek() {
+    const today = new Date();
+    const firstDayOfWeek = today.getDate() - today.getDay() + 1; // Adjust for Monday
+    return new Date(today.setDate(firstDayOfWeek)).toISOString().split('T')[0]; // Return formatted date
+}
+
+function calculateEndOfWeek() {
+    const today = new Date();
+    const lastDayOfWeek = today.getDate() - today.getDay() + 7; // Adjust for Sunday
+    return new Date(today.setDate(lastDayOfWeek)).toISOString().split('T')[0]; // Return formatted date
+}
+
+function calculateStartOfMonth() {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0]; // First day of the month
+}
+
+function calculateEndOfMonth() {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0]; // Last day of the month
 }

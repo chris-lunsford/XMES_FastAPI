@@ -557,6 +557,37 @@
 
         </section>               
     </section>
+
+    <!-- Modal Structure -->
+    <div id="machineModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title" id="modal-machine-name"></span>
+                <span class="close">&times;</span>                  
+            </div>
+            <section class="card-info">
+                <div>
+                    <div>Part Count: <span id="modal-part-count">0</span></div>
+                </div>
+                <div>
+                    <div>Up Time: <span id="modal-up-time">0</span></div>
+                </div>
+                <div>
+                    <div>Down Time: <span id="modal-down-time">0</span></div>
+                </div>
+            </section> 
+            <section class="scan-info">
+                <div>
+                    <p>Last Scan:</p>                    
+                </div>
+                <div class="job-list-container">
+                    <p>Jobs Scanned:</p>
+                    <div class="job-list">
+                        <!-- <ul>Dynamically created by JS</ul>-->
+                    </div>
+                </div>
+            </section>                           
+    </div>
     
 <script src="templates/global.js"></script>    
 <script src="templates/machineDashboardEventHandlers.js"></script>
