@@ -37,12 +37,12 @@ ttc_saw_routing_groups = {
 
     ],
 
-    'PSZHDZGMZSCZ': [
+    'PSZHDZPBZSCZ': [
 
     ],
 
 
-    'PSZPRZGMZSCZ': [
+    'PSZPRZPBZSCZ': [
         'Garage Carcass Base Back', 
         'Garage Carcass Notch Back', 
         'Garage Nailer Bottom', 
@@ -223,7 +223,7 @@ ttc_nested_routing_groups = {
         'HO Base Toekick'
     ],
 
-    'TRZHDZGMZSCZ': [
+    'TRZHDZPBZSCZ': [
         'Garage Carcass Base Back', 
         'Garage Carcass Notch Back', 
         'Garage Nailer Bottom', 

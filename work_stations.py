@@ -9,6 +9,7 @@ WORK_STATIONS = [
     "HD1",
     "HD2",
     "HR1",
+    "PB1",
     "PR1", 
     "PR2",  
     "PR3",
