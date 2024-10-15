@@ -45,9 +45,12 @@ function setupEventHandlers() {
 }
 
 
-let lastBarcodeSubmissionTime = 0; // Track the last barcode submission timestamp
-const BARCODE_SUBMISSION_COOLDOWN_MS = 2000; // Set a 2-second cooldown
-
+if (typeof BarcodeSubmission === 'undefined') {
+    var BarcodeSubmission = {
+        lastBarcodeSubmissionTime: 0,
+        BARCODE_SUBMISSION_COOLDOWN_MS: 2000
+    };
+}
 
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
@@ -56,11 +59,11 @@ async function handleBarcodeKeyPress(event) {
 
         // Check if the submission is within the cooldown period
         const now = Date.now();
-        if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
+        if (now -  BarcodeSubmission.lastBarcodeSubmissionTime <  BarcodeSubmission.BARCODE_SUBMISSION_COOLDOWN_MS) {
             console.log('Cooldown in effect, ignoring submission');
             return; // Skip submission
         }
-        lastBarcodeSubmissionTime = now; // Update the last submission timestamp
+         BarcodeSubmission.lastBarcodeSubmissionTime = now; // Update the last submission timestamp
 
         // Check validity of the barcode input field
         const barcodeInput = document.getElementById('barcode');
@@ -220,11 +223,11 @@ async function processBarcodeInput(barcodeInput) {
 
     // Check if the submission is within the cooldown period
     const now = Date.now();
-    if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
+    if (now -  BarcodeSubmission.lastBarcodeSubmissionTime <  BarcodeSubmission.BARCODE_SUBMISSION_COOLDOWN_MS) {
         console.log('Cooldown in effect, ignoring submission');
         return; // Skip submission
     }
-    lastBarcodeSubmissionTime = now; // Update the last submission timestamp
+     BarcodeSubmission.lastBarcodeSubmissionTime = now; // Update the last submission timestamp
 
     const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
 
