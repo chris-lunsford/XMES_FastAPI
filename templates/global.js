@@ -373,6 +373,14 @@ async function handleBarcodeScan_to_DB() {
             throw new Error(data.detail || 'Server error');
         }
 
+        // Handle error when barcode is not expected in the system
+        if (data.error && data.error === 'not_in_system') {
+            statusMessage.textContent = 'Barcode not expected in the system.';
+            statusMessage.style.color = 'red';
+            showScanResult(false);
+            return;
+        }
+
         // Handle warning about unexpected resource area
         if (data.warning && data.warning === 'not_at_resource') {
             if (!confirm("This part is not expected at this area. Do you want to continue?")) {
@@ -399,6 +407,34 @@ async function handleBarcodeScan_to_DB() {
             data = await response.json();
             if (response.status >= 400) {
                 throw new Error(data.detail || 'Server error during force continue');
+            }
+        }
+
+        // Handle warning about missing previous scans
+        if (data.warning && data.warning === 'missing_previous_scans') {
+            const missingGroups = data.missing_groups.join(', ');
+            if (!confirm(`Previous machining steps at ${missingGroups} are missing. Do you want to continue?`)) {
+                console.log('User chose not to continue.');
+                statusMessage.textContent = "Scan cancelled by user.";
+                statusMessage.style.color = 'red';
+                showScanResult(false);
+                return;
+            } else {
+                console.log('User chose to continue despite missing scans.');
+                statusMessage.textContent = 'Proceeding with scan...';
+                statusMessage.style.color = 'orange';
+                payload.forceContinue = true;
+
+                // Repeat the API call with forceContinue
+                response = await fetch('/api/barcode-scan-Submit', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                data = await response.json();
+                if (response.status >= 400) {
+                    throw new Error(data.detail || 'Server error during force continue');
+                }
             }
         }
 
@@ -438,7 +474,7 @@ async function handleBarcodeScan_to_DB() {
             }
         }
 
-        if (!data.warning) {
+        if (!data.warning && !data.error) {
             console.log('Success:', data);
             statusMessage.textContent = 'Barcode scan successful.';
             statusMessage.style.color = 'green';
@@ -453,6 +489,125 @@ async function handleBarcodeScan_to_DB() {
         resetBarcodeField();
     }
 }
+
+// async function handleBarcodeScan_to_DB() {
+//     let employeeID = document.getElementById('employee-id').value;
+//     let workArea = document.getElementById('work-area').value;
+//     let customerID = document.getElementById('customer-id').value;
+//     let orderID = document.getElementById('order-id').value;
+//     let barcode = document.getElementById('barcode').value;
+//     let statusMessage = document.getElementById('status-message');
+
+//     if (!employeeID || !workArea || !customerID || !orderID || !barcode) {
+//         statusMessage.textContent = 'All fields must be filled out!';
+//         statusMessage.style.color = 'red';
+//         resetBarcodeField();
+//         showScanResult(false); // Show failure icon
+//         return Promise.reject('Required fields are missing.');
+//     }
+    
+//     try {
+//         const payload = {
+//             EmployeeID: employeeID,
+//             Resource: workArea,
+//             CustomerID: customerID,
+//             OrderID: orderID,
+//             Barcode: barcode,
+//             forceContinue: false  // initially set to false
+//         };
+
+//         let response = await fetch('/api/barcode-scan-Submit', {
+//             method: 'POST',
+//             headers: {'Content-Type': 'application/json'},
+//             body: JSON.stringify(payload)
+//         });
+
+//         let data = await response.json();
+
+//         if (response.status >= 400) {
+//             throw new Error(data.detail || 'Server error');
+//         }
+
+//         // Handle warning about unexpected resource area
+//         if (data.warning && data.warning === 'not_at_resource') {
+//             if (!confirm("This part is not expected at this area. Do you want to continue?")) {
+//                 console.log('User chose not to continue.');
+//                 statusMessage.textContent = "Scan cancelled by user.";
+//                 statusMessage.style.color = 'red';
+//                 showScanResult(false);
+//                 return;
+//             } else {
+//                 console.log('User chose to continue despite warning.');
+//                 statusMessage.textContent = 'Proceeding with scan...';
+//                 statusMessage.style.color = 'orange';
+//                 payload.forceContinue = true;                
+//             }
+//         }
+
+//         // Repeat the API call if the user decided to continue despite the warning
+//         if (payload.forceContinue) {
+//             response = await fetch('/api/barcode-scan-Submit', {
+//                 method: 'POST',
+//                 headers: {'Content-Type': 'application/json'},
+//                 body: JSON.stringify(payload)
+//             });
+//             data = await response.json();
+//             if (response.status >= 400) {
+//                 throw new Error(data.detail || 'Server error during force continue');
+//             }
+//         }
+
+//         // Now handle duplicate barcode scenario
+//         if (data.warning && data.warning === 'duplicate_barcode') {
+//             if (confirm("Duplicate barcode detected. Is this a recut part?")) {
+//                 console.log('User confirmed recut.');
+//                 statusMessage.textContent = 'Updating recut status...';
+//                 statusMessage.style.color = 'orange';
+
+//                 const recutData = {
+//                     Barcode: barcode,
+//                     OrderID: orderID,
+//                     Resource: workArea,
+//                     Recut: 1  // Assuming this increments the recut count by 1
+//                 };
+
+//                 const recutResponse = await fetch('/api/update-recut-status', {
+//                     method: 'POST',
+//                     headers: {'Content-Type': 'application/json'},
+//                     body: JSON.stringify(recutData)
+//                 });
+//                 const recutResult = await recutResponse.json();
+//                 if (recutResponse.status >= 400) {
+//                     throw new Error(recutResult.detail || 'Server error during recut update');
+//                 }
+//                 console.log('Recut status updated:', recutResult);
+//                 statusMessage.textContent = 'Recut status updated successfully.';
+//                 statusMessage.style.color = 'green';
+//                 showScanResult(true); // Show success icon
+//             } else {
+//                 console.log('User denied recut.');
+//                 statusMessage.textContent = "Scan cancelled by user.";
+//                 statusMessage.style.color = 'red';
+//                 showScanResult(false);
+//                 return;
+//             }
+//         }
+
+//         if (!data.warning) {
+//             console.log('Success:', data);
+//             statusMessage.textContent = 'Barcode scan successful.';
+//             statusMessage.style.color = 'green';
+//             showScanResult(true); // Show success icon
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         statusMessage.textContent = 'Error scanning barcode: ' + error.message;
+//         statusMessage.style.color = 'red';
+//         showScanResult(false); // Show failure icon
+//     } finally {
+//         resetBarcodeField();
+//     }
+// }
 
 async function updateRecutStatus(barcode, orderID, workArea) {
     const payload = JSON.stringify({

@@ -120,9 +120,9 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
     cursor = conn.cursor()
 
     try:
-        # First, check if the barcode is expected in dbo.View_WIP
+        # First, check if the barcode is expected in dbo.View_WIP and retrieve the routing code (Info2)
         expected_system_check_query = """
-            SELECT Barcode FROM dbo.View_WIP
+            SELECT Barcode, Info2 FROM dbo.View_WIP
             WHERE Barcode = %s
         """
         cursor.execute(expected_system_check_query, (Barcode,))
@@ -130,25 +130,67 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
 
         if not expected_entry:
             raise ValueError("Barcode not expected in the system")
-        
-        # Translate the specific work area to its routing group
+
+        # Extract the routing code (Info2)
+        routing_code = expected_entry[1]  # Assuming Info2 is the second column
+
+        # Map the current workstation to its resource group
         resource_group = WORK_STATION_GROUPS.get(Resource, None)
         if resource_group is None:
             raise ValueError("Invalid work area specified")
-        
+
+        # Check if the barcode is expected at the workstation
         if not forceContinue:
             expected_resource_check_query = """
                 SELECT Barcode FROM dbo.View_WIP
                 WHERE Barcode = %s AND Info2 LIKE %s
             """
-
             like_pattern = f'%{resource_group}%'
             cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
             expected_entry = cursor.fetchone()
 
             if not expected_entry:
                 raise ValueError("Barcode not expected at work area")
-            
+
+        # Parse the routing code into routing groups (3-character codes)
+        routing_groups = [routing_code[i:i+3] for i in range(0, len(routing_code), 3)]
+
+        print(f"resource_group: {resource_group}")
+        print(f"routing_groups: {routing_groups}")
+
+        # Find the index of the current resource group in the routing groups
+        if resource_group not in routing_groups:
+            raise ValueError("Current resource group not found in routing code")
+
+        current_index = routing_groups.index(resource_group)
+        previous_groups = routing_groups[:current_index]
+
+        if not forceContinue:
+            # For each previous routing group, check if a scan exists
+            missing_groups = []
+            for group in previous_groups:
+                # Get the list of workstations associated with this group
+                group_workstations = [ws for ws, grp in WORK_STATION_GROUPS.items() if grp == group]
+
+                if not group_workstations:
+                    continue  # Skip if no workstations are associated with the group
+
+                # Check if there is a scan for this barcode at any of these workstations
+                check_query = f"""
+                    SELECT COUNT(*) FROM DBA.Fact_WIP
+                    WHERE Barcode = %s AND Resource IN ({','.join(['%s'] * len(group_workstations))})
+                """
+                # Convert params to a tuple
+                params = tuple([Barcode] + group_workstations)
+                cursor.execute(check_query, params)
+                count = cursor.fetchone()[0]
+
+                if count == 0:
+                    missing_groups.append(group)
+
+            if missing_groups:
+                missing_groups_str = ', '.join(missing_groups)
+                raise ValueError(f"Missing scans at previous workstations: {missing_groups_str}")
 
         # Check for duplicate barcodes in DBA.Fact_WIP
         if CustomerID != "TPS":
@@ -170,11 +212,80 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
         """
         cursor.execute(insert_query, (Barcode, OrderID, Timestamp, EmployeeID, Resource, 0, CustomerID))
         conn.commit()
+        return {"status": "success"}
+
     except Exception as e:
         conn.rollback()
         raise e
     finally:
         conn.close()
+
+
+
+# def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, CustomerID, forceContinue=False):
+#     conn = connect_to_db()
+#     if conn is None:
+#         print("Failed to connect to the database.")
+#         raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+
+#     cursor = conn.cursor()
+
+#     try:
+#         # First, check if the barcode is expected in dbo.View_WIP
+#         expected_system_check_query = """
+#             SELECT Barcode FROM dbo.View_WIP
+#             WHERE Barcode = %s
+#         """
+#         cursor.execute(expected_system_check_query, (Barcode,))
+#         expected_entry = cursor.fetchone()
+
+#         if not expected_entry:
+#             raise ValueError("Barcode not expected in the system")
+        
+#         # Translate the specific work area to its routing group
+#         resource_group = WORK_STATION_GROUPS.get(Resource, None)
+#         if resource_group is None:
+#             raise ValueError("Invalid work area specified")
+        
+#         if not forceContinue:
+#             expected_resource_check_query = """
+#                 SELECT Barcode FROM dbo.View_WIP
+#                 WHERE Barcode = %s AND Info2 LIKE %s
+#             """
+
+#             like_pattern = f'%{resource_group}%'
+#             cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
+#             expected_entry = cursor.fetchone()
+
+#             if not expected_entry:
+#                 raise ValueError("Barcode not expected at work area")
+            
+
+#         # Check for duplicate barcodes in DBA.Fact_WIP
+#         if CustomerID != "TPS":
+#             check_query = """
+#                 SELECT * FROM DBA.Fact_WIP
+#                 WHERE Barcode = %s AND Resource = %s AND OrderID = %s
+#             """
+#             cursor.execute(check_query, (Barcode, Resource, OrderID))
+#             existing_entry = cursor.fetchone()
+
+#             if existing_entry:
+#                 raise ValueError("Duplicate barcode; recut possible?")
+
+#         # Proceed with the insert if checks pass
+#         insert_query = """
+#             INSERT INTO DBA.Fact_WIP (
+#                 Barcode, OrderID, Timestamp, EmployeeID, Resource, Recut, CustomerID
+#             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+#         """
+#         cursor.execute(insert_query, (Barcode, OrderID, Timestamp, EmployeeID, Resource, 0, CustomerID))
+#         conn.commit()
+#     except Exception as e:
+#         conn.rollback()
+#         raise e
+#     finally:
+#         conn.close()
 
 
 ############################################################

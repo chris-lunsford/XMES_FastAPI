@@ -141,6 +141,8 @@ class BarcodeData(BaseModel):
     CustomerID: str
     forceContinue: bool = False  
 
+from fastapi.responses import JSONResponse
+
 @app.post('/api/barcode-scan-Submit', tags=["Machine Production"])
 async def handle_barcode_scan_to_db(data: BarcodeData):
     try:
@@ -161,21 +163,69 @@ async def handle_barcode_scan_to_db(data: BarcodeData):
             data.Resource,
             data.CustomerID,
             forceContinue=data.forceContinue  # Pass the forceContinue flag to the function
-            )
+        )
         return {"message": "Entry added successfully", "result": result}
-    except ValueError as e:  # Specific handling for known exceptions
-        if "Duplicate barcode; recut possible?" in str(e):
-            return JSONResponse(status_code=200, content={'warning': "duplicate_barcode", 'detail': str(e)})
-        elif "not expected at work area" in str(e):
-            return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": str(e)})
-        elif "not expected in the system" in str(e):
-            raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        error_message = str(e)
+        if "Duplicate barcode; recut possible?" in error_message:
+            return JSONResponse(status_code=200, content={'warning': "duplicate_barcode", 'detail': error_message})
+        elif "not expected at work area" in error_message:
+            return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": error_message})
+        elif "Missing scans at previous workstations" in error_message:
+            # Extract the missing groups from the error message
+            missing_groups = error_message.split(": ")[1]
+            missing_groups_list = missing_groups.split(", ")
+            return JSONResponse(status_code=200, content={
+                'warning': 'missing_previous_scans',
+                'missing_groups': missing_groups_list,
+                'detail': error_message
+            })
+        elif "Barcode not expected in the system" in error_message:
+            # Return an error for 'not_in_system'
+            return JSONResponse(status_code=400, content={'error': 'not_in_system', 'detail': error_message})
         else:
-            raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:  # Generic exception handling
+            raise HTTPException(status_code=400, detail=error_message)
+    except Exception as e:
         # Log the full stack trace to help diagnose the issue
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+
+
+# @app.post('/api/barcode-scan-Submit', tags=["Machine Production"])
+# async def handle_barcode_scan_to_db(data: BarcodeData):
+#     try:
+#         # Create a timezone object for Eastern Time
+#         eastern = pytz.timezone('America/New_York')
+#         # Get the current time in UTC
+#         now_utc = datetime.now(pytz.utc)
+#         # Convert the current time from UTC to Eastern Time
+#         now_eastern = now_utc.astimezone(eastern)
+#         # Format the timestamp as a string without timezone information, suitable for SQL Server
+#         timestamp = now_eastern.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]  # Trims microseconds to milliseconds
+
+#         result = barcode_scan_to_db(
+#             data.Barcode, 
+#             data.OrderID, 
+#             timestamp,
+#             data.EmployeeID,
+#             data.Resource,
+#             data.CustomerID,
+#             forceContinue=data.forceContinue  # Pass the forceContinue flag to the function
+#             )
+#         return {"message": "Entry added successfully", "result": result}
+#     except ValueError as e:  # Specific handling for known exceptions
+#         if "Duplicate barcode; recut possible?" in str(e):
+#             return JSONResponse(status_code=200, content={'warning': "duplicate_barcode", 'detail': str(e)})
+#         elif "not expected at work area" in str(e):
+#             return JSONResponse(status_code=200, content={'warning': "not_at_resource", "detail": str(e)})
+#         elif "not expected in the system" in str(e):
+#             raise HTTPException(status_code=400, detail=str(e))
+#         else:
+#             raise HTTPException(status_code=400, detail=str(e))
+#     except Exception as e:  # Generic exception handling
+#         # Log the full stack trace to help diagnose the issue
+#         traceback.print_exc()
+#         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
     
 
 
