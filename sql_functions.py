@@ -158,12 +158,17 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
         print(f"resource_group: {resource_group}")
         print(f"routing_groups: {routing_groups}")
 
-        # Find the index of the current resource group in the routing groups
-        if resource_group not in routing_groups:
-            raise ValueError("Current resource group not found in routing code")
-
-        current_index = routing_groups.index(resource_group)
-        previous_groups = routing_groups[:current_index]
+        # Check if the resource_group is in the routing_groups
+        if resource_group in routing_groups:
+            current_index = routing_groups.index(resource_group)
+            previous_groups = routing_groups[:current_index]
+        else:
+            if not forceContinue:
+                raise ValueError("Current resource group not found in routing code")
+            else:
+                # Since resource_group is not in routing_groups and forceContinue is True,
+                # we skip checking previous groups
+                previous_groups = []
 
         if not forceContinue:
             # For each previous routing group, check if a scan exists
