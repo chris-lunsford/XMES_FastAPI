@@ -492,3 +492,15 @@ async def handle_fetch_joblist_daterange(resource: str, start_date: str, end_dat
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/api/fetch-runtime-machines', tags=["Order Status"])
+async def handle_fetch_runtime_machines(
+    resources: List[str] = Query(WORK_STATIONS),
+    orderid: str = None
+    ):
+    try:
+        result = fetch_runtime_machines(resources, orderid)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

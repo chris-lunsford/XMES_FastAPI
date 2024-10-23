@@ -1011,6 +1011,7 @@ function fetchScannedOrderPartCounts(orderID, callback) {
 }
 
 
+
 function fetchWorkStationGroups() {
     return fetch('/api/work-station-groups')
         .then(response => {
