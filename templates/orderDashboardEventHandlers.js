@@ -226,6 +226,9 @@ function fetchDataAndUpdateUI(orderID) {
                 updateProgressBar(code);
             });
         });
+
+        // Fetch machine runtimes and update the UI
+        fetchMachineRuntimes(orderID);
     });
 }
 
@@ -273,4 +276,32 @@ function generatePackList2() {
     } else {
         alert('Please enter a valid Order ID.');
     }
+}
+
+
+function fetchMachineRuntimes(orderID) {
+    fetch(`/api/fetch-runtime-machines?orderid=${orderID}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update total runtime
+            const totalRuntimeElement = document.getElementById('up-time-TotalTime');
+            if (totalRuntimeElement && data['Total']) {
+                const totalTime = Number(data['Total'] || 0);
+                totalRuntimeElement.textContent = (totalTime / 60).toFixed(2) + ' hrs';
+            }
+
+            // Update work group runtimes
+            for (const [workGroupCode, runtime] of Object.entries(data)) {
+                if (workGroupCode !== 'Total') {
+                    const runtimeElement = document.getElementById(`up-time-${workGroupCode}`);
+                    if (runtimeElement) {
+                        const workGroupTime = Number(runtime || 0);
+                        runtimeElement.textContent = (workGroupTime / 60).toFixed(2) + ' hrs';
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching machine runtimes:', error);
+        });
 }
