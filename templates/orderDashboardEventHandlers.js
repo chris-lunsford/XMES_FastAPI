@@ -290,13 +290,13 @@ function fetchMachineRuntimes(orderID) {
                 totalRuntimeElement.textContent = (totalTime / 60).toFixed(2) + ' hrs';
             }
 
-            // Update individual machine runtimes
-            for (const [machineCode, runtime] of Object.entries(data)) {
-                if (machineCode !== 'Total') {
-                    const runtimeElement = document.getElementById(`up-time-${machineCode}`);
+            // Update work group runtimes
+            for (const [workGroupCode, runtime] of Object.entries(data)) {
+                if (workGroupCode !== 'Total') {
+                    const runtimeElement = document.getElementById(`up-time-${workGroupCode}`);
                     if (runtimeElement) {
-                        const machineTime = Number(runtime || 0);
-                        runtimeElement.textContent = (machineTime / 60).toFixed(2) + ' hrs';
+                        const workGroupTime = Number(runtime || 0);
+                        runtimeElement.textContent = (workGroupTime / 60).toFixed(2) + ' hrs';
                     }
                 }
             }

@@ -1189,20 +1189,36 @@ def connect_and_prepare_query(resources, start_date=None, end_date=None):
 
 
 
-def fetch_runtime_machines(resources, orderid):
+def fetch_runtime_machines(orderid):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
-    
-    resource_placeholders = ','.join(['%s'] * len(resources))
-    params = tuple(resources)
-    
+
+    # Use the existing WORK_STATION_GROUPS mapping
+    from work_station_groups import WORK_STATION_GROUPS
+
+    # Prepare the machine to work group mappings for SQL
+    machine_group_values = ',\n'.join(
+        f"('{machine}', '{group}')" for machine, group in WORK_STATION_GROUPS.items()
+    )
+
+    # Get all machines
+    all_machines = list(WORK_STATION_GROUPS.keys())
+    resource_placeholders = ','.join(['%s'] * len(all_machines))
+    params = tuple(all_machines) + (orderid,)
+
     try:
         with conn.cursor() as cursor:
             query = f"""
             DECLARE @gap INT = 15;
 
-            WITH Scans AS (
+            -- CTE for machine to work group mapping
+            WITH MachineGroups AS (
+                SELECT * FROM (VALUES
+                    {machine_group_values}
+                ) AS MG(Machine, WorkGroup)
+            ),
+            Scans AS (
                 SELECT
                     Resource,
                     Timestamp,
@@ -1212,9 +1228,9 @@ def fetch_runtime_machines(resources, orderid):
                     [DBA].[Fact_WIP]
                 WHERE
                     Resource IN ({resource_placeholders})
-				AND OrderID = '{orderid}'
-			  ),
-			  Gaps AS (
+                    AND OrderID = %s
+            ),
+            Gaps AS (
                 SELECT
                     Resource,
                     ScanDate,
@@ -1246,23 +1262,33 @@ def fetch_runtime_machines(resources, orderid):
                     DailyUptime
                 GROUP BY
                     Resource
+            ),
+            WorkGroupUptime AS (
+                SELECT
+                    ISNULL(MG.WorkGroup, TU.Resource) AS WorkGroup,
+                    SUM(TU.MachineTime) AS MachineTime
+                FROM
+                    TotalUptime TU
+                LEFT JOIN
+                    MachineGroups MG
+                ON
+                    TU.Resource = MG.Machine
+                GROUP BY
+                    ISNULL(MG.WorkGroup, TU.Resource)
             )
-            -- Selecting individual resource uptimes
             SELECT
-                Resource,
+                WorkGroup AS Resource,
                 MachineTime
             FROM
-                TotalUptime
+                WorkGroupUptime
 
-            -- Adding a new row for total uptime across all resources
             UNION ALL
 
-            -- The row that returns the sum across all resources
             SELECT
-                'TotalTime' AS Resource,
+                'Total' AS Resource,
                 SUM(MachineTime) AS MachineTime
             FROM
-                TotalUptime;
+                WorkGroupUptime;
             """
 
             cursor.execute(query, params)
@@ -1272,3 +1298,88 @@ def fetch_runtime_machines(resources, orderid):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+
+
+# def fetch_runtime_machines(resources, orderid):
+#     conn = connect_to_db()
+#     if conn is None:
+#         raise Exception("Failed to connect to database.")
+    
+#     resource_placeholders = ','.join(['%s'] * len(resources))
+#     params = tuple(resources)
+    
+#     try:
+#         with conn.cursor() as cursor:
+#             query = f"""
+#             DECLARE @gap INT = 15;
+
+#             WITH Scans AS (
+#                 SELECT
+#                     Resource,
+#                     Timestamp,
+#                     CAST(Timestamp AS DATE) AS ScanDate,
+#                     LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+#                 FROM
+#                     [DBA].[Fact_WIP]
+#                 WHERE
+#                     Resource IN ({resource_placeholders})
+# 				AND OrderID = '{orderid}'
+# 			  ),
+# 			  Gaps AS (
+#                 SELECT
+#                     Resource,
+#                     ScanDate,
+#                     Timestamp,
+#                     PrevTimestamp,
+#                     CASE 
+#                         WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
+#                         ELSE 0
+#                     END AS GapDuration
+#                 FROM
+#                     Scans
+#             ),
+#             DailyUptime AS (
+#                 SELECT
+#                     Resource,
+#                     ScanDate,
+#                     SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, Timestamp) - GapDuration END) AS UptimeMinutes
+#                 FROM
+#                     Gaps
+#                 GROUP BY
+#                     Resource,
+#                     ScanDate
+#             ),
+#             TotalUptime AS (
+#                 SELECT
+#                     Resource,
+#                     SUM(UptimeMinutes) AS MachineTime
+#                 FROM
+#                     DailyUptime
+#                 GROUP BY
+#                     Resource
+#             )
+#             -- Selecting individual resource uptimes
+#             SELECT
+#                 Resource,
+#                 MachineTime
+#             FROM
+#                 TotalUptime
+
+#             -- Adding a new row for total uptime across all resources
+#             UNION ALL
+
+#             -- The row that returns the sum across all resources
+#             SELECT
+#                 'TotalTime' AS Resource,
+#                 SUM(MachineTime) AS MachineTime
+#             FROM
+#                 TotalUptime;
+#             """
+
+#             cursor.execute(query, params)
+#             results = cursor.fetchall()
+#             return {res[0]: res[1] for res in results}
+#     except Exception as e:
+#         raise Exception(f"Database query failed: {e}")
+#     finally:
+#         conn.close()
