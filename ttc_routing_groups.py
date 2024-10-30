@@ -130,6 +130,8 @@ ttc_saw_routing_groups = {
         'Closet Upright Top Stacking Left',
         'Closet Upright Hanging Radius Left',
         'HO Tall Divider',
+        'Garage Base Divider',
+
         
     ],
 
