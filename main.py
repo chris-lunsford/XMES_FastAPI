@@ -35,11 +35,11 @@ app.include_router(
 )
 
 
-templates  = Jinja2Templates(directory="app/templates")
+templates  = Jinja2Templates(directory="/templates")
 
 
-app.mount("/templates", StaticFiles(directory="app/templates"), name="templates")
-app.mount("/assets", StaticFiles(directory="app/assets"), name="assets")
+app.mount("/templates", StaticFiles(directory="/templates"), name="templates")
+app.mount("/assets", StaticFiles(directory="/assets"), name="assets")
 
 
 @app.exception_handler(RequestValidationError)
