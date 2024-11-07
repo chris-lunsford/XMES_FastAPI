@@ -1,0 +1,49 @@
+services:
+
+  xmes:
+    container_name: xmes_compose
+    image: xmes:latest
+    ports:
+      - 8080:80
+    # environment:
+      
+  
+  mosquitto:
+    container_name: mosquitto_compose
+    image: eclipse-mosquitto:2.0.20
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    ports:
+    - "1883:1883"
+    - "9001:9001"
+    volumes:
+      - "C:/Users/CHRISL/Documents/Docker/mosquitto/config:/mosquitto/config"
+      - "C:/Users/CHRISL/Documents/Docker/mosquitto/data:/mosquitto/data"
+      - "C:/Users/CHRISL/Documents/Docker/mosquitto/log:/mosquitto/log"
+    # security_opt:
+    #   - no-new-privileges:true
+
+  node-red:
+    container_name: node-red_compose
+    image: nodered/node-red:latest
+    ports:
+      - 1881:1880
+
+volumes:
+  mosquitto:
+
+
+
+
+
+
+
+
+
+
+
+  # docker-compose -f xmes-services.yaml -p xmes up -d
+     
