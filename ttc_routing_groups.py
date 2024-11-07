@@ -131,12 +131,6 @@ ttc_saw_routing_groups = {
         'Closet Upright Hanging Radius Left',
         'HO Tall Divider',
         'Garage Base Divider',
-
-        
-    ],
-
-
-    'PSZHRZPRZEBZSCZ': [
         'Garage Carcass Base Bottom', 
         'Garage Carcass Base Left', 
         'Garage Carcass Base Right', 
@@ -149,7 +143,15 @@ ttc_saw_routing_groups = {
         'Garage Carcass Upper Bottom', 
         'Garage Carcass Upper Left', 
         'Garage Carcass Upper Right', 
-        'Garage Carcass Upper Top',        
+        'Garage Carcass Upper Top',
+
+
+        
+    ],
+
+
+    'PSZHRZPRZEBZSCZ': [
+               
     ],
     
     'NMZ': [
