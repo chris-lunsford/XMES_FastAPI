@@ -31,9 +31,28 @@ services:
     image: nodered/node-red:latest
     ports:
       - 1881:1880
+  
+  homeassistant:
+    container_name: homeassistant_compose
+    image: homeassistant/home-assistant:latest
+    ports:
+      - "8123:8123"
+    volumes:
+      - "C:/Users/CHRISL/Documents/Docker/homeassistant/config:/homeassistant/config"
+      - "C:/Users/CHRISL/Documents/Docker/homeassistant/localtime:/etc/localtime:ro"
+    restart: unless-stopped
+    privileged: true
+    #network_mode: host
+    networks:
+      - xmes_network
+
+networks:
+  xmes_network:
+    driver: bridge
 
 volumes:
   mosquitto:
+  homeassistant:
 
 
 
