@@ -8,6 +8,8 @@ ttc_saw_routing_groups = {
         'RPM|CTOP - Laminate',
         'Stainless Steel Countertop',
         'Plinth Face',
+        'Matrix Bottom',
+
         
     ],
 
@@ -145,8 +147,9 @@ ttc_saw_routing_groups = {
         'Garage Carcass Upper Right', 
         'Garage Carcass Upper Top',
         'Closet Upright Basenotch Thru',
-
-        
+        'Matrix Back',
+        'Matrix Bottom Drawer Front',
+        'Matrix Drawer Front',        
     ],
 
 
