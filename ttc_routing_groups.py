@@ -150,6 +150,7 @@ ttc_saw_routing_groups = {
         'Matrix Back',
         'Matrix Bottom Drawer Front',
         'Matrix Drawer Front',        
+        'Closet Upright Hanging Radius Right',
     ],
 
 
