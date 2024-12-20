@@ -1,14 +1,14 @@
-/***** Production Dashboard *****/
+/***** Machine Production Dashboard *****/
 
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/production'].callback = initializeProductionDashboard;
+    scriptMap['/production'].callback = initializeMachineProductionDashboard;
 }
 
 
 
-function initializeProductionDashboard() {
+function initializeMachineProductionDashboard() {
     console.log("Initializing Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
