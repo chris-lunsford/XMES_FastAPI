@@ -3,7 +3,6 @@ import datetime
 import pytz
 import asyncio
 import traceback
-import openai
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException, Query, Response
 from fastapi.templating import Jinja2Templates
