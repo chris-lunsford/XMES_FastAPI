@@ -90,6 +90,58 @@ html, body {
     min-height: 300px;
 }
 
+.partlist-display {
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width: 30ch;
+    row-gap: 10px;
+}
+
+#partlist-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+#partlist-list input[type="checkbox"] {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    accent-color: green; /* Default color for checked state */
+}
+
+#partlist-list button {
+    /*background-color: red; */
+    color: red;
+    border: none;
+    border-radius: 3px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+#partlist-list button:hover {
+    /*background-color: darkred;*/
+    color: black;
+}
+
+#partlist-list input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    appearance: auto;
+    -webkit-appearance: checkbox;
+}
+
 .notification-display {
     display: flex;
     overflow: auto;

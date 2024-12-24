@@ -1,15 +1,15 @@
-/***** Machine Production Dashboard *****/
+/***** Assembly Production Dashboard *****/
 
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/machine-production'].callback = initializeMachineProductionDashboard;
+    scriptMap['/assembly-production'].callback = initializeAssemblyProductionDashboard;
 }
 
 
 
-function initializeMachineProductionDashboard() {
-    console.log("Initializing MAchine Production Dashboard");
+function initializeAssemblyProductionDashboard() {
+    console.log("Initializing Assembly Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
 
@@ -23,8 +23,8 @@ function initializeMachineProductionDashboard() {
     setupEventHandlers();
 
     // Prevent multiple initializations
-    if (window.machineProductionDashboardInitialized) return;
-    window.machineProductionDashboardInitialized = true;   
+    if (window.assemblyProductionDashboardInitialized) return;
+    window.assemblyProductionDashboardInitialized = true;   
 }
 
 
@@ -53,36 +53,100 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 }
 
 
+// Function to check if a barcode exists and handle its checkbox state
+function checkAndHandleBarcode(barcode) {
+    const partList = document.getElementById('partlist-list');
+    const existingItems = Array.from(partList.children);
+
+    for (const item of existingItems) {
+        const span = item.querySelector('span');
+        const checkbox = item.querySelector('input[type="checkbox"]');
+
+        if (span && span.textContent === barcode) {
+            if (!checkbox.checked) {
+                // If found and unchecked, mark it as checked
+                checkbox.checked = true;
+                checkbox.style.accentColor = 'green';
+            } else {
+                // If found and already checked, show an alert
+                alert('This barcode is already in the list and checked.');
+            }
+            return true; // Barcode already exists
+        }
+    }
+    return false; // Barcode does not exist in the list
+}
+
+// Function to add barcode to the list or update its checkbox state
+function addBarcodeToList(barcode) {
+    const partList = document.getElementById('partlist-list');
+
+    // Check if the barcode exists in the list and handle it
+    if (checkAndHandleBarcode(barcode)) {
+        return; // If barcode is found and handled, don't add it again
+    }
+
+    // Create a new list item for the scanned barcode
+    const listItem = document.createElement('li');
+    listItem.style.display = "flex";
+    listItem.style.alignItems = "center";
+    listItem.style.gap = "10px";
+
+    // Create a checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.style.cursor = 'pointer';
+
+    // Style the checkbox based on the checked state
+    checkbox.onchange = () => {
+        if (checkbox.checked) {
+            checkbox.style.accentColor = 'green';
+        } else {
+            checkbox.style.accentColor = '';
+        }
+    };
+
+    // Create a span to display the barcode value
+    const barcodeText = document.createElement('span');
+    barcodeText.textContent = barcode;
+
+    // Add a remove button
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'X';
+    removeButton.onclick = () => {
+        partList.removeChild(listItem);
+    };
+
+    // Append the elements to the list item
+    listItem.appendChild(checkbox);
+    listItem.appendChild(barcodeText);
+    listItem.appendChild(removeButton);
+
+    // Append the list item to the part list
+    partList.appendChild(listItem);
+}
+
+
+// Modify barcode handler to build the list
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
 
-        // Check if the submission is within the cooldown period
-        const now = Date.now();
-        if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
-            console.log('Cooldown in effect, ignoring submission');
-            return; // Skip submission
-        }
-        lastBarcodeSubmissionTime = now; // Update the last submission timestamp
-
-        // Check validity of the barcode input field
+        // Retrieve barcode value
         const barcodeInput = document.getElementById('barcode');
-        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+        const barcodeValue = barcodeInput.value.trim();
 
-        if (form && !form.checkValidity()) {
-            form.reportValidity(); // Show validation messages if form is invalid
+        if (!barcodeValue) {
+            console.error('Barcode is empty');
             return;
         }
 
-        try {
-            await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
-            updatePartCountsOnScan();        // Then update parts counts
-            updateEEJobListDay();            // Update other UI elements
-            updateAreaProgressBar();
-        } catch (error) {
-            console.error('Failed to scan barcode to DB:', error);
-        }
+        // Add barcode to the list
+        addBarcodeToList(barcodeValue);
+
+        // Clear the input field
+        barcodeInput.value = '';
     }
 }
 
