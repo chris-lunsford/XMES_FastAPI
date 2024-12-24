@@ -20,6 +20,22 @@ def connect_to_db():
 
 #######################################################    
 
+
+def connect_to_db2():
+    server = "cfx-azure-server.database.windows.net"
+    user = "Chrisl"
+    password = "CFX-4500!"
+    database = "cfx-primary-datastore"
+
+    try:
+        conn = pymssql.connect(server, user, password, database)
+        return conn  # Return the connection object
+    except Exception as e:
+        print(f"Database connection failed: {str(e)}")
+        return None  # Return None if connection failed
+
+####################################################### 
+
 def fetch_last_timestamp():
     conn = connect_to_db()
     if conn is None:
@@ -1300,86 +1316,47 @@ def fetch_runtime_machines(orderid):
         conn.close()
 
 
-# def fetch_runtime_machines(resources, orderid):
-#     conn = connect_to_db()
-#     if conn is None:
-#         raise Exception("Failed to connect to database.")
-    
-#     resource_placeholders = ','.join(['%s'] * len(resources))
-#     params = tuple(resources)
-    
-#     try:
-#         with conn.cursor() as cursor:
-#             query = f"""
-#             DECLARE @gap INT = 15;
+################################################################
 
-#             WITH Scans AS (
-#                 SELECT
-#                     Resource,
-#                     Timestamp,
-#                     CAST(Timestamp AS DATE) AS ScanDate,
-#                     LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
-#                 FROM
-#                     [DBA].[Fact_WIP]
-#                 WHERE
-#                     Resource IN ({resource_placeholders})
-# 				AND OrderID = '{orderid}'
-# 			  ),
-# 			  Gaps AS (
-#                 SELECT
-#                     Resource,
-#                     ScanDate,
-#                     Timestamp,
-#                     PrevTimestamp,
-#                     CASE 
-#                         WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
-#                         ELSE 0
-#                     END AS GapDuration
-#                 FROM
-#                     Scans
-#             ),
-#             DailyUptime AS (
-#                 SELECT
-#                     Resource,
-#                     ScanDate,
-#                     SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, Timestamp) - GapDuration END) AS UptimeMinutes
-#                 FROM
-#                     Gaps
-#                 GROUP BY
-#                     Resource,
-#                     ScanDate
-#             ),
-#             TotalUptime AS (
-#                 SELECT
-#                     Resource,
-#                     SUM(UptimeMinutes) AS MachineTime
-#                 FROM
-#                     DailyUptime
-#                 GROUP BY
-#                     Resource
-#             )
-#             -- Selecting individual resource uptimes
-#             SELECT
-#                 Resource,
-#                 MachineTime
-#             FROM
-#                 TotalUptime
 
-#             -- Adding a new row for total uptime across all resources
-#             UNION ALL
-
-#             -- The row that returns the sum across all resources
-#             SELECT
-#                 'TotalTime' AS Resource,
-#                 SUM(MachineTime) AS MachineTime
-#             FROM
-#                 TotalUptime;
-#             """
-
-#             cursor.execute(query, params)
-#             results = cursor.fetchall()
-#             return {res[0]: res[1] for res in results}
-#     except Exception as e:
-#         raise Exception(f"Database query failed: {e}")
-#     finally:
-#         conn.close()
+def fetch_parts_in_article(barcode):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to database.")
+    try:
+        cursor = conn.cursor()
+        query = """
+        WITH BarcodeRow AS (
+            SELECT 
+                ORDERID,
+                ARTICLE_ID
+            FROM 
+                dbo.Part
+            WHERE 
+                BARCODE = %s        
+        )
+        SELECT 
+            p.ORDERID,
+            p.ARTICLE_ID,
+            p.BARCODE,
+            p.INFO1,
+            p.INFO2
+        FROM 
+            dbo.Part p
+        INNER JOIN 
+            BarcodeRow br
+        ON 
+            p.ORDERID = br.ORDERID
+            AND p.ARTICLE_ID = br.ARTICLE_ID
+        WHERE 
+            (p.CNC_BARCODE1 IS NOT NULL AND p.CNC_BARCODE1 != '')
+        ORDER BY BARCODE 
+        """
+        cursor.execute(query, (barcode,))
+        columns = [desc[0] for desc in cursor.description]  # Get column names
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
+        return results
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()

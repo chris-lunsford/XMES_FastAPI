@@ -28,18 +28,18 @@ function initializeAssemblyProductionDashboard() {
 }
 
 
-// Setup or re-setup event handlers
 function setupEventHandlers() {
     console.log("Setting up event handlers");
+
+    // Add general event listeners
     listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
-    listenerManager.addListener(document.body, 'keypress', handleBarcodeKeyPress);
-    listenerManager.addListener(document.body, 'input', handleDynamicInputs);    
+    listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
-
-    // Setup barcode-related event handlers
-    listenerManager.addListener(document.getElementById('barcode'), 'keydown', handleBarcodeKeyPress);
     listenerManager.addListener(document, 'keydown', handleGlobalKeydown);
+
+    // Add event listener for barcode field
+    listenerManager.addListener(document.getElementById('barcode'), 'keydown', handleBarcodeKeyPress);
 }
 
 
@@ -53,32 +53,75 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 }
 
 
-// Function to check if a barcode exists and handle its checkbox state
+async function fetchAndAddParts(barcode) {
+    try {
+        console.log(`Fetching parts for barcode: ${barcode}`);
+        const response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}`);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+        }
+
+        const parts = await response.json();
+
+        for (const part of parts) {
+            const isChecked = checkAndHandleBarcode(part.BARCODE);
+
+            if (isChecked === null) {
+                // Add the part if it is not already in the list
+                addBarcodeToList(part.BARCODE, part.INFO1, part.INFO2);
+            }
+        }
+
+        // Mark the scanned barcode as green
+        const isScannedChecked = checkAndHandleBarcode(barcode);
+        if (isScannedChecked) {
+            alert('This barcode is already in the list and checked green.');
+        } else if (isScannedChecked === false) {
+            markBarcodeCheckedGreen(barcode);
+        }
+    } catch (error) {
+        console.error("Failed to fetch parts:", error);
+        alert("Error fetching parts: " + error.message);
+    }
+}
+
+function markBarcodeCheckedGreen(barcode) {
+    const partList = document.getElementById('partlist-list');
+    const existingItems = Array.from(partList.children);
+
+    for (const item of existingItems) {
+        const span = item.querySelector('span[data-barcode]');
+        const checkbox = item.querySelector('input[type="checkbox"]');
+
+        if (span && span.getAttribute('data-barcode') === barcode) {
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+                checkbox.style.accentColor = 'green';
+            }
+            return; // Exit loop once the barcode is handled
+        }
+    }
+}
+
+
 function checkAndHandleBarcode(barcode) {
     const partList = document.getElementById('partlist-list');
     const existingItems = Array.from(partList.children);
 
     for (const item of existingItems) {
-        const span = item.querySelector('span');
+        const span = item.querySelector('span[data-barcode]');
         const checkbox = item.querySelector('input[type="checkbox"]');
 
-        if (span && span.textContent === barcode) {
-            if (!checkbox.checked) {
-                // If found and unchecked, mark it as checked
-                checkbox.checked = true;
-                checkbox.style.accentColor = 'green';
-            } else {
-                // If found and already checked, show an alert
-                alert('This barcode is already in the list and checked.');
-            }
-            return true; // Barcode already exists
+        if (span && span.getAttribute('data-barcode') === barcode) {
+            // Return true if the barcode is found, along with its checked state
+            return checkbox.checked;
         }
     }
-    return false; // Barcode does not exist in the list
+    return null; // Return null if the barcode is not in the list
 }
 
-// Function to add barcode to the list or update its checkbox state
-function addBarcodeToList(barcode) {
+
+function addBarcodeToList(barcode, description) {
     const partList = document.getElementById('partlist-list');
 
     // Check if the barcode exists in the list and handle it
@@ -106,9 +149,10 @@ function addBarcodeToList(barcode) {
         }
     };
 
-    // Create a span to display the barcode value
+    // Create a span to display the barcode and description
     const barcodeText = document.createElement('span');
-    barcodeText.textContent = barcode;
+    barcodeText.textContent = `${barcode} - ${description}`;
+    barcodeText.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
 
     // Add a remove button
     const removeButton = document.createElement('button');
@@ -127,13 +171,11 @@ function addBarcodeToList(barcode) {
 }
 
 
-// Modify barcode handler to build the list
 async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
 
-        // Retrieve barcode value
         const barcodeInput = document.getElementById('barcode');
         const barcodeValue = barcodeInput.value.trim();
 
@@ -142,11 +184,19 @@ async function handleBarcodeKeyPress(event) {
             return;
         }
 
-        // Add barcode to the list
-        addBarcodeToList(barcodeValue);
+        const now = Date.now();
+        if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
+            console.warn("Cooldown in effect. Ignoring duplicate scan.");
+            return;
+        }
+
+        lastBarcodeSubmissionTime = now;
 
         // Clear the input field
         barcodeInput.value = '';
+
+        // Fetch and add parts, including the scanned barcode
+        await fetchAndAddParts(barcodeValue);
     }
 }
 

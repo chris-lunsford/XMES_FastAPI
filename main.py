@@ -506,3 +506,12 @@ async def handle_fetch_runtime_machines(orderid: str):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
+async def handle_fetch_parts_in_article(barcode: str):
+    try:
+        result = fetch_parts_in_article(barcode)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=(e))
