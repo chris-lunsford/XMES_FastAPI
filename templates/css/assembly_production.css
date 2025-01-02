@@ -112,17 +112,7 @@ html, body {
     background: #f9f9f9;
 }
 
-#partlist-list input[type="checkbox"] {
-    cursor: pointer;
-    width: 20px;
-    height: 20px;
-    accent-color: green; /* Default color for checked state */
-}
 
-.part-list-table input[type="checkbox"]:checked {
-    background-color: green; /* Green background when checked */
-    border-color: green; /* Green border when checked */
-}
 
 #partlist-list button {
     /*background-color: red; */
@@ -138,14 +128,7 @@ html, body {
     color: black;
 }
 
-#partlist-list input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border: 1px solid #ccc;
-    /* appearance: auto;
-    -webkit-appearance: checkbox; */
-}
+
 
 .notification-display {
     display: flex;
@@ -374,14 +357,21 @@ progress.complete::-moz-progress-bar {
     font-size: .8rem;
 }
 
-.part-list-table input[type="checkbox"] {
-    display: inline-block; /* Ensure it is inline */
-    width: 16px; /* Set width explicitly */
-    height: 16px; /* Set height explicitly */
-    margin: 0 auto; /* Center the checkbox in its cell */
-    cursor: pointer; /* Pointer cursor for interactivity */
-    border: 1px solid black; /* Add a border for visibility */
-    background-color: transparent; /* Ensure no background color hides it */
+div.part-list-table td input[type="checkbox"] {
+    appearance: none !important; /* Reset browser-specific styles */
+    -webkit-appearance: none !important; /* For Safari/Chrome */
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 auto !important;
+    cursor: pointer !important;
+    border: 1px solid black !important;
+    background-color: transparent !important;
+}
+
+div.part-list-table td input[type="checkbox"]:checked {
+    background-color: green !important;
+    border-color: black !important;
 }
 
 .part-list-table table {

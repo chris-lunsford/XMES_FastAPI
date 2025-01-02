@@ -36,10 +36,11 @@ function setupEventHandlers() {
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
-    listenerManager.addListener(document, 'keydown', handleGlobalKeydown);
+    
 
     // Add event listener for barcode field
     listenerManager.addListener(document.getElementById('barcode'), 'keydown', handleBarcodeKeyPress);
+    listenerManager.addListener(document, 'keydown', handleGlobalKeydown);
 }
 
 
@@ -53,7 +54,9 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 }
 
 
-async function fetchAndAddParts(barcode) {
+async function fetchAndAddParts() {
+    const barcodeInput = document.getElementById('barcode');
+    const barcode = barcodeInput.value.trim();
     try {
         console.log(`Fetching parts for barcode: ${barcode}`);
         const response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}`);
@@ -73,9 +76,10 @@ async function fetchAndAddParts(barcode) {
         }
 
         // Mark the scanned barcode as green
+        console.log(`Checking barcode: ${barcode}`);
         const isScannedChecked = checkAndHandleBarcode(barcode);
         if (isScannedChecked) {
-            alert('This barcode is already in the table and checked green.');
+            alert(`This barcode is already in the table and checked green - "${barcode}"`);
         } else if (isScannedChecked === false) {
             markBarcodeCheckedGreen(barcode);
         }
@@ -87,8 +91,9 @@ async function fetchAndAddParts(barcode) {
 
 
 function checkAndHandleBarcode(barcode) {
-    const partList = document.getElementById('partlist-list');
+    const partList = document.getElementById('table-body');
     const existingItems = Array.from(partList.children);
+    console.log(`checkAndHandleBarcode: ${barcode}`);
 
     for (const item of existingItems) {
         const span = item.querySelector('span[data-barcode]');
@@ -102,55 +107,26 @@ function checkAndHandleBarcode(barcode) {
     return null; // Return null if the barcode is not in the list
 }
 
+function markBarcodeCheckedGreen(barcode) {
+    const tableBody = document.getElementById('table-body');
+    const rows = Array.from(tableBody.children);
 
-// function addBarcodeToList(barcode, description) {
-//     const partList = document.getElementById('partlist-list');
+    for (const row of rows) {
+        const span = row.querySelector('span[data-barcode]');
+        const checkbox = row.querySelector('input[type="checkbox"]');
 
-//     // Check if the barcode exists in the list and handle it
-//     if (checkAndHandleBarcode(barcode)) {
-//         return; // If barcode is found and handled, don't add it again
-//     }
+        if (span && span.getAttribute('data-barcode') === barcode) {
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+                checkbox.style.backgroundColor = 'green'; // Change background to green
+                checkbox.style.borderColor = 'green'; // Change border color to green
+            }
+            return; // Exit once the barcode is found and marked
+        }
+    }
+}
 
-//     // Create a new list item for the scanned barcode
-//     const listItem = document.createElement('li');
-//     listItem.style.display = "flex";
-//     listItem.style.alignItems = "center";
-//     listItem.style.gap = "10px";
 
-//     // Create a checkbox
-//     const checkbox = document.createElement('input');
-//     checkbox.type = 'checkbox';
-//     checkbox.style.cursor = 'pointer';
-
-//     // Style the checkbox based on the checked state
-//     checkbox.onchange = () => {
-//         if (checkbox.checked) {
-//             checkbox.style.accentColor = 'green';
-//         } else {
-//             checkbox.style.accentColor = '';
-//         }
-//     };
-
-//     // Create a span to display the barcode and description
-//     const barcodeText = document.createElement('span');
-//     barcodeText.textContent = `${barcode} - ${description}`;
-//     barcodeText.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
-
-//     // Add a remove button
-//     const removeButton = document.createElement('button');
-//     removeButton.textContent = 'X';
-//     removeButton.onclick = () => {
-//         partList.removeChild(listItem);
-//     };
-
-//     // Append the elements to the list item
-//     listItem.appendChild(checkbox);
-//     listItem.appendChild(barcodeText);
-//     listItem.appendChild(removeButton);
-
-//     // Append the list item to the part list
-//     partList.appendChild(listItem);
-// }
 
 function addBarcodeToTable(barcode, description, routing) {
     const tableBody = document.getElementById('table-body');
@@ -229,29 +205,35 @@ async function handleBarcodeKeyPress(event) {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
 
-        const barcodeInput = document.getElementById('barcode');
-        const barcodeValue = barcodeInput.value.trim();
-
-        if (!barcodeValue) {
-            console.error('Barcode is empty');
-            return;
-        }
-
+        // Check if the submission is within the cooldown period
         const now = Date.now();
         if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
-            console.warn("Cooldown in effect. Ignoring duplicate scan.");
+            console.log('Cooldown in effect, ignoring submission');
+            return; // Skip submission
+        }
+        lastBarcodeSubmissionTime = now; // Update the last submission timestamp
+
+        // Check validity of the barcode input field
+        const barcodeInput = document.getElementById('barcode');
+        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+
+        if (form && !form.checkValidity()) {
+            form.reportValidity(); // Show validation messages if form is invalid
             return;
         }
 
-        lastBarcodeSubmissionTime = now;
-
-        // Clear the input field
-        barcodeInput.value = '';
-
-        // Fetch and add parts, including the scanned barcode
-        await fetchAndAddParts(barcodeValue);
+        try {
+            // await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
+            // updatePartCountsOnScan();        // Then update parts counts
+            // updateEEJobListDay();            // Update other UI elements
+            // updateAreaProgressBar();
+            await fetchAndAddParts();
+        } catch (error) {
+            console.error('Failed to scan barcode to DB:', error);
+        }
     }
 }
+
 
 
 // Global variables for barcode scanning
