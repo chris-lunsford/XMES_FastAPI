@@ -42,6 +42,27 @@
             <p id="status-message">Enter required fields and scan barcode.</p>
         </div>
     </section>
+    <section class="part-list-display">
+        <div>
+            <button type="button" id="not-scanned-parts">Parts Not Scanned by Area</button>
+        </div>
+        <div class="part-list-table">
+            <table id="part-table">
+                <thead>
+                    <tr>
+                        <th class="part-barcode">Barcode</th>
+                        <th>Description</th>
+                        <th>Machine Routing</th>
+                        <th>Checkbox</th> <!-- Add header for checkbox -->
+                        <th>Remove</th>   <!-- Optional: Add header for remove button -->
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </section>
     <section class="display-container">
         <div class="partlist-display">
             <p>Parts:</p>
@@ -105,27 +126,7 @@
             <button type="button" id="report-defect">Report Defective Part</button>
         </div>
     </section>
-    <section class="part-list-display">
-        <div>
-            <button type="button" id="not-scanned-parts">Parts Not Scanned by Area</button>
-        </div>
-        <div class="part-list-table">
-            <table id="part-table">
-                <thead>
-                    <tr>
-                        <th class="part-barcode">Barcode</th>
-                        <th>Description</th>
-                        <th>Routing</th>
-                        <th>Checkbox</th> <!-- Add header for checkbox -->
-                        <th>Remove</th>   <!-- Optional: Add header for remove button -->
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <!-- Data rows will be added here dynamically -->
-                </tbody>
-            </table>
-        </div>
-    </section>
+    
     <div id="scan-result-overlay" class="scan-result-overlay">
         <div id="scan-result-icon"></div>
     </div>
