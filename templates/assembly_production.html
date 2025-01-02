@@ -105,20 +105,19 @@
             <button type="button" id="report-defect">Report Defective Part</button>
         </div>
     </section>
-    <section class="missing-part-display">
+    <section class="part-list-display">
         <div>
             <button type="button" id="not-scanned-parts">Parts Not Scanned by Area</button>
         </div>
-        <div class="missing-parts-table">
-            <table id="parts-table">
+        <div class="part-list-table">
+            <table id="part-table">
                 <thead>
                     <tr>
                         <th class="part-barcode">Barcode</th>
-                        <th>Part Program</th>
                         <th>Description</th>
                         <th>Routing</th>
-                        <th>Last Scan</th>
-                        <th>Last Scan Time</th>
+                        <th>Checkbox</th> <!-- Add header for checkbox -->
+                        <th>Remove</th>   <!-- Optional: Add header for remove button -->
                     </tr>
                 </thead>
                 <tbody id="table-body">

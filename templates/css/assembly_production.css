@@ -119,6 +119,11 @@ html, body {
     accent-color: green; /* Default color for checked state */
 }
 
+.part-list-table input[type="checkbox"]:checked {
+    background-color: green; /* Green background when checked */
+    border-color: green; /* Green border when checked */
+}
+
 #partlist-list button {
     /*background-color: red; */
     color: red;
@@ -138,8 +143,8 @@ html, body {
     height: 20px;
     background-color: white;
     border: 1px solid #ccc;
-    appearance: auto;
-    -webkit-appearance: checkbox;
+    /* appearance: auto;
+    -webkit-appearance: checkbox; */
 }
 
 .notification-display {
@@ -331,7 +336,7 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.missing-part-display {
+.part-list-display {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -342,7 +347,7 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.missing-part-display button {
+.part-list-display button {
     background-color: #969191; 
     color: black;
     border: none;
@@ -355,12 +360,12 @@ progress.complete::-moz-progress-bar {
     border-radius: 10px;
 }
 
-.missing-part-display button:hover {
+.part-list-display button:hover {
     background-color: #1a3d80; /* Darker blue on hover */
     color: white;
 }
 
-.missing-parts-table {
+.part-list-table {
     width: 65%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
@@ -369,24 +374,35 @@ progress.complete::-moz-progress-bar {
     font-size: .8rem;
 }
 
-.missing-parts-table table {
+.part-list-table input[type="checkbox"] {
+    display: inline-block; /* Ensure it is inline */
+    width: 16px; /* Set width explicitly */
+    height: 16px; /* Set height explicitly */
+    margin: 0 auto; /* Center the checkbox in its cell */
+    cursor: pointer; /* Pointer cursor for interactivity */
+    border: 1px solid black; /* Add a border for visibility */
+    background-color: transparent; /* Ensure no background color hides it */
+}
+
+.part-list-table table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.missing-parts-table th, .missing-parts-table td {
+.part-list-table th, .part-list-table td {
     border: 1px solid black;
     padding: 8px;
     text-align: left;
 }
 
-.missing-parts-table th {
+.part-list-table th {
     background-color: #f2f2f2;
 }
 
 .part-barcode {
     width: 25%;
 }
+
 
 
 .modal {

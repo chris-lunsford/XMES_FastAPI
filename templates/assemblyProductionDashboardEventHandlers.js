@@ -67,39 +67,21 @@ async function fetchAndAddParts(barcode) {
             const isChecked = checkAndHandleBarcode(part.BARCODE);
 
             if (isChecked === null) {
-                // Add the part if it is not already in the list
-                addBarcodeToList(part.BARCODE, part.INFO1, part.INFO2);
+                // Add the part to the table if it is not already there
+                addBarcodeToTable(part.BARCODE, part.INFO1, part.INFO2); // Assume INFO2 is Routing
             }
         }
 
         // Mark the scanned barcode as green
         const isScannedChecked = checkAndHandleBarcode(barcode);
         if (isScannedChecked) {
-            alert('This barcode is already in the list and checked green.');
+            alert('This barcode is already in the table and checked green.');
         } else if (isScannedChecked === false) {
             markBarcodeCheckedGreen(barcode);
         }
     } catch (error) {
         console.error("Failed to fetch parts:", error);
         alert("Error fetching parts: " + error.message);
-    }
-}
-
-function markBarcodeCheckedGreen(barcode) {
-    const partList = document.getElementById('partlist-list');
-    const existingItems = Array.from(partList.children);
-
-    for (const item of existingItems) {
-        const span = item.querySelector('span[data-barcode]');
-        const checkbox = item.querySelector('input[type="checkbox"]');
-
-        if (span && span.getAttribute('data-barcode') === barcode) {
-            if (!checkbox.checked) {
-                checkbox.checked = true;
-                checkbox.style.accentColor = 'green';
-            }
-            return; // Exit loop once the barcode is handled
-        }
     }
 }
 
@@ -121,53 +103,124 @@ function checkAndHandleBarcode(barcode) {
 }
 
 
-function addBarcodeToList(barcode, description) {
-    const partList = document.getElementById('partlist-list');
+// function addBarcodeToList(barcode, description) {
+//     const partList = document.getElementById('partlist-list');
 
-    // Check if the barcode exists in the list and handle it
-    if (checkAndHandleBarcode(barcode)) {
-        return; // If barcode is found and handled, don't add it again
+//     // Check if the barcode exists in the list and handle it
+//     if (checkAndHandleBarcode(barcode)) {
+//         return; // If barcode is found and handled, don't add it again
+//     }
+
+//     // Create a new list item for the scanned barcode
+//     const listItem = document.createElement('li');
+//     listItem.style.display = "flex";
+//     listItem.style.alignItems = "center";
+//     listItem.style.gap = "10px";
+
+//     // Create a checkbox
+//     const checkbox = document.createElement('input');
+//     checkbox.type = 'checkbox';
+//     checkbox.style.cursor = 'pointer';
+
+//     // Style the checkbox based on the checked state
+//     checkbox.onchange = () => {
+//         if (checkbox.checked) {
+//             checkbox.style.accentColor = 'green';
+//         } else {
+//             checkbox.style.accentColor = '';
+//         }
+//     };
+
+//     // Create a span to display the barcode and description
+//     const barcodeText = document.createElement('span');
+//     barcodeText.textContent = `${barcode} - ${description}`;
+//     barcodeText.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
+
+//     // Add a remove button
+//     const removeButton = document.createElement('button');
+//     removeButton.textContent = 'X';
+//     removeButton.onclick = () => {
+//         partList.removeChild(listItem);
+//     };
+
+//     // Append the elements to the list item
+//     listItem.appendChild(checkbox);
+//     listItem.appendChild(barcodeText);
+//     listItem.appendChild(removeButton);
+
+//     // Append the list item to the part list
+//     partList.appendChild(listItem);
+// }
+
+function addBarcodeToTable(barcode, description, routing) {
+    const tableBody = document.getElementById('table-body');
+
+    // Check if the barcode exists in the table
+    const existingRows = Array.from(tableBody.children);
+    for (const row of existingRows) {
+        const span = row.querySelector('span[data-barcode]');
+        if (span && span.getAttribute('data-barcode') === barcode) {
+            return; // If barcode exists, do nothing
+        }
     }
 
-    // Create a new list item for the scanned barcode
-    const listItem = document.createElement('li');
-    listItem.style.display = "flex";
-    listItem.style.alignItems = "center";
-    listItem.style.gap = "10px";
+    // Create a new row
+    const row = document.createElement('tr');
 
-    // Create a checkbox
+    // Create cells for barcode, description, routing, checkbox, and remove button
+    const barcodeCell = document.createElement('td');
+    const descriptionCell = document.createElement('td');
+    const routingCell = document.createElement('td');
+    const checkboxCell = document.createElement('td'); // New column for checkbox
+    const removeCell = document.createElement('td'); // Optional: Remove button
+
+    // Barcode cell with span
+    const barcodeSpan = document.createElement('span');
+    barcodeSpan.textContent = barcode;
+    barcodeSpan.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
+    barcodeCell.appendChild(barcodeSpan);
+
+    // Description cell
+    descriptionCell.textContent = description || "N/A";
+
+    // Routing cell
+    routingCell.textContent = routing || "N/A";
+
+    // Checkbox cell
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.style.cursor = 'pointer';
-
-    // Style the checkbox based on the checked state
+    checkbox.style.width = '16px';
+    checkbox.style.height = '16px';
     checkbox.onchange = () => {
         if (checkbox.checked) {
-            checkbox.style.accentColor = 'green';
+            checkbox.style.backgroundColor = 'green'; // Change background to green
+            checkbox.style.borderColor = 'green'; // Change border to green
         } else {
-            checkbox.style.accentColor = '';
+            checkbox.style.backgroundColor = ''; // Reset background
+            checkbox.style.borderColor = ''; // Reset border
         }
     };
+    checkboxCell.appendChild(checkbox);
 
-    // Create a span to display the barcode and description
-    const barcodeText = document.createElement('span');
-    barcodeText.textContent = `${barcode} - ${description}`;
-    barcodeText.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
-
-    // Add a remove button
+    // Optional: Remove button
     const removeButton = document.createElement('button');
     removeButton.textContent = 'X';
+    removeButton.style.cursor = 'pointer';
     removeButton.onclick = () => {
-        partList.removeChild(listItem);
+        tableBody.removeChild(row);
     };
+    removeCell.appendChild(removeButton);
 
-    // Append the elements to the list item
-    listItem.appendChild(checkbox);
-    listItem.appendChild(barcodeText);
-    listItem.appendChild(removeButton);
+    // Append all cells to the row
+    row.appendChild(barcodeCell);
+    row.appendChild(descriptionCell);
+    row.appendChild(routingCell);
+    row.appendChild(checkboxCell); // Append checkbox cell
+    row.appendChild(removeCell); // Optional: Append remove button cell
 
-    // Append the list item to the part list
-    partList.appendChild(listItem);
+    // Append the row to the table body
+    tableBody.appendChild(row);
 }
 
 
