@@ -32,7 +32,7 @@ function setupEventHandlers() {
     console.log("Setting up event handlers");
 
     // Add general event listeners
-    listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
+    // listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
@@ -119,7 +119,7 @@ function markBarcodeCheckedGreen(barcode) {
             if (!checkbox.checked) {
                 checkbox.checked = true;
                 checkbox.style.backgroundColor = 'green'; // Change background to green
-                checkbox.style.borderColor = 'green'; // Change border color to green
+                checkbox.style.borderColor = 'black'; // Change border color to green
             }
             return; // Exit once the barcode is found and marked
         }
@@ -166,12 +166,12 @@ function addBarcodeToTable(barcode, description, routing) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.style.cursor = 'pointer';
-    checkbox.style.width = '16px';
-    checkbox.style.height = '16px';
+    checkbox.style.width = '24px';
+    checkbox.style.height = '24px';
     checkbox.onchange = () => {
         if (checkbox.checked) {
             checkbox.style.backgroundColor = 'green'; // Change background to green
-            checkbox.style.borderColor = 'green'; // Change border to green
+            checkbox.style.borderColor = 'black'; // Change border color
         } else {
             checkbox.style.backgroundColor = ''; // Reset background
             checkbox.style.borderColor = ''; // Reset border

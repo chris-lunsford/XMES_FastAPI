@@ -330,48 +330,14 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.part-list-display button {
-    background-color: #969191; 
-    color: black;
-    border: none;
-    cursor: pointer;
-    padding: 8px 16px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px; 
-    border-radius: 10px;
-}
-
-.part-list-display button:hover {
-    background-color: #1a3d80; /* Darker blue on hover */
-    color: white;
-}
 
 .part-list-table {
     width: 65%;
-    max-height: 400px;  /* Set the maximum height to whatever suits your design */
-    overflow-y: auto;   /* Enables vertical scrolling */
-    border: 1px solid #ccc;  /* Optional: adds a border around the table container */
+    max-height: 400px; /* Set the maximum height */
+    overflow-y: auto; /* Enables vertical scrolling */
+    border: 1px solid #ccc; /* Adds a border around the table */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: .8rem;
-}
-
-div.part-list-table td input[type="checkbox"] {
-    appearance: none !important; /* Reset browser-specific styles */
-    -webkit-appearance: none !important; /* For Safari/Chrome */
-    display: inline-block !important;
-    width: 16px !important;
-    height: 16px !important;
-    margin: 0 auto !important;
-    cursor: pointer !important;
-    border: 1px solid black !important;
-    background-color: transparent !important;
-}
-
-div.part-list-table td input[type="checkbox"]:checked {
-    background-color: green !important;
-    border-color: black !important;
+    font-size: 0.8rem;
 }
 
 .part-list-table table {
@@ -382,11 +348,66 @@ div.part-list-table td input[type="checkbox"]:checked {
 .part-list-table th, .part-list-table td {
     border: 1px solid black;
     padding: 8px;
-    text-align: left;
+    text-align: center; /* Centers text horizontally */
+    vertical-align: middle; /* Centers content vertically */
 }
 
 .part-list-table th {
     background-color: #f2f2f2;
+}
+
+/* Hide the default checkbox */
+.part-list-table td input[type="checkbox"] {
+    appearance: none; /* Remove default appearance */
+    -webkit-appearance: none; /* For Safari */
+    width: 24px;
+    height: 24px;
+    border: 2px solid black;
+    border-radius: 3px; /* Optional: Rounded corners */
+    margin: 0; /* Remove default margin */
+    display: inline-block;
+    vertical-align: middle; /* Align with text and button */
+    position: relative;
+    cursor: pointer;
+    background-color: white; /* Default background */
+}
+
+/* Style for checked state */
+.part-list-table td input[type="checkbox"]:checked {
+    background-color: green;
+    border-color: black;
+}
+
+/* Add a checkmark for checked state */
+.part-list-table td input[type="checkbox"]:checked::after {
+    content: '✔'; /* Checkmark */
+    color: white;
+    font-size: 18px;
+    position: absolute;
+    top: -2px;
+    left: 3px;
+}
+
+.part-list-table button {
+    width: 24px;
+    height: 24px;
+    background-color: white; 
+    color: red;
+    border: 2px solid black;
+    cursor: pointer;
+    padding: 0; /* No padding */
+    margin: 0; /* Remove default margin */
+    display: inline-block;
+    text-align: center; /* Center text horizontally */
+    vertical-align: middle; /* Align with checkbox */
+    line-height: 18px; /* Match the height to vertically align the text */
+    font-size: 18px; /* Adjust font size for better appearance */
+    border-radius: 3px;
+}
+
+.part-list-table button:hover {
+    background-color: red; /* Change to red on hover */
+    color: white;
 }
 
 .part-barcode {
