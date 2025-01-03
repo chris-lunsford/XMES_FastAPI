@@ -152,7 +152,8 @@ ttc_saw_routing_groups = {
         'Matrix Drawer Front',
         'Closet Upright Hanging Radius Right',
         'Closet Upright Bottom Stacking Transition Left',
-        'Closet Upright Top Stacking Transition Left',        
+        'Closet Upright Top Stacking Transition Left',   
+        'Closet Upright LED Left No Drill',     
     ],
 
 
