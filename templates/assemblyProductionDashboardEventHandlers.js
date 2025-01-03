@@ -143,18 +143,30 @@ function addBarcodeToTable(barcode, description, routing) {
     // Create a new row
     const row = document.createElement('tr');
 
-    // Create cells for barcode, description, routing, checkbox, and remove button
+    // Create cells for barcode with remove button, description, routing, and checkbox
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
     const routingCell = document.createElement('td');
-    const checkboxCell = document.createElement('td'); // New column for checkbox
-    const removeCell = document.createElement('td'); // Optional: Remove button
+    const checkboxCell = document.createElement('td');
 
-    // Barcode cell with span
+    // Barcode span
     const barcodeSpan = document.createElement('span');
     barcodeSpan.textContent = barcode;
     barcodeSpan.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
+
+    // Remove button
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'X';
+    removeButton.style.cursor = 'pointer';
+    removeButton.style.marginRight = '20px'; // Add some spacing between the barcode and button
+    removeButton.onclick = () => {
+        tableBody.removeChild(row);
+    };
+
+    // Append the barcode and remove button to the same cell
+    barcodeCell.appendChild(removeButton);
     barcodeCell.appendChild(barcodeSpan);
+    
 
     // Description cell
     descriptionCell.textContent = description || "N/A";
@@ -179,21 +191,11 @@ function addBarcodeToTable(barcode, description, routing) {
     };
     checkboxCell.appendChild(checkbox);
 
-    // Optional: Remove button
-    const removeButton = document.createElement('button');
-    removeButton.textContent = 'X';
-    removeButton.style.cursor = 'pointer';
-    removeButton.onclick = () => {
-        tableBody.removeChild(row);
-    };
-    removeCell.appendChild(removeButton);
-
     // Append all cells to the row
-    row.appendChild(barcodeCell);
+    row.appendChild(barcodeCell); // Barcode and remove button in the same cell
     row.appendChild(descriptionCell);
     row.appendChild(routingCell);
-    row.appendChild(checkboxCell); // Append checkbox cell
-    row.appendChild(removeCell); // Optional: Append remove button cell
+    row.appendChild(checkboxCell);
 
     // Append the row to the table body
     tableBody.appendChild(row);

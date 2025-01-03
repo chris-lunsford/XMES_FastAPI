@@ -326,7 +326,7 @@ progress.complete::-moz-progress-bar {
     margin-top: 20px;
     margin-bottom: 70px;
     gap: 20px;
-    /* border: 1px solid black; */
+    border: 1px solid black;
 }
 
 
@@ -337,7 +337,7 @@ progress.complete::-moz-progress-bar {
     overflow-y: auto; /* Enables vertical scrolling */
     border: 1px solid #ccc; /* Adds a border around the table */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .part-list-table table {
@@ -388,7 +388,14 @@ progress.complete::-moz-progress-bar {
     left: 3px;
 }
 
-.part-list-table button {
+.part-list-table td div {
+    display: flex; /* Enable flexbox layout */
+    align-items: center; /* Vertically center items */
+    justify-content: flex-start; /* Align items to the left of the cell */
+    gap: 10px; /* Add spacing between barcode and remove button */
+}
+
+.part-list-table td button {
     width: 24px;
     height: 24px;
     background-color: white; 
@@ -396,16 +403,13 @@ progress.complete::-moz-progress-bar {
     border: 2px solid black;
     cursor: pointer;
     padding: 0; /* No padding */
-    margin: 0; /* Remove default margin */
-    display: inline-block;
     text-align: center; /* Center text horizontally */
-    vertical-align: middle; /* Align with checkbox */
     line-height: 18px; /* Match the height to vertically align the text */
     font-size: 18px; /* Adjust font size for better appearance */
     border-radius: 3px;
 }
 
-.part-list-table button:hover {
+.part-list-table td button:hover {
     background-color: red; /* Change to red on hover */
     color: white;
 }
