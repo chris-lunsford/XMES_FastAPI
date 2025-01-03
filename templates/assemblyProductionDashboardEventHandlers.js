@@ -147,7 +147,15 @@ function addBarcodeToTable(barcode, description, routing) {
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
     const routingCell = document.createElement('td');
+    const lastScanCell = document.createElement('td');
     const checkboxCell = document.createElement('td');
+
+    // Create a container for barcode and button
+    const barcodeContainer = document.createElement('div');
+    barcodeContainer.style.display = 'flex';
+    barcodeContainer.style.alignItems = 'center'; /* Vertically center items */
+    barcodeContainer.style.justifyContent = 'flex-start'; /* Align items flush left */
+    barcodeContainer.style.gap = '20px'; /* Add spacing between barcode and button */
 
     // Barcode span
     const barcodeSpan = document.createElement('span');
@@ -174,6 +182,9 @@ function addBarcodeToTable(barcode, description, routing) {
     // Routing cell
     routingCell.textContent = routing || "N/A";
 
+    // Last Scan cell
+    lastScanCell.textContent = routing || "N/A";
+
     // Checkbox cell
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -195,6 +206,7 @@ function addBarcodeToTable(barcode, description, routing) {
     row.appendChild(barcodeCell); // Barcode and remove button in the same cell
     row.appendChild(descriptionCell);
     row.appendChild(routingCell);
+    row.appendChild(lastScanCell);
     row.appendChild(checkboxCell);
 
     // Append the row to the table body

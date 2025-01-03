@@ -392,7 +392,8 @@ progress.complete::-moz-progress-bar {
     display: flex; /* Enable flexbox layout */
     align-items: center; /* Vertically center items */
     justify-content: flex-start; /* Align items to the left of the cell */
-    gap: 10px; /* Add spacing between barcode and remove button */
+    gap: 20px; /* Add spacing between barcode and remove button */
+    width: 100%; /* Ensure the container spans the cell */
 }
 
 .part-list-table td button {
@@ -403,6 +404,7 @@ progress.complete::-moz-progress-bar {
     border: 2px solid black;
     cursor: pointer;
     padding: 0; /* No padding */
+    margin: 0; /* Ensure no extra space around the button */
     text-align: center; /* Center text horizontally */
     line-height: 18px; /* Match the height to vertically align the text */
     font-size: 18px; /* Adjust font size for better appearance */

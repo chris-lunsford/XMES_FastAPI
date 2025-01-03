@@ -36,6 +36,7 @@ def connect_to_db2():
 
 ####################################################### 
 
+
 def fetch_last_timestamp():
     conn = connect_to_db()
     if conn is None:
