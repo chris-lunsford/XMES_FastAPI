@@ -146,8 +146,8 @@ function addBarcodeToTable(barcode, description, routing) {
     // Create cells for barcode with remove button, description, routing, and checkbox
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
-    const routingCell = document.createElement('td');
-    const lastScanCell = document.createElement('td');
+    // const routingCell = document.createElement('td');
+    // const lastScanCell = document.createElement('td');
     const checkboxCell = document.createElement('td');
 
     // Create a container for barcode and button
@@ -180,10 +180,10 @@ function addBarcodeToTable(barcode, description, routing) {
     descriptionCell.textContent = description || "N/A";
 
     // Routing cell
-    routingCell.textContent = routing || "N/A";
+    // routingCell.textContent = routing || "N/A";
 
     // Last Scan cell
-    lastScanCell.textContent = routing || "N/A";
+    // lastScanCell.textContent = routing || "N/A";
 
     // Checkbox cell
     const checkbox = document.createElement('input');
@@ -205,8 +205,8 @@ function addBarcodeToTable(barcode, description, routing) {
     // Append all cells to the row
     row.appendChild(barcodeCell); // Barcode and remove button in the same cell
     row.appendChild(descriptionCell);
-    row.appendChild(routingCell);
-    row.appendChild(lastScanCell);
+    // row.appendChild(routingCell);
+    // row.appendChild(lastScanCell);
     row.appendChild(checkboxCell);
 
     // Append the row to the table body
