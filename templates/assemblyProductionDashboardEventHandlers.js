@@ -57,9 +57,26 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 async function fetchAndAddParts() {
     const barcodeInput = document.getElementById('barcode');
     const barcode = barcodeInput.value.trim();
+    const tableBody = document.getElementById('table-body');
+
     try {
-        console.log(`Fetching parts for barcode: ${barcode}`);
-        const response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}`);
+        console.log(`Processing barcode: ${barcode}`);
+
+        // Check if the table already has rows
+        const tableIsEmpty = tableBody.children.length === 0;
+
+        let response;
+
+        if (tableIsEmpty) {
+            // Table is empty, load all parts for the article
+            console.log("Table is empty. Fetching all parts for the article...");
+            response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=true`);
+        } else {
+            // Table is not empty, load only the specific part for the scanned barcode
+            console.log("Table is not empty. Fetching only the part for the scanned barcode...");
+            response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=false`);
+        }
+
         if (!response.ok) {
             throw new Error(`API Error: ${response.statusText}`);
         }
@@ -70,8 +87,8 @@ async function fetchAndAddParts() {
             const isChecked = checkAndHandleBarcode(part.BARCODE);
 
             if (isChecked === null) {
-                // Add the part to the table if it is not already there
-                addBarcodeToTable(part.BARCODE, part.INFO1, part.INFO2); // Assume INFO2 is Routing
+                // Add the part to the table if it's not already there
+                addBarcodeToTable(part.BARCODE, part.INFO1, part.INFO2); // Assume INFO1 is Description, INFO2 is Routing
             }
         }
 
@@ -83,6 +100,9 @@ async function fetchAndAddParts() {
         } else if (isScannedChecked === false) {
             markBarcodeCheckedGreen(barcode);
         }
+
+        // Clear the input field after processing
+        barcodeInput.value = '';
     } catch (error) {
         console.error("Failed to fetch parts:", error);
         alert("Error fetching parts: " + error.message);

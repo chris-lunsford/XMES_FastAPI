@@ -1320,39 +1320,34 @@ def fetch_runtime_machines(orderid):
 ################################################################
 
 
-def fetch_parts_in_article(barcode):
+def fetch_parts_in_article(barcode, loadAll):
     conn = connect_to_db2()
     if conn is None:
         raise Exception("Failed to connect to database.")
     try:
         cursor = conn.cursor()
-        query = """
-        WITH BarcodeRow AS (
-            SELECT 
-                ORDERID,
-                ARTICLE_ID
-            FROM 
-                dbo.Part
-            WHERE 
-                BARCODE = %s        
-        )
-        SELECT 
-            p.ORDERID,
-            p.ARTICLE_ID,
-            p.BARCODE,
-            p.INFO1,
-            p.INFO2
-        FROM 
-            dbo.Part p
-        INNER JOIN 
-            BarcodeRow br
-        ON 
-            p.ORDERID = br.ORDERID
-            AND p.ARTICLE_ID = br.ARTICLE_ID
-        WHERE 
-            (p.CNC_BARCODE1 IS NOT NULL AND p.CNC_BARCODE1 != '')
-        ORDER BY BARCODE 
-        """
+        if loadAll:
+            # Fetch all parts for the article
+            query = """
+            WITH BarcodeRow AS (
+                SELECT ORDERID, ARTICLE_ID
+                FROM dbo.Part
+                WHERE BARCODE = %s
+            )
+            SELECT p.BARCODE, p.INFO1, p.INFO2
+            FROM dbo.Part p
+            INNER JOIN BarcodeRow br
+            ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
+            ORDER BY BARCODE
+            """
+        else:
+            # Fetch only the specific part represented by the scanned barcode
+            query = """
+            SELECT BARCODE, INFO1, INFO2
+            FROM dbo.Part
+            WHERE BARCODE = %s
+            ORDER BY BARCODE
+            """
         cursor.execute(query, (barcode,))
         columns = [desc[0] for desc in cursor.description]  # Get column names
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
