@@ -329,7 +329,24 @@ progress.complete::-moz-progress-bar {
     border: 1px solid black;
 }
 
+.article-info {
+    display: flex;
+    align-items: left;
+    justify-content: center;
+    width: 100%;
+    gap: 20px;
+    border: 1px solid orange;
+}
 
+.article-info div {
+    border: 1px dotted red;
+}
+
+.article-info input {
+    border: 1px solid black;
+    border-radius: 3px;    
+    width: 130px;
+}
 
 .part-list-table {
     width: 65%;
