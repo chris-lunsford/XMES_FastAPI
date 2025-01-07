@@ -38,8 +38,8 @@
             </div>
         </form>
         <div class="message-display">
-            <p>Messages:&nbsp</p>
-            <p id="status-message">Enter required fields and scan barcodes.</p>
+            <!-- <p>Messages:&nbsp</p> -->
+            <!-- <p id="status-message">Enter required fields and scan barcodes.</p> -->
         </div>
     </section>
     <section class="part-list-display">
@@ -48,13 +48,9 @@
                 <label>Cabinet Info:</label>
             </div>
             <div>
-                <label>Origin Article:</label>
+                <label>Article ID:</label>
                 <input type="text" name="origin_article" id="origin" required>
-            </div>
-            <div>
-                <label>Destination Article:</label>
-                <input type="text" name="destination_article" id="destination" required>
-            </div>
+            </div>            
         </div>
         <div class="part-list-table">
             <table id="part-table">
@@ -62,16 +58,16 @@
                     <tr>
                         <th class="part-barcode">Barcode</th>
                         <th>Description</th>
-                        <!-- <th>Machine Routing</th>
-                        <th>Last Scan</th> -->
-                        <th>Scanned</th> <!-- Add header for checkbox -->
-                        
+                        <th>Scanned</th> <!-- Add header for checkbox -->                        
                     </tr>
                 </thead>
                 <tbody id="table-body">
                     <!-- Data rows will be added here dynamically -->
                 </tbody>
             </table>
+        </div>
+        <div class="clear-table">
+            <button type="button" id="clear-table-button">Clear All Parts</button>
         </div>
     </section>
     <section class="display-container">

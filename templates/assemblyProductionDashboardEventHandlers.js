@@ -36,6 +36,7 @@ function setupEventHandlers() {
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
+    listenerManager.addListener(document.getElementById('clear-table-button'), 'click', clearPartTable);
     
 
     // Add event listener for barcode field
@@ -51,6 +52,29 @@ if (typeof window.lastBarcodeSubmissionTime === 'undefined') {
 // const BARCODE_SUBMISSION_COOLDOWN_MS = 2000; // Set a 2-second cooldown
 if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
     window.BARCODE_SUBMISSION_COOLDOWN_MS = 2000;
+}
+
+
+async function clearPartTable() {
+    const tableBody = document.getElementById('table-body');
+
+    try {
+        // Confirm with the user before clearing the table
+        const confirmation = confirm("Are you sure you want to clear the table?");
+        if (confirmation) {
+            // Remove all rows from the table
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+            console.log("Table cleared successfully.");
+            // alert("The table has been cleared.");
+        } else {
+            console.log("Table clear action canceled.");
+        }
+    } catch (error) {
+        console.error("Failed to clear the table:", error);
+        alert(`Error clearing the table: ${error.message}`);
+    }
 }
 
 
@@ -83,22 +107,31 @@ async function fetchAndAddParts() {
 
         const parts = await response.json();
 
-        for (const part of parts) {
-            const isChecked = checkAndHandleBarcode(part.BARCODE);
+        if (Array.isArray(parts)) {
+            // Process the parts
+            for (const part of parts) {
+                const isChecked = checkAndHandleBarcode(part.BARCODE);
 
-            if (isChecked === null) {
-                // Add the part to the table if it's not already there
-                addBarcodeToTable(part.BARCODE, part.INFO1, part.INFO2); // Assume INFO1 is Description, INFO2 is Routing
+                if (isChecked === null) {
+                    // Add the part to the table if it's not already there
+                    addBarcodeToTable(part.BARCODE, part.INFO1); // Assume INFO1 is Description
+                }
             }
-        }
 
-        // Mark the scanned barcode as green
-        console.log(`Checking barcode: ${barcode}`);
-        const isScannedChecked = checkAndHandleBarcode(barcode);
-        if (isScannedChecked) {
-            alert(`This barcode is already in the table and checked green - "${barcode}"`);
-        } else if (isScannedChecked === false) {
-            markBarcodeCheckedGreen(barcode);
+            // Mark the scanned barcode as green
+            console.log(`Checking barcode: ${barcode}`);
+            const isScannedChecked = checkAndHandleBarcode(barcode);
+            if (isScannedChecked) {
+                alert(`This barcode is already in the table and checked green - "${barcode}"`);
+            } else if (isScannedChecked === false) {
+                markBarcodeCheckedGreen(barcode);
+            }
+        } else if (parts.message) {
+            // Display the message from the server as a popup alert
+            alert(parts.message);
+        } else {
+            // Handle unexpected responses
+            alert("Unexpected response from the server.");
         }
 
         // Clear the input field after processing
@@ -234,7 +267,12 @@ function addBarcodeToTable(barcode, description, routing) {
 }
 
 
-async function handleBarcodeKeyPress(event) {
+async function handleBarcodeKeyPress(event) {    
+
+     // Check validity of the barcode input field
+     const barcodeInput = document.getElementById('barcode');
+     const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
@@ -243,13 +281,13 @@ async function handleBarcodeKeyPress(event) {
         const now = Date.now();
         if (now - lastBarcodeSubmissionTime < BARCODE_SUBMISSION_COOLDOWN_MS) {
             console.log('Cooldown in effect, ignoring submission');
+            // Clear the input field after processing
+            barcodeInput.value = '';
             return; // Skip submission
         }
         lastBarcodeSubmissionTime = now; // Update the last submission timestamp
 
-        // Check validity of the barcode input field
-        const barcodeInput = document.getElementById('barcode');
-        const form = barcodeInput.closest('form'); // Assuming the barcode input is within a form
+       
 
         if (form && !form.checkValidity()) {
             form.reportValidity(); // Show validation messages if form is invalid
@@ -257,10 +295,6 @@ async function handleBarcodeKeyPress(event) {
         }
 
         try {
-            // await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
-            // updatePartCountsOnScan();        // Then update parts counts
-            // updateEEJobListDay();            // Update other UI elements
-            // updateAreaProgressBar();
             await fetchAndAddParts();
         } catch (error) {
             console.error('Failed to scan barcode to DB:', error);

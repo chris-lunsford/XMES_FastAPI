@@ -1323,21 +1323,36 @@ def fetch_runtime_machines(orderid):
 def fetch_parts_in_article(barcode, loadAll):
     conn = connect_to_db2()
     if conn is None:
-        raise Exception("Failed to connect to database.")
+        raise Exception("Failed to connect to the database.")
     try:
         cursor = conn.cursor()
+
+        # Query to check if ARTICLE_ID is null
+        check_query = """
+        SELECT ARTICLE_ID 
+        FROM dbo.Part
+        WHERE BARCODE = %s
+        """
+        cursor.execute(check_query, (barcode,))
+        result = cursor.fetchone()
+
+        if not result or result[0] is None:
+            # If ARTICLE_ID is null or no row is found
+            return {"message": "No related part or article data available for the provided barcode."}
+
         if loadAll:
             # Fetch all parts for the article
             query = """
             WITH BarcodeRow AS (
                 SELECT ORDERID, ARTICLE_ID
                 FROM dbo.Part
-                WHERE BARCODE = %s
+                WHERE BARCODE = %s 
             )
             SELECT p.BARCODE, p.INFO1, p.INFO2
             FROM dbo.Part p
             INNER JOIN BarcodeRow br
             ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
+            WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
             ORDER BY BARCODE
             """
         else:
@@ -1356,3 +1371,43 @@ def fetch_parts_in_article(barcode, loadAll):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+
+
+
+# def fetch_parts_in_article(barcode, loadAll):
+#     conn = connect_to_db2()
+#     if conn is None:
+#         raise Exception("Failed to connect to database.")
+#     try:
+#         cursor = conn.cursor()
+#         if loadAll:
+#             # Fetch all parts for the article
+#             query = """
+#             WITH BarcodeRow AS (
+#                 SELECT ORDERID, ARTICLE_ID
+#                 FROM dbo.Part
+#                 WHERE BARCODE = %s 
+#             )
+#             SELECT p.BARCODE, p.INFO1, p.INFO2
+#             FROM dbo.Part p
+#             INNER JOIN BarcodeRow br
+#             ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
+#             WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
+#             ORDER BY BARCODE
+#             """
+#         else:
+#             # Fetch only the specific part represented by the scanned barcode
+#             query = """
+#             SELECT BARCODE, INFO1, INFO2
+#             FROM dbo.Part
+#             WHERE BARCODE = %s
+#             ORDER BY BARCODE
+#             """
+#         cursor.execute(query, (barcode,))
+#         columns = [desc[0] for desc in cursor.description]  # Get column names
+#         results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
+#         return results
+#     except Exception as e:
+#         raise Exception(f"Database query failed: {e}")
+#     finally:
+#         conn.close()
