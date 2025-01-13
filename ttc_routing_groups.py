@@ -9,7 +9,7 @@ ttc_saw_routing_groups = {
         'Stainless Steel Countertop',
         'Plinth Face',
         'Matrix Bottom',
-
+        'Drawer Box Bottom', 
         
     ],
 
@@ -154,7 +154,13 @@ ttc_saw_routing_groups = {
         'Closet Upright Bottom Stacking Transition Left',
         'Closet Upright Top Stacking Transition Left',   
         'Closet Upright LED Left No Drill', 
-        'HO Upper Divider',    
+        'HO Upper Divider', 
+        'Drawer Box Back', 
+        'Drawer Box Front', 
+        'Drawer Box Left Side', 
+        'Drawer Box Right Side',
+        'Closet Corner Adjustable Shelf',
+   
     ],
 
 
