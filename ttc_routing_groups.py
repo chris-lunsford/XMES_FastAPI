@@ -156,6 +156,11 @@ ttc_saw_routing_groups = {
         'Closet Upright Top Stacking Transition Left', 
         'Closet Upright LED Left No Drill',
         'HO Upper Divider',
+        'Drawer Box Back', 
+        'Drawer Box Front', 
+        'Drawer Box Left Side', 
+        'Drawer Box Right Side',
+        'Closet Corner Adjustable Shelf',
 
     ],
 
