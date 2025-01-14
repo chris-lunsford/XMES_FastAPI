@@ -9,6 +9,7 @@ ttc_saw_routing_groups = {
         'Stainless Steel Countertop',
         'Plinth Face',
         'Matrix Bottom',
+        'Drawer Box Bottom', 
 
         
     ],
