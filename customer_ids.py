@@ -2,8 +2,8 @@ CUSTOMER_IDS = [
     "",
     "CFA", 
     "CFX",
-    "CBC", 
-    "TPS",
-    "TRP", 
+    "CBC",
+    "RTP", 
+    "TPS", 
     "TTC",
     ]
