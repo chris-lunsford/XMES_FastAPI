@@ -1441,3 +1441,80 @@ def fetch_parts_in_article(barcode, loadAll):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+
+
+###################################################
+
+
+
+
+def check_sub_assembly_status(barcode):
+    """
+    1) Look for the BARCODE in dbo.View_Part_Data to get the PARENTID.
+       - If PARENTID is NULL or empty, return {"message": "No article data available"}.
+    2) If there is a PARENTID, look in dbo.Part for the row with this BARCODE to get that row's PARENTID.
+    3) Then check if dbo.Part has a row where 'ID' = the PARENTID from step (2).
+       - If yes => Part belongs to a sub-assembly.
+       - If no  => Part does not belong to a sub-assembly.
+    """
+
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    try:
+        cursor = conn.cursor()
+
+        # STEP 1: Check if the BARCODE has a parent in the View_Part_Data
+        check_parentid_query = """
+            SELECT PARENTID
+            FROM dbo.View_Part_Data
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_parentid_query, (barcode,))
+        result = cursor.fetchone()
+
+        # If no row returned or PARENTID is None/empty => no article data
+        if not result or not result[0]:
+            return {"message": "No article data available for the provided barcode."}
+
+        # We have a PARENTID from View_Part_Data
+        parentid_from_view = result[0]
+
+        # STEP 2: Look in dbo.Part for the row of this barcode and get its PARENTID
+        check_part_query = """
+            SELECT PARENTID, ORDERID
+            FROM dbo.Part
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_part_query, (barcode,))
+        part_row = cursor.fetchone()
+
+        # If no row in dbo.Part for this barcode, it might be an anomaly,
+        # but let's handle it gracefully
+        if not part_row:
+            return {"message": "Part not found in dbo.Part, cannot determine sub-assembly status."}
+
+        part_parentid, part_orderid = part_row  # The PARENTID for this specific part
+
+        # STEP 3: Check if there is a row in dbo.Part where ID = part_parentid
+        # If such a row exists => part belongs to a sub-assembly
+        # (Because that row is the parent record)
+        check_sub_assembly_query = """
+            SELECT ID
+            FROM dbo.Part
+            WHERE ID = %s
+              AND ORDERID = %s
+        """
+        cursor.execute(check_sub_assembly_query, (part_parentid, part_orderid))
+        sub_assembly_result = cursor.fetchone()
+
+        if sub_assembly_result:
+            return {"message": "This part belongs to a sub-assembly."}
+        else:
+            return {"message": "This part does not belong to a sub-assembly."}
+
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()

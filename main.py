@@ -515,3 +515,20 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=(e))
+    
+
+
+@app.get('/api/check-sub-assembly-status',
+         tags=["Assembly Production"],
+        summary="Check Sub Assembly Status",
+        description="""
+        This endpoint checks the status of a sub-assembly identified by a barcode.
+        It returns either the current status or an error if something goes wrong.
+        """
+)
+async def handle_check_sub_assembly_status(barcode: str):
+    try:
+        result = check_sub_assembly_status(barcode)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=(e))
