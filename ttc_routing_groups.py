@@ -31,6 +31,8 @@ ttc_saw_routing_groups = {
         'Base Molding',
         'Applied Molding',
         'False Front Backer',
+        'HO Murphy Full Toe Kick',
+
 
     ],
 
@@ -160,6 +162,13 @@ ttc_saw_routing_groups = {
         'Drawer Box Left Side', 
         'Drawer Box Right Side',
         'Closet Corner Adjustable Shelf',
+        'HO Murphy Full Left Side',
+        'HO Murphy Full Right Side',
+        'HO Murphy Full Top',
+        'HO Murphy Full Headboard',
+        'HO Murphy Full Nailer Top',
+        'HO Murphy Full Bottom Stretcher',
+
    
     ],
 
