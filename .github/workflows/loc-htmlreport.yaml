@@ -1,0 +1,34 @@
+name: Generate LOC HTML Report
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  loc-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install loc-count-report
+        run: npm install -g loc-count-report
+
+      - name: Generate HTML Report
+        run: loc-count-report --output ./loc-report.html
+
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: LOC HTML Report
+          path: loc-report.html
