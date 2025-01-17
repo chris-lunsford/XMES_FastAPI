@@ -1,0 +1,20 @@
+name: Count Lines of Code
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  count-loc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Count lines of code
+        uses: dhallsp/cloc-action@v1
+        with:
+          args: "--json"
