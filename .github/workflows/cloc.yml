@@ -1,20 +1,26 @@
-name: Count Lines of Code
+name: Lines of Code Analysis
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  count-loc:
+  analyze-loc:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Count lines of code
-        uses: dhallsp/cloc-action@v1
-        with:
-          args: "--json"
+      - name: Install cloc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+
+      - name: Run cloc
+        run: |
+          cloc .
