@@ -16,19 +16,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+      - name: Install cloc
+        run: sudo apt-get update && sudo apt-get install -y cloc
 
-      - name: Install loc-count-report
-        run: npm install -g loc-count-report
+      - name: Generate JSON Report
+        run: cloc --json . > cloc-report.json
 
-      - name: Generate HTML Report
-        run: loc-count-report --output ./loc-report.html
+      - name: Convert JSON to HTML (Optional)
+        run: |
+          echo "<html><head><title>LOC Report</title></head><body><pre>" > cloc-report.html
+          cat cloc-report.json >> cloc-report.html
+          echo "</pre></body></html>" >> cloc-report.html
 
-      - name: Upload HTML Report
+      - name: Upload Reports
         uses: actions/upload-artifact@v3
         with:
-          name: LOC HTML Report
-          path: loc-report.html
+          name: LOC Reports
+          path: |
+            cloc-report.json
+            cloc-report.html
