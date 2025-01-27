@@ -1498,22 +1498,32 @@ def check_sub_assembly_status(barcode):
         part_parentid, part_orderid = part_row  # The PARENTID for this specific part
 
         # STEP 3: Check if there is a row in dbo.Part where ID = part_parentid
-        # If such a row exists => part belongs to a sub-assembly
-        # (Because that row is the parent record)
+        #         If found, also retrieve INFO2 to check if it's 'NAZ'.
         check_sub_assembly_query = """
-            SELECT ID
+            SELECT ID, INFO2
             FROM dbo.Part
             WHERE ID = %s
               AND ORDERID = %s
         """
         cursor.execute(check_sub_assembly_query, (part_parentid, part_orderid))
-        sub_assembly_result = cursor.fetchone()
+        sub_assembly_row = cursor.fetchone()
 
-        if sub_assembly_result:
-            return {"message": "This part belongs to a sub-assembly."}
+        if not sub_assembly_row:
+            return {"message": "This part does not belongs to a sub-assembly."}
         else:
-            return {"message": "This part does not belong to a sub-assembly."}
+            # Found parent row => part belongs to a sub-=assembly
+            _, parent_info2 = sub_assembly_row
 
+            # Check if parent INFO2 indicates no assembly required
+            if parent_info2 == "NAZ":
+                return {
+                    "message": "This part belongs to a sub-=assembly with NO assembly required"
+                }
+            else:
+                return {
+                    "message": "This part belongs to a sub-assembly with assembly required"
+                }
+            
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
     finally:
