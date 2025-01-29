@@ -1528,3 +1528,414 @@ def check_sub_assembly_status(barcode):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+        
+
+###################################################
+
+
+
+def fetch_parts_with_subassembly_logic(barcode):
+    """
+    1) Check if there is article data for the barcode (dbo.Part → ARTICLE_ID).
+       - If no, return: {"message": "No article data available for the provided barcode."}
+
+    2) If there is article data, check sub-assembly status (via dbo.View_Part_Data → PARENTID).
+       - If no PARENTID => not sub-assembly => return all article parts.
+       - If yes PARENTID => check parent's dbo.Part row (ID, INFO2, ARTICLE_ID).
+         * If no parent row => not a sub-assembly => return all.
+         * If parent row => check INFO2:
+             - INFO2 == 'NAZ' => sub-assembly with NO assembly => return all.
+             - otherwise     => sub-assembly WITH assembly => return ONLY sub-assembly's parts.
+
+    3) "All article parts" uses the same approach as `fetch_parts_in_article(loadAll=True)`.
+       "Only sub-assembly parts" is the same approach but anchored on the parent's (ORDERID, ARTICLE_ID).
+    """
+
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    try:
+        cursor = conn.cursor()
+
+        # ------------------------------------------------
+        # STEP 1: Check if the barcode has an ARTICLE_ID
+        # ------------------------------------------------
+        check_article_query = """
+            SELECT ORDERID, ARTICLE_ID
+            FROM dbo.Part
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_article_query, (barcode,))
+        part_info = cursor.fetchone()
+
+        if not part_info or part_info[1] is None:
+            return {"message": "No article data available for the provided barcode."}
+
+        order_id, article_id = part_info
+
+        # ------------------------------------------------
+        # STEP 2: Check sub-assembly status
+        # ------------------------------------------------
+        # 2a) Check if there's a PARENTID in dbo.Part
+        check_parentid_query = """
+            SELECT PARENTID
+            FROM dbo.Part
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_parentid_query, (barcode,))
+        parentid_row = cursor.fetchone()
+
+        # sub_assembly_required controls final return logic
+        # sub_assembly_required = True => only sub-assembly parts
+        # sub_assembly_required = False => all article parts
+        sub_assembly_required = False
+
+        if parentid_row and parentid_row[0]:
+            # This indicates the part *may* belong to a sub-assembly
+            possible_parent_id = parentid_row[0]
+
+            # Look up the parent row in dbo.Part to confirm
+            check_parent_row_query = """
+                SELECT ID, INFO2, ARTICLE_ID
+                FROM dbo.Part
+                WHERE ID = %s
+                  AND ORDERID = %s
+            """
+            cursor.execute(check_parent_row_query, (possible_parent_id, order_id))
+            parent_row = cursor.fetchone()
+
+            if parent_row:
+                # Found a parent row, so sub-assembly is real
+                parent_id, parent_info2, parent_article_id = parent_row
+
+                if parent_info2 and parent_info2.upper() != "NAZ":
+                    # Means sub-assembly *with* assembly required
+                    sub_assembly_required = True
+                    # We'll use parent's ARTICLE_ID to gather sub-assembly parts
+                    sub_assembly_article_id = parent_article_id
+                else:
+                    # Sub-assembly is present but "NAZ" => no assembly required
+                    sub_assembly_required = False
+            else:
+                # No parent row => treat it as not in a sub-assembly
+                sub_assembly_required = False
+        else:
+            # No or empty PARENTID => not sub-assembly
+            sub_assembly_required = False
+
+        # ------------------------------------------------
+        # STEP 3: Return the correct parts
+        # ------------------------------------------------
+
+        if not sub_assembly_required:
+            # Return all parts for the entire article (like loadAll=True)
+            # using the scanned barcode's (order_id, article_id).
+            query = """
+                WITH BarcodeRow AS (
+                    SELECT ORDERID, ARTICLE_ID
+                    FROM dbo.Part
+                    WHERE BARCODE = %s
+                )
+                SELECT 
+                    p.BARCODE, 
+                    p.INFO1, 
+                    p.INFO2, 
+                    a.INFO3 AS CabinetNumber
+                FROM dbo.Part p
+                INNER JOIN BarcodeRow br
+                    ON p.ORDERID = br.ORDERID 
+                    AND p.ARTICLE_ID = br.ARTICLE_ID
+                LEFT JOIN dbo.Article a
+                    ON br.ORDERID = a.ORDERID
+                    AND br.ARTICLE_ID = a.ID
+                WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
+                  AND p.CNC_BARCODE1 IS NOT NULL AND p.CNC_BARCODE1 != ''
+                ORDER BY p.BARCODE
+            """
+            cursor.execute(query, (barcode,))
+        else:
+            # Return only the sub-assembly parts using the parent's ARTICLE_ID
+            # (We assume the same ORDERID as the child part.)
+            query = """
+                WITH SubAssemblyRow AS (
+                    SELECT %s AS ORDERID, %s AS ARTICLE_ID
+                )
+                SELECT
+                    p.BARCODE,
+                    p.INFO1,
+                    p.INFO2,
+                    a.INFO3 AS CabinetNumber
+                FROM dbo.Part p
+                INNER JOIN SubAssemblyRow sar
+                    ON p.ORDERID = sar.ORDERID
+                    AND p.ARTICLE_ID = sar.ARTICLE_ID
+                LEFT JOIN dbo.Article a
+                    ON sar.ORDERID = a.ORDERID
+                    AND sar.ARTICLE_ID = a.ID
+                WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
+                  AND p.CNC_BARCODE1 IS NOT NULL AND p.CNC_BARCODE1 != ''
+                ORDER BY p.BARCODE
+            """
+            # parent_article_id is from the parent's row in dbo.Part
+            cursor.execute(query, (order_id, sub_assembly_article_id))
+
+        # Convert rows → list of dictionaries
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        results = [dict(zip(columns, row)) for row in rows]
+
+        if not results:
+            return {"message": "No parts or article data available for the provided barcode."}
+
+        return results
+
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+                
+
+###################################################
+
+
+
+def fetch_parts_with_subassembly_logic2(barcode):
+    
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    try:
+        cursor = conn.cursor()
+
+        # ------------------------------------------------
+        # STEP 1: Check if the barcode has an ARTICLE_ID
+        # ------------------------------------------------
+        check_article_query = """
+            SELECT PARENTID
+            FROM dbo.View_Part_Data
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_article_query, (barcode,))
+        part_info = cursor.fetchone()
+
+        if not part_info or part_info[0] is None:
+            return {"message": "No article data available for the provided barcode."}
+        
+        
+
+        # ------------------------------------------------
+        # STEP 2: Check sub-assembly status
+        # ------------------------------------------------
+        # 2a) Check if there's a PARENTID in dbo.Part
+        check_parentid_query = """
+            SELECT ORDERID, PARENTID, ARTICLE_ID
+            FROM dbo.Part
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_parentid_query, (barcode,))
+        parentid_row = cursor.fetchone()
+        
+        order_id, parent_id, article_id = parentid_row
+
+        # sub_assembly_required controls final return logic
+        # sub_assembly_required = True => only sub-assembly parts
+        # sub_assembly_required = False => all article parts
+        sub_assembly_required = False
+
+        if parentid_row and parentid_row[1]:
+            # This indicates the part *may* belong to a sub-assembly
+            possible_parent_id = parentid_row[1]
+
+            # Look up the parent row in dbo.Part to confirm
+            check_parent_row_query = """
+                SELECT ID, INFO2, ARTICLE_ID
+                FROM dbo.Part
+                WHERE ID = %s
+                AND ORDERID = %s
+            """
+            cursor.execute(check_parent_row_query, (possible_parent_id, order_id))
+            parent_row = cursor.fetchone()
+
+            if parent_row:
+                # Found a parent row, so sub-assembly is real
+                parent_id, parent_info2, parent_article_id = parent_row
+
+                if parent_info2 and parent_info2.upper() != "NAZ":
+                    # Means sub-assembly *with* assembly required
+                    sub_assembly_required = True
+                    # We'll use parent's ARTICLE_ID to gather sub-assembly parts
+                    sub_assembly_id = parent_id
+                else:
+                    # Sub-assembly is present but "NAZ" => no assembly required
+                    sub_assembly_required = False
+            else:
+                # No parent row => treat it as not in a sub-assembly
+                sub_assembly_required = False
+        else:
+            # No or empty PARENTID => not sub-assembly
+            sub_assembly_required = False
+
+        # ------------------------------------------------
+        # STEP 3: Return the correct parts
+        # ------------------------------------------------
+
+        if not sub_assembly_required:
+            # Return all parts for the entire article (like loadAll=True)
+            # using the scanned barcode's (order_id, article_id).
+            query = """
+                WITH BarcodeRow AS (
+                    SELECT ORDERID, ARTICLE_ID
+                    FROM dbo.Part
+                    WHERE BARCODE = %s
+                )
+                SELECT 
+                    p.BARCODE, 
+                    p.INFO1, 
+                    p.INFO2, 
+                    a.INFO3 AS CabinetNumber
+                FROM dbo.Part p
+                INNER JOIN BarcodeRow br
+                    ON p.ORDERID = br.ORDERID 
+                    AND p.ARTICLE_ID = br.ARTICLE_ID
+                LEFT JOIN dbo.Article a
+                    ON br.ORDERID = a.ORDERID
+                    AND br.ARTICLE_ID = a.ID
+                WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
+                  AND p.CNC_BARCODE1 IS NOT NULL AND p.CNC_BARCODE1 != ''
+                ORDER BY p.BARCODE
+            """
+            cursor.execute(query, (barcode,))
+        else:
+            # Return only the sub-assembly parts
+            # We assume:
+            #   order_id         = the parent's ORDERID
+            #   parent_article_id = the parent's ARTICLE_ID
+            #   sub_assembly_id   = the parent's ID (for PARENTID matching)
+
+            query = """
+                SELECT
+                    p.BARCODE,
+                    p.INFO1,
+                    p.INFO2,
+                    a.INFO3 AS CabinetNumber
+                FROM dbo.Part p
+                LEFT JOIN dbo.Article a
+                    ON p.ORDERID = a.ORDERID
+                    AND p.ARTICLE_ID = a.ID
+                WHERE p.ORDERID = %s
+                AND p.ARTICLE_ID = %s
+                AND p.PARENTID = %s
+                AND p.COLOR1 IS NOT NULL
+                AND p.COLOR1 != '_'
+                AND p.CNC_BARCODE1 IS NOT NULL
+                AND p.CNC_BARCODE1 != ''
+                ORDER BY p.BARCODE
+            """
+
+            cursor.execute(query, (order_id, parent_article_id, sub_assembly_id))
+
+        # Convert rows → list of dictionaries
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        results = [dict(zip(columns, row)) for row in rows]
+
+        if not results:
+            return {"message": "No parts or article data available for the provided barcode."}
+
+        return results
+
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
+
+
+
+
+###################################################
+
+
+
+def fetch_parts_show_naz_children(barcode):
+    """
+    1) Identify which cabinet (ORDERID, ARTICLE_ID) the scanned barcode belongs to.
+       - If no article data, return a message.
+    2) Fetch ALL parts from the cabinet (including parents + children).
+    3) Filter out children whose parent's INFO2 != 'NAZ'.
+       i.e. If parent has 'NAZ' => keep children.
+            If parent has anything else => exclude children.
+    """
+
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    try:
+        cursor = conn.cursor()
+
+        # Step 1: Check article data for the barcode
+        check_article_query = """
+            SELECT ORDERID, ARTICLE_ID
+            FROM dbo.Part
+            WHERE BARCODE = %s
+        """
+        cursor.execute(check_article_query, (barcode,))
+        row = cursor.fetchone()
+
+        if not row or row[1] is None:
+            return {"message": "No article data available for the provided barcode."}
+
+        order_id, article_id = row
+
+        # Step 2: Fetch all parts for this cabinet
+        get_parts_query = """
+            SELECT
+                p.ID,
+                p.PARENTID,
+                p.BARCODE,
+                p.INFO1,
+                p.INFO2,
+                a.INFO3 AS CabinetNumber
+            FROM dbo.Part p
+            LEFT JOIN dbo.Article a
+                ON p.ORDERID = a.ORDERID
+                AND p.ARTICLE_ID = a.ID
+            WHERE p.ORDERID = %s
+              AND p.ARTICLE_ID = %s              
+            ORDER BY p.BARCODE
+        """
+        cursor.execute(get_parts_query, (order_id, article_id))
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+
+        if not rows:
+            return {"message": "No parts or article data found for this cabinet."}
+
+        all_parts = [dict(zip(columns, r)) for r in rows]
+
+        # Step 3: Filter out children if parent's INFO2 != 'NAZ'
+        # Build a dict for quick parent lookups
+        part_dict = { part["ID"]: part for part in all_parts }
+
+        final_parts = []
+        for part in all_parts:
+            parent_id = part["PARENTID"]
+            if parent_id and parent_id in part_dict:
+                parent_info2 = part_dict[parent_id]["INFO2"]
+                # If parent's info2 is something other than NAZ, skip the child
+                if parent_info2 and parent_info2.upper() != "NAZ":
+                    continue
+            # Otherwise, keep the part (either no parent or parent's info2 == NAZ)
+            final_parts.append(part)
+
+        if not final_parts:
+            return {"message": "No parts available after filtering (all children had non-NAZ parent)."}
+
+        return final_parts
+
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close()
