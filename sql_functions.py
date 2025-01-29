@@ -1860,12 +1860,13 @@ def fetch_parts_with_subassembly_logic2(barcode):
 
 def fetch_parts_show_naz_children(barcode):
     """
-    1) Identify which cabinet (ORDERID, ARTICLE_ID) the scanned barcode belongs to.
-       - If no article data, return a message.
-    2) Fetch ALL parts from the cabinet (including parents + children).
-    3) Filter out children whose parent's INFO2 != 'NAZ'.
-       i.e. If parent has 'NAZ' => keep children.
-            If parent has anything else => exclude children.
+    1) Determine the cabinet (ORDERID, ARTICLE_ID) from the scanned barcode.
+    2) Fetch ALL parts (parents + children) for that cabinet.
+    3) For each part, decide to keep or skip based on the parent's info2:
+       - If the part is a parent and info2='NAZ', skip parent (only children should show).
+       - If the part is a parent and info2!='NAZ', keep parent (hide children).
+       - If the part is a child of a NAZ parent, keep child.
+       - If the part is a child of a non-NAZ parent, skip child.
     """
 
     conn = connect_to_db2()
@@ -1875,7 +1876,7 @@ def fetch_parts_show_naz_children(barcode):
     try:
         cursor = conn.cursor()
 
-        # Step 1: Check article data for the barcode
+        # Step 1: Identify the cabinet for this barcode
         check_article_query = """
             SELECT ORDERID, ARTICLE_ID
             FROM dbo.Part
@@ -1903,7 +1904,7 @@ def fetch_parts_show_naz_children(barcode):
                 ON p.ORDERID = a.ORDERID
                 AND p.ARTICLE_ID = a.ID
             WHERE p.ORDERID = %s
-              AND p.ARTICLE_ID = %s              
+              AND p.ARTICLE_ID = %s
             ORDER BY p.BARCODE
         """
         cursor.execute(get_parts_query, (order_id, article_id))
@@ -1915,23 +1916,57 @@ def fetch_parts_show_naz_children(barcode):
 
         all_parts = [dict(zip(columns, r)) for r in rows]
 
-        # Step 3: Filter out children if parent's INFO2 != 'NAZ'
-        # Build a dict for quick parent lookups
-        part_dict = { part["ID"]: part for part in all_parts }
+        # Build a dictionary for quick ID -> part lookup
+        part_dict = {p["ID"]: p for p in all_parts}
+
+        # Step 3: Determine which IDs are used as a parent
+        #         This means at least one child's PARENTID = parent's ID
+        used_as_parent_ids = set(part["PARENTID"] for part in all_parts if part["PARENTID"])
 
         final_parts = []
+
         for part in all_parts:
+            part_id = part["ID"]
             parent_id = part["PARENTID"]
-            if parent_id and parent_id in part_dict:
-                parent_info2 = part_dict[parent_id]["INFO2"]
-                # If parent's info2 is something other than NAZ, skip the child
-                if parent_info2 and parent_info2.upper() != "NAZ":
+            info2 = (part["INFO2"] or "").upper()
+
+            # Check if this part is itself a parent (i.e. in used_as_parent_ids)
+            is_parent = part_id in used_as_parent_ids
+
+            if is_parent:
+                # 1) If parent's info2 == 'NAZ', skip parent => children only
+                if info2 == "NAZ":
+                    # skip this parent
                     continue
-            # Otherwise, keep the part (either no parent or parent's info2 == NAZ)
-            final_parts.append(part)
+                else:
+                    # 2) If parent's info2 != 'NAZ', keep parent => hide children
+                    #    So we keep this parent
+                    final_parts.append(part)
+            else:
+                # This part is not a parent (no child references it),
+                # or it might be a child or a top-level part with no children.
+                # Let's see if it has a parent
+                if parent_id:
+                    # It's a child. Look up parent's info2
+                    parent_part = part_dict.get(parent_id)
+                    if parent_part:
+                        parent_info2 = (parent_part["INFO2"] or "").upper()
+                        # If parent's info2 == 'NAZ', keep child
+                        if parent_info2 == "NAZ":
+                            final_parts.append(part)
+                        else:
+                            # parent's info2 != 'NAZ', skip child
+                            continue
+                    else:
+                        # No parent record found? Just keep it
+                        final_parts.append(part)
+                else:
+                    # It's not a child at all => top-level part with no children
+                    # We can keep it unless you have a rule for single-level parts
+                    final_parts.append(part)
 
         if not final_parts:
-            return {"message": "No parts available after filtering (all children had non-NAZ parent)."}
+            return {"message": "No parts left after hybrid filtering."}
 
         return final_parts
 
