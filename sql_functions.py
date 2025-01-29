@@ -1857,18 +1857,13 @@ def fetch_parts_with_subassembly_logic2(barcode):
 ###################################################
 
 
+def normalize_id(pid):
+    # Normalize the ID by removing any suffixes like "_0"
+    return pid.split('_')[0]
+
+
 
 def fetch_parts_show_naz_children(barcode):
-    """
-    1) Determine the cabinet (ORDERID, ARTICLE_ID) from the scanned barcode.
-    2) Fetch ALL parts (parents + children) for that cabinet.
-    3) For each part, decide to keep or skip based on the parent's info2:
-       - If the part is a parent and info2='NAZ', skip parent (only children should show).
-       - If the part is a parent and info2!='NAZ', keep parent (hide children).
-       - If the part is a child of a NAZ parent, keep child.
-       - If the part is a child of a non-NAZ parent, skip child.
-    """
-
     conn = connect_to_db2()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -1876,97 +1871,78 @@ def fetch_parts_show_naz_children(barcode):
     try:
         cursor = conn.cursor()
 
-        # Step 1: Identify the cabinet for this barcode
-        check_article_query = """
-            SELECT ORDERID, ARTICLE_ID
-            FROM dbo.Part
-            WHERE BARCODE = %s
-        """
-        cursor.execute(check_article_query, (barcode,))
-        row = cursor.fetchone()
-
-        if not row or row[1] is None:
-            return {"message": "No article data available for the provided barcode."}
-
-        order_id, article_id = row
-
-        # Step 2: Fetch all parts for this cabinet
-        get_parts_query = """
-            SELECT
-                p.ID,
-                p.PARENTID,
-                p.BARCODE,
-                p.INFO1,
-                p.INFO2,
-                a.INFO3 AS CabinetNumber
+        # Identify the scanned part based on the barcode
+        cursor.execute("""
+            SELECT p.ORDERID, p.ARTICLE_ID, p.ID, p.INFO2, p.PARENTID
             FROM dbo.Part p
-            LEFT JOIN dbo.Article a
-                ON p.ORDERID = a.ORDERID
-                AND p.ARTICLE_ID = a.ID
-            WHERE p.ORDERID = %s
-              AND p.ARTICLE_ID = %s
-            ORDER BY p.BARCODE
-        """
-        cursor.execute(get_parts_query, (order_id, article_id))
-        columns = [desc[0] for desc in cursor.description]
-        rows = cursor.fetchall()
+            WHERE p.BARCODE = %s
+        """, (barcode,))
+        scanned_row = cursor.fetchone()
 
-        if not rows:
+        if not scanned_row:
+            return {"message": "No part found for that barcode."}
+
+        order_id, article_id, scanned_id, scanned_info2, scanned_parentid = scanned_row
+
+        # Fetch all parts for the entire cabinet based on the scanned part's order and article ID
+        cursor.execute("""
+            SELECT p.ID, p.PARENTID, p.BARCODE, p.INFO1, p.INFO2, a.INFO3 AS CabinetNumber
+            FROM dbo.Part p
+            LEFT JOIN dbo.Article a ON p.ORDERID = a.ORDERID AND p.ARTICLE_ID = a.ID
+            WHERE p.ORDERID = %s AND p.ARTICLE_ID = %s
+        """, (order_id, article_id))
+        parts = cursor.fetchall()
+
+        if not parts:
             return {"message": "No parts or article data found for this cabinet."}
 
-        all_parts = [dict(zip(columns, r)) for r in rows]
+        # Create a dictionary of parts indexed by normalized IDs
+        part_dict = {normalize_id(part[0]): part for part in parts}
 
-        # Build a dictionary for quick ID -> part lookup
-        part_dict = {p["ID"]: p for p in all_parts}
+        # Initialize variables for determining upstream assembly needs
+        current_id = normalize_id(scanned_id)
+        assembly_parent_id = None
 
-        # Step 3: Determine which IDs are used as a parent
-        #         This means at least one child's PARENTID = parent's ID
-        used_as_parent_ids = set(part["PARENTID"] for part in all_parts if part["PARENTID"])
+        # Check if the scanned part or its ancestors belong to a sub-assembly needing assembly
+        while current_id:
+            part_info = part_dict.get(current_id)
+            if not part_info:
+                break
 
+            parent_id = normalize_id(part_info[1]) if part_info[1] else None
+            parent_info = part_dict.get(parent_id) if parent_id else None
+            parent_info2 = (parent_info[4] or "").upper() if parent_info else ""
+
+            if parent_info and parent_info2 != "NAZ":
+                assembly_parent_id = parent_id
+                break
+            current_id = parent_id
+
+        # If an upstream sub-assembly needing assembly was found
+        if assembly_parent_id:
+            sub_assembly_children = [
+                part for part in parts if normalize_id(part[1]) == assembly_parent_id
+            ]
+            return sub_assembly_children  # Return only the children of the assembly-requiring SA
+
+        # Apply hybrid logic for parts not directly involved in the found SA
+        used_as_parent_ids = {normalize_id(part[1]) for part in parts if part[1]}
         final_parts = []
 
-        for part in all_parts:
-            part_id = part["ID"]
-            parent_id = part["PARENTID"]
-            info2 = (part["INFO2"] or "").upper()
+        for part in parts:
+            pid = normalize_id(part[0])
+            parent_id = normalize_id(part[1]) if part[1] else None
+            info2 = (part[4] or "").upper()
 
-            # Check if this part is itself a parent (i.e. in used_as_parent_ids)
-            is_parent = part_id in used_as_parent_ids
+            # Determine if the part is a parent in the part hierarchy
+            is_parent = pid in used_as_parent_ids
 
-            if is_parent:
-                # 1) If parent's info2 == 'NAZ', skip parent => children only
-                if info2 == "NAZ":
-                    # skip this parent
-                    continue
-                else:
-                    # 2) If parent's info2 != 'NAZ', keep parent => hide children
-                    #    So we keep this parent
-                    final_parts.append(part)
-            else:
-                # This part is not a parent (no child references it),
-                # or it might be a child or a top-level part with no children.
-                # Let's see if it has a parent
-                if parent_id:
-                    # It's a child. Look up parent's info2
-                    parent_part = part_dict.get(parent_id)
-                    if parent_part:
-                        parent_info2 = (parent_part["INFO2"] or "").upper()
-                        # If parent's info2 == 'NAZ', keep child
-                        if parent_info2 == "NAZ":
-                            final_parts.append(part)
-                        else:
-                            # parent's info2 != 'NAZ', skip child
-                            continue
-                    else:
-                        # No parent record found? Just keep it
-                        final_parts.append(part)
-                else:
-                    # It's not a child at all => top-level part with no children
-                    # We can keep it unless you have a rule for single-level parts
-                    final_parts.append(part)
-
-        if not final_parts:
-            return {"message": "No parts left after hybrid filtering."}
+            if is_parent and info2 == "NAZ":
+                continue  # Skip parents marked as NAZ, but show their children
+            elif is_parent or not parent_id:
+                final_parts.append(part)  # Include parent parts not marked NAZ and all top-level parts
+            elif parent_id and part_dict[parent_id][4].upper() == "NAZ":
+                final_parts.append(part)  # Include children of NAZ-marked parents
 
         return final_parts
 
@@ -1974,3 +1950,6 @@ def fetch_parts_show_naz_children(barcode):
         raise Exception(f"Database query failed: {e}")
     finally:
         conn.close()
+
+
+        
