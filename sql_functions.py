@@ -1320,90 +1320,92 @@ def fetch_runtime_machines(orderid):
 ################################################################
 
 
-def fetch_parts_in_article(barcode, loadAll):
-    conn = connect_to_db2()
-    if conn is None:
-        raise Exception("Failed to connect to the database.")
-    try:
-        cursor = conn.cursor()
+# def fetch_parts_in_article(barcode, loadAll):
+#     conn = connect_to_db2()
+#     if conn is None:
+#         raise Exception("Failed to connect to the database.")
+#     try:
+#         cursor = conn.cursor()
 
-        # Query to check if ARTICLE_ID is null
-        check_query = """
-        SELECT ORDERID, ARTICLE_ID 
-        FROM dbo.Part
-        WHERE BARCODE = %s
-        """
-        cursor.execute(check_query, (barcode,))
-        result = cursor.fetchone()
+#         # Query to check if ARTICLE_ID is null
+#         check_query = """
+#         SELECT ORDERID, ARTICLE_ID 
+#         FROM dbo.Part
+#         WHERE BARCODE = %s
+#         """
+#         cursor.execute(check_query, (barcode,))
+#         result = cursor.fetchone()
 
-        if not result or result[1] is None:
-            # If ARTICLE_ID is null or no row is found
-            return {"message": "No related part or article data available for the provided barcode."}
+#         if not result or result[1] is None:
+#             # If ARTICLE_ID is null or no row is found
+#             return {"message": "No related part or article data available for the provided barcode."}
 
-        # Extract ORDERID and ARTICLE_ID
-        order_id, article_id = result
+#         # Extract ORDERID and ARTICLE_ID
+#         order_id, article_id = result
 
-        if loadAll:
-            # Fetch all parts for the article, ensuring uniqueness by combining ORDERID and ARTICLE_ID
-            query = """
-            WITH BarcodeRow AS (
-                SELECT ORDERID, ARTICLE_ID
-                FROM dbo.Part
-                WHERE BARCODE = %s 
-            )
-            SELECT 
-                p.BARCODE, 
-                p.INFO1, 
-                p.INFO2, 
-                a.INFO3 AS CabinetNumber
-            FROM dbo.Part p
-            INNER JOIN BarcodeRow br
-                ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
-            LEFT JOIN dbo.Article a
-                ON br.ORDERID = a.ORDERID AND br.ARTICLE_ID = a.ID
-            WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
-			AND CNC_BARCODE1 IS NOT NULL AND CNC_BARCODE1 != ''
-            ORDER BY p.BARCODE
+#         if loadAll:
+#             # Fetch all parts for the article, ensuring uniqueness by combining ORDERID and ARTICLE_ID
+#             query = """
+#             WITH BarcodeRow AS (
+#                 SELECT ORDERID, ARTICLE_ID
+#                 FROM dbo.Part
+#                 WHERE BARCODE = %s 
+#             )
+#             SELECT 
+#                 p.BARCODE, 
+#                 p.INFO1, 
+#                 p.INFO2, 
+#                 a.INFO3 AS CabinetNumber
+#             FROM dbo.Part p
+#             INNER JOIN BarcodeRow br
+#                 ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
+#             LEFT JOIN dbo.Article a
+#                 ON br.ORDERID = a.ORDERID AND br.ARTICLE_ID = a.ID
+#             WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
+# 			AND CNC_BARCODE1 IS NOT NULL AND CNC_BARCODE1 != ''
+#             ORDER BY p.BARCODE
 
-            """
-        else:
-            # Fetch only the specific part represented by the scanned barcode
-            # ensuring uniqueness by combining ORDERID and ARTICLE_ID
-            query = """
-            SELECT BARCODE, INFO1, INFO2
-            FROM dbo.Part
-            WHERE BARCODE = %s
-            ORDER BY BARCODE
-            """
-        cursor.execute(query, (barcode,))
-        columns = [desc[0] for desc in cursor.description]  # Get column names
-        results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
+#             """
+#         else:
+#             # Fetch only the specific part represented by the scanned barcode
+#             # ensuring uniqueness by combining ORDERID and ARTICLE_ID
+#             query = """
+#             SELECT BARCODE, INFO1, INFO2
+#             FROM dbo.Part
+#             WHERE BARCODE = %s
+#             ORDER BY BARCODE
+#             """
+#         cursor.execute(query, (barcode,))
+#         columns = [desc[0] for desc in cursor.description]  # Get column names
+#         results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
 
-        # Check if results are empty and include CabinetNumber if available
-        if not results:
-            return {"message": "No parts or article data available for the provided barcode."}
+#         # Check if results are empty and include CabinetNumber if available
+#         if not results:
+#             return {"message": "No parts or article data available for the provided barcode."}
 
-        return results
-    except Exception as e:
-        raise Exception(f"Database query failed: {e}")
-    finally:
-        conn.close()
+#         return results
+#     except Exception as e:
+#         raise Exception(f"Database query failed: {e}")
+#     finally:
+#         conn.close()
 
 
 ###################################################
 
 
 
-def fetch_parts_show_naz_children(barcode):
+def fetch_parts_in_article(barcode, loadAll):
     """
     1) If the scanned part (or any ancestor) belongs to a sub-assembly that requires assembly
-       (i.e., a parent with INFO2 != 'NAZ'), return ONLY that sub-assembly's children.
+       (i.e., a parent with INFO2 == 'SAZ'), return ONLY that sub-assembly's children.
        - This covers scanning a child part or the parent itself of an upstream sub-assembly.
 
     2) Otherwise, show the entire cabinet with the 'hybrid' logic:
        - parent + NAZ => hide parent, show children
-       - parent + != NAZ => show parent, hide children
+       - parent + == SAZ => show parent, hide children
        - all other parts => shown
+
+    If loadAll is False, we skip the filtering logic and simply return the single scanned part.
     """
 
     conn = connect_to_db2()
@@ -1439,24 +1441,53 @@ def fetch_parts_show_naz_children(barcode):
         scanned_info2 = (scanned_info2 or "").upper()
 
         # ------------------------------------------------
-        # STEP 2: Fetch the entire cabinet
+        # If loadAll = False => Return ONLY the scanned part, no additional logic
+        # ------------------------------------------------
+        if not loadAll:
+            # Just fetch the single part's details (similar to your old function),
+            # making sure we return a list-of-dicts for consistency
+            single_part_query = """
+                SELECT 
+                    p.ID, 
+                    p.PARENTID, 
+                    p.BARCODE, 
+                    p.INFO1, 
+                    p.INFO2
+                FROM dbo.Part p
+                WHERE p.BARCODE = %s
+            """
+            cursor.execute(single_part_query, (barcode,))
+            columns = [desc[0] for desc in cursor.description]
+            single_row = cursor.fetchone()
+
+            if not single_row:
+                return {"message": "No part data found for the provided barcode."}
+
+            part_data = dict(zip(columns, single_row))
+            # You can add or remove fields here if you like, or join Article for CabinetNumber
+            return [part_data]
+
+        # ------------------------------------------------
+        # STEP 2: (loadAll = True) Fetch the entire cabinet
         # ------------------------------------------------
         cabinet_query = """
-            SELECT
-                p.ID,
-                p.PARENTID,
-                p.BARCODE,
-                p.INFO1,
-                p.INFO2,
+            SELECT 
+                p.ID, 
+                p.PARENTID, 
+                p.BARCODE, 
+                p.INFO1, 
+                p.INFO2, 
                 a.INFO3 AS CabinetNumber
             FROM dbo.Part p
-            LEFT JOIN dbo.Article a
-                ON p.ORDERID = a.ORDERID
-                AND p.ARTICLE_ID = a.ID
-            WHERE p.ORDERID = %s
+            LEFT JOIN dbo.Article a 
+                ON p.ORDERID = a.ORDERID 
+               AND p.ARTICLE_ID = a.ID
+            WHERE p.ORDERID = %s 
               AND p.ARTICLE_ID = %s
+            ORDER BY BARCODE
         """
         cursor.execute(cabinet_query, (order_id, article_id))
+
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         if not rows:

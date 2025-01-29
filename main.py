@@ -508,31 +508,31 @@ async def handle_fetch_runtime_machines(orderid: str):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# @app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
-# async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
-#     try:
-#         result = fetch_parts_in_article(barcode, loadAll)
-#         return result
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=(e))   
-   
-
-@app.get('/api/fetch-parts-with-subassembly-logic',
-         tags=["Assembly Production"],         
-)
-async def handle_fetch_parts_with_subassembly_logic(barcode: str):
+@app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
+async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
     try:
-        result = fetch_parts_show_naz_children(barcode)
+        result = fetch_parts_in_article(barcode, loadAll)
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=(e))
+        raise HTTPException(status_code=500, detail=(e))   
+   
+
+# @app.get('/api/fetch-parts-with-subassembly-logic',
+#          tags=["Assembly Production"],         
+# )
+# async def handle_fetch_parts_with_subassembly_logic(barcode: str):
+#     try:
+#         result = fetch_parts_show_naz_children(barcode)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=(e))
     
 
 
-@app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
-async def handle_fetch_parts_in_article(barcode: str):
-    try:
-        result = fetch_parts_show_naz_children(barcode)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=(e)) 
+# @app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
+# async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
+#     try:
+#         result = fetch_parts_show_naz_children(barcode, loadAll)
+#         return result
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=(e)) 
