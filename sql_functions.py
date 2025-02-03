@@ -1472,6 +1472,7 @@ def fetch_parts_in_article(barcode, loadAll):
         # ------------------------------------------------
         cabinet_query = """
             SELECT 
+                p.ORDERID,
                 p.ID, 
                 p.PARENTID, 
                 p.BARCODE, 
@@ -1536,7 +1537,7 @@ def fetch_parts_in_article(barcode, loadAll):
             return sub_assembly_children
 
         # ------------------------------------------------
-        # STEP 4: Hybrid logic for the entire cabinet
+        # STEP 4: Logic for the entire cabinet
         # ------------------------------------------------
         used_as_parent_ids = {part["PARENTID"] for part in all_parts if part["PARENTID"]}
         final_parts = []

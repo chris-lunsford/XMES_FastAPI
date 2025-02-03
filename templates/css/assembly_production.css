@@ -128,7 +128,7 @@ html, body {
     color: black;
 }
 
-.clear-table button {
+.parts-buttons button {
     background-color: #969191; 
     color: black;
     border: none;
@@ -141,7 +141,7 @@ html, body {
     border-radius: 10px;
 }
 
-.clear-table button:hover {
+.parts-buttons button:hover {
     background-color: #1a3d80; /* Darker blue on hover */
     color: white;
 }
