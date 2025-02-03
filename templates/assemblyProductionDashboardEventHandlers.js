@@ -56,6 +56,9 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 
 
 async function clearPartTable() {
+    const cabInfoSpan = document.getElementById('cab-info');   
+    cabInfoSpan.textContent = ""; 
+    
     const tableBody = document.getElementById('table-body');
 
     try {
@@ -114,7 +117,7 @@ async function fetchAndAddParts() {
 
                 if (isChecked === null) {
                     // Add the part to the table if it's not already there
-                    addBarcodeToTable(part.BARCODE, part.INFO1); // Assume INFO1 is Description
+                    addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber); // INFO1 is Description 
                 }
             }
 
@@ -181,7 +184,13 @@ function markBarcodeCheckedGreen(barcode) {
 
 
 
-function addBarcodeToTable(barcode, description, routing) {
+function addBarcodeToTable(barcode, description, cabinfo) {
+    // Update the cab-info span with the cabnumber data
+    const cabInfoSpan = document.getElementById('cab-info');
+    if (cabInfoSpan) {
+        cabInfoSpan.textContent = cabinfo || "N/A"; // Set the cabnumber or "N/A" if it's not provided
+    }
+
     const tableBody = document.getElementById('table-body');
 
     // Check if the barcode exists in the table

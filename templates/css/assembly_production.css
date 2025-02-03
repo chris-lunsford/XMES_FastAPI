@@ -85,7 +85,7 @@ html, body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 30px;
-    border: 2px dotted orange;
+    /* border: 2px dotted orange; */
     padding: 10px;
     min-height: 300px;
 }
@@ -353,12 +353,12 @@ progress.complete::-moz-progress-bar {
     justify-content: center;
     width: 100%;
     gap: 20px;
-    border: 1px solid orange;
+    /* border: 1px solid orange; */
 }
 
-.article-info div {
+/* .article-info div {
     border: 1px dotted red;
-}
+} */
 
 .article-info input {
     border: 1px solid black;

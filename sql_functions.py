@@ -1477,7 +1477,8 @@ def fetch_parts_in_article(barcode, loadAll):
                 p.BARCODE, 
                 p.INFO1, 
                 p.INFO2, 
-                a.INFO3 AS CabinetNumber
+                a.INFO3 AS CabinetNumber,
+                p.ARTICLE_ID
             FROM dbo.Part p
             LEFT JOIN dbo.Article a 
                 ON p.ORDERID = a.ORDERID 
