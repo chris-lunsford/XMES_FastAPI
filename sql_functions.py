@@ -1465,7 +1465,10 @@ def fetch_parts_in_article(barcode, loadAll):
 
             part_data = dict(zip(columns, single_row))
             # You can add or remove fields here if you like, or join Article for CabinetNumber
-            return [part_data]
+            # return [part_data]
+            return {
+                "parts": part_data
+            }
 
         # ------------------------------------------------
         # STEP 2: (loadAll = True) Fetch the entire cabinet
@@ -1534,7 +1537,10 @@ def fetch_parts_in_article(barcode, loadAll):
             ]
             if not sub_assembly_children:
                 return {"message": "No children found for that sub-assembly."}
-            return sub_assembly_children
+            return {
+                "parts": sub_assembly_children,
+                "is_sub_assembly": True  # Flag indicating these are sub-assembly children
+            }
 
         # ------------------------------------------------
         # STEP 4: Logic for the entire cabinet
@@ -1577,7 +1583,10 @@ def fetch_parts_in_article(barcode, loadAll):
         if not final_parts:
             return {"message": "No parts left after hybrid filtering."}
 
-        return final_parts
+        return {
+            "parts": final_parts,
+            "is_sub_assembly": False  # Flag indicating these are not sub-assembly children
+        }
 
     except Exception as e:
         raise Exception(f"Database query failed: {e}")
@@ -1585,4 +1594,61 @@ def fetch_parts_in_article(barcode, loadAll):
         conn.close()
 
 
-        
+
+###################################################
+
+
+
+
+def submit_part_usage(
+        Barcode, 
+        OrderID, 
+        Cab_Info3, 
+        Timestamp, 
+        EmployeeID, 
+        Resource, 
+        CustomerID, 
+        Article_ID, 
+        Status, 
+        PartDestination
+    ):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+
+    cursor = conn.cursor()
+    try: 
+        insert_query = """
+                INSERT INTO dbo.Fact_Part_Usage (
+                    [BARCODE],
+                    [ORDERID],
+                    [CAB_INFO3],
+                    [TIMESTAMP],
+                    [EMPLOYEEID],
+                    [RESOURCE],
+                    [CUSTOMERID],
+                    [ARTICLE_ID],
+                    [STATUS],
+                    [PARTDESTINATION]
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """
+        cursor.execute(insert_query, ( 
+            Barcode, 
+            OrderID, 
+            Cab_Info3, 
+            Timestamp, 
+            EmployeeID, 
+            Resource, 
+            CustomerID, 
+            Article_ID, 
+            Status, 
+            PartDestination
+            ))
+        conn.commit()
+        return {"message": "Insert successful", "rows_affected": cursor.rowcount}
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()

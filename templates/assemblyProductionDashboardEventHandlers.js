@@ -58,6 +58,8 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 async function clearPartTable() {
     const cabInfoSpan = document.getElementById('cab-info');   
     cabInfoSpan.textContent = ""; 
+    const articleIdSpan = document.getElementById('article-id');
+    articleIdSpan.textContent ="";
     
     const tableBody = document.getElementById('table-body');
 
@@ -86,6 +88,8 @@ async function fetchAndAddParts() {
     const barcode = barcodeInput.value.trim();
     const tableBody = document.getElementById('table-body');
 
+    showLoadingSpinner(); // Show the spinner before the API call
+
     try {
         console.log(`Processing barcode: ${barcode}`);
 
@@ -108,7 +112,13 @@ async function fetchAndAddParts() {
             throw new Error(`API Error: ${response.statusText}`);
         }
 
-        const parts = await response.json();
+        const data = await response.json(); // The entire response object
+        let parts = data.parts; // Extract the parts from the response
+
+        // Ensure parts is always an array
+        if (!Array.isArray(parts)) {
+            parts = [parts]; // Convert single object into an array
+        }
 
         if (Array.isArray(parts)) {
             // Process the parts
@@ -117,7 +127,7 @@ async function fetchAndAddParts() {
 
                 if (isChecked === null) {
                     // Add the part to the table if it's not already there
-                    addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber); // INFO1 is Description 
+                    addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber, part.ORDERID, part.ARTICLE_ID); // INFO1 is Description 
                 }
             }
 
@@ -142,6 +152,8 @@ async function fetchAndAddParts() {
     } catch (error) {
         console.error("Failed to fetch parts:", error);
         alert("Error fetching parts: " + error.message);
+    } finally {
+        hideLoadingSpinner(); // Hide the spinner after the API call
     }
 }
 
@@ -184,14 +196,29 @@ function markBarcodeCheckedGreen(barcode) {
 
 
 
-function addBarcodeToTable(barcode, description, cabinfo) {
-    // Update the cab-info span with the cabnumber data
-    const cabInfoSpan = document.getElementById('cab-info');
-    if (cabInfoSpan) {
-        cabInfoSpan.textContent = cabinfo || "N/A"; // Set the cabnumber or "N/A" if it's not provided
-    }
-
+function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId) {
     const tableBody = document.getElementById('table-body');
+
+    // Only update cab-info and article-id if the table is empty.
+    if (tableBody.children.length === 0) {
+        const cabInfoSpan = document.getElementById('cab-info');
+        if (cabInfoSpan) {
+            cabInfoSpan.textContent = cabinfo || "N/A"; // Use cabinfo or "N/A" if not provided
+        }
+        const articleIdSpan = document.getElementById('article-id');
+        if (articleIdSpan) {
+            articleIdSpan.textContent = articleId || "N/A"; // Use articleId or "N/A"
+        }
+        const orderIdSpan = document.getElementById('orderid');
+        if (orderIdSpan) {
+            orderIdSpan.textContent = orderId || "N/A"; // Use articleId or "N/A"
+        }
+        // Combine orderid and article-id into article-identifier
+        const articleIdentifierSpan = document.getElementById('article-identifier');
+        if (articleIdentifierSpan) {
+            articleIdentifierSpan.textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
+        }
+    }
 
     // Check if the barcode exists in the table
     const existingRows = Array.from(tableBody.children);
@@ -785,3 +812,18 @@ async function updateAreaProgressBar() {
     }
 }
 
+
+
+function showLoadingSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'block';
+    }
+}
+
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}

@@ -7,6 +7,10 @@
     <title>Production</title>
 </head>
 <body class="production-dashboard"> 
+    <div id="loading-spinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
     <section class="title-info">
         <div class="page-name">
             <span>Assembly Production</span>
@@ -45,7 +49,12 @@
     <section class="part-list-display">
         <div class="article-info">
             <div>
-                <label>Cabinet Info: <span id="cab-info"></span></label>
+                <label>Cabinet: 
+                    <span id="cab-info"></span>
+                    <span id="article-identifier"></span>
+                    <span id="orderid"></span>
+                    <span id="article-id"></span>
+                </label>
             </div>          
         </div>
         <div class="part-list-table">
@@ -64,7 +73,8 @@
         </div>
         <div class="parts-buttons">
             <button type="button" id="clear-table-button">Clear All Parts</button>
-            <button type="button" id="submit-parts-button">Use Parts</button>
+            <button type="button" id="submit-parts-button">Start</button>
+            <button type="button" id="submit-parts-button">Stop</button>
             <button type="button" id="complete-article-button">Complete Article</button>
         </div>
     </section>
