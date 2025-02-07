@@ -874,6 +874,71 @@ function collectFormData(actionType) {
     };
 }
 
+// async function submitParts() {
+//     console.log("submitParts function called!");
+//     showLoadingSpinner();
+//     const { partsData, allChecked } = collectTableData();
+//     const formData = collectFormData();
+
+//     if (partsData.length === 0) {
+//         alert("No parts to submit!");
+//         return;
+//     }
+
+//      // ✅ Stop submission if not all parts are checked
+//      if (!allChecked) {
+//         alert("All parts must be checked before submitting.");
+//         hideLoadingSpinner();
+//         return;
+//     }
+
+//     try {
+//         for (const part of partsData) {
+//             const barcode = part.Barcode;
+
+//             // Check if part already exists in the SQL database
+//             const existsResponse = await fetch(`/api/check-part-exists/${encodeURIComponent(barcode)}`);
+//             const existsData = await existsResponse.json();
+
+//             if (existsData.exists) {
+//                 console.log(`Skipping barcode ${barcode}: Already exists in the database.`);
+//                 continue; // Skip this barcode if it already exists
+//             }
+//             const payload = {
+//                 Barcode: part.Barcode,
+//                 OrderID: formData.OrderID,
+//                 Cab_Info3: formData.Cab_Info3,
+//                 EmployeeID: formData.EmployeeID,
+//                 Resource: formData.Resource,
+//                 CustomerID: formData.CustomerID,
+//                 Article_ID: formData.Article_ID,
+//                 Status: "Used",
+//                 PartDestination: formData.PartDestination
+//             };
+
+//             const response = await fetch('/api/submit-part-usage', {
+//                 method: 'POST',
+//                 headers: { 'Content-Type': 'application/json' },
+//                 body: JSON.stringify(payload)
+//             });
+
+//             if (!response.ok) {
+//                 throw new Error(`Failed to submit ${part.Barcode}: ${response.statusText}`);
+//             }
+
+//             const result = await response.json();
+//             console.log(`Success: ${result.message}`);
+//         }
+
+//         hideLoadingSpinner();
+//         alert("All parts submitted successfully!");
+//     } catch (error) {
+//         console.error("Error submitting parts:", error);
+//         alert(`Error submitting parts: ${error.message}`);
+//     }
+// }
+
+
 async function submitParts() {
     console.log("submitParts function called!");
     showLoadingSpinner();
@@ -882,53 +947,64 @@ async function submitParts() {
 
     if (partsData.length === 0) {
         alert("No parts to submit!");
+        hideLoadingSpinner();
         return;
     }
 
-     // ✅ Stop submission if not all parts are checked
-     if (!allChecked) {
+    // ✅ Stop submission if not all parts are checked
+    if (!allChecked) {
         alert("All parts must be checked before submitting.");
         hideLoadingSpinner();
         return;
     }
 
     try {
-        for (const part of partsData) {
-            const barcode = part.Barcode;
+        // Extract barcodes to check which ones exist
+        const barcodes = partsData.map(part => part.Barcode);
+        const existsResponse = await fetch('/api/check-parts-exist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcodes })
+        });
 
-            // Check if part already exists in the SQL database
-            const existsResponse = await fetch(`/api/check-part-exists/${encodeURIComponent(barcode)}`);
-            const existsData = await existsResponse.json();
+        const existsData = await existsResponse.json();
+        const existingBarcodes = new Set(existsData.existingBarcodes);
 
-            if (existsData.exists) {
-                console.log(`Skipping barcode ${barcode}: Already exists in the database.`);
-                continue; // Skip this barcode if it already exists
-            }
-            const payload = {
-                Barcode: part.Barcode,
-                OrderID: formData.OrderID,
-                Cab_Info3: formData.Cab_Info3,
-                EmployeeID: formData.EmployeeID,
-                Resource: formData.Resource,
-                CustomerID: formData.CustomerID,
-                Article_ID: formData.Article_ID,
-                Status: "Used",
-                PartDestination: formData.PartDestination
-            };
+        // Filter out existing barcodes
+        const newParts = partsData.filter(part => !existingBarcodes.has(part.Barcode));
 
-            const response = await fetch('/api/submit-part-usage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to submit ${part.Barcode}: ${response.statusText}`);
-            }
-
-            const result = await response.json();
-            console.log(`Success: ${result.message}`);
+        if (newParts.length === 0) {
+            alert("No new parts to submit!");
+            hideLoadingSpinner();
+            return;
         }
+
+        // Prepare the payload for batch submission
+        const payload = newParts.map(part => ({
+            Barcode: part.Barcode,
+            OrderID: formData.OrderID,
+            Cab_Info3: formData.Cab_Info3,
+            EmployeeID: formData.EmployeeID,
+            Resource: formData.Resource,
+            CustomerID: formData.CustomerID,
+            Article_ID: formData.Article_ID,
+            Status: "Used",
+            PartDestination: formData.PartDestination
+        }));
+
+        // Send the batch request
+        const response = await fetch('/api/submit-parts-usage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ parts: payload })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to submit parts: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`Success: ${result.message}`);
 
         hideLoadingSpinner();
         alert("All parts submitted successfully!");
@@ -937,5 +1013,3 @@ async function submitParts() {
         alert(`Error submitting parts: ${error.message}`);
     }
 }
-
-

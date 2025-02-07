@@ -1600,53 +1600,133 @@ def fetch_parts_in_article(barcode, loadAll):
 
 
 
-def submit_part_usage(
-        Barcode, 
-        OrderID, 
-        Cab_Info3, 
-        Timestamp, 
-        EmployeeID, 
-        Resource, 
-        CustomerID, 
-        Article_ID, 
-        Status, 
-        PartDestination
-    ):
+# def submit_part_usage(
+#         Barcode, 
+#         OrderID, 
+#         Cab_Info3, 
+#         Timestamp, 
+#         EmployeeID, 
+#         Resource, 
+#         CustomerID, 
+#         Article_ID, 
+#         Status, 
+#         PartDestination
+#     ):
+#     conn = connect_to_db2()
+#     if conn is None:
+#         raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+
+#     cursor = conn.cursor()
+#     try: 
+#         insert_query = """
+#                 INSERT INTO dbo.Fact_Part_Usage (
+#                     [BARCODE],
+#                     [ORDERID],
+#                     [CAB_INFO3],
+#                     [TIMESTAMP],
+#                     [EMPLOYEEID],
+#                     [RESOURCE],
+#                     [CUSTOMERID],
+#                     [ARTICLE_ID],
+#                     [STATUS],
+#                     [PARTDESTINATION]
+#                 )
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#             """
+#         cursor.execute(insert_query, ( 
+#             Barcode, 
+#             OrderID, 
+#             Cab_Info3, 
+#             Timestamp, 
+#             EmployeeID, 
+#             Resource, 
+#             CustomerID, 
+#             Article_ID, 
+#             Status, 
+#             PartDestination
+#             ))
+#         conn.commit()
+#         return {"message": "Insert successful", "rows_affected": cursor.rowcount}
+#     except Exception as e:
+#         conn.rollback()
+#         raise e
+#     finally:
+#         conn.close()
+
+
+
+# def check_part_exists(barcode):
+#     try:
+#         conn = connect_to_db2()
+#         if conn is None:
+#             raise Exception("Failed to connect to the database.")
+
+#         cursor = conn.cursor()
+#         query = "SELECT COUNT(*) FROM dbo.Fact_Part_Usage WHERE BARCODE = %s"
+#         cursor.execute(query, (barcode,))
+#         count = cursor.fetchone()[0]
+
+#         conn.close()
+
+#         return {"exists": count > 0}  # Returns True if the part exists, False otherwise
+
+#     except Exception as e:
+#         raise e
+#     finally:
+#         if conn:
+#             conn.close()
+
+def check_parts_exist_in_db(barcodes):
+    try:
+        conn = connect_to_db2()
+        if conn is None:
+            raise Exception("Failed to connect to the database.")
+
+        cursor = conn.cursor()
+        query = f"SELECT BARCODE FROM dbo.Fact_Part_Usage WHERE BARCODE IN ({','.join(['%s'] * len(barcodes))})"
+        cursor.execute(query, tuple(barcodes))
+        existing_barcodes = {row[0] for row in cursor.fetchall()}
+
+        conn.close()
+        return existing_barcodes
+    except Exception as e:
+        raise e
+    finally:
+        if conn:
+            conn.close()
+
+
+
+
+def submit_parts_usage(parts, timestamp):
     conn = connect_to_db2()
     if conn is None:
-        raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
+        raise Exception("Failed to connect to the database.")
 
     cursor = conn.cursor()
-    try: 
+    try:
         insert_query = """
-                INSERT INTO dbo.Fact_Part_Usage (
-                    [BARCODE],
-                    [ORDERID],
-                    [CAB_INFO3],
-                    [TIMESTAMP],
-                    [EMPLOYEEID],
-                    [RESOURCE],
-                    [CUSTOMERID],
-                    [ARTICLE_ID],
-                    [STATUS],
-                    [PARTDESTINATION]
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """
-        cursor.execute(insert_query, ( 
-            Barcode, 
-            OrderID, 
-            Cab_Info3, 
-            Timestamp, 
-            EmployeeID, 
-            Resource, 
-            CustomerID, 
-            Article_ID, 
-            Status, 
-            PartDestination
-            ))
+            INSERT INTO dbo.Fact_Part_Usage (
+                [BARCODE], [ORDERID], [CAB_INFO3], [TIMESTAMP], 
+                [EMPLOYEEID], [RESOURCE], [CUSTOMERID], [ARTICLE_ID], 
+                [STATUS], [PARTDESTINATION]
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        values = [
+            (
+                part["Barcode"], part["OrderID"], part["Cab_Info3"], timestamp,
+                part["EmployeeID"], part["Resource"], part["CustomerID"],
+                part["Article_ID"], part["Status"], part["PartDestination"]
+            ) for part in parts
+        ]
+
+        # Execute multiple insert queries at once
+        cursor.executemany(insert_query, values)
         conn.commit()
+
         return {"message": "Insert successful", "rows_affected": cursor.rowcount}
+
     except Exception as e:
         conn.rollback()
         raise e

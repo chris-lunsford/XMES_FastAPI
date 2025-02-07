@@ -558,21 +558,61 @@ async def handle_submit_part_usage(data: PartUsageData):
 
 
 
-@app.get('/api/check-part-exists/{barcode}', tags=["Assembly Production"])
-async def check_part_exists(barcode: str):
+# @app.get('/api/check-part-exists/{barcode}', tags=["Assembly Production"])
+# async def check_part_exists(barcode: str):
+#     try:
+#         conn = connect_to_db2()
+#         if conn is None:
+#             raise HTTPException(status_code=500, detail="Database connection failed.")
+
+#         cursor = conn.cursor()
+#         query = "SELECT COUNT(*) FROM dbo.Fact_Part_Usage WHERE BARCODE = %s"
+#         cursor.execute(query, (barcode,))
+#         count = cursor.fetchone()[0]
+
+#         conn.close()
+
+#         return {"exists": count > 0}  # Returns True if the part exists, False otherwise
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+    
+# @app.get('/api/check-part-exists/', tags=["Assembly Production"])
+# async def handle_check_part_exists(barcode: str):
+#     try:
+#         result = check_part_exists(barcode)
+#         return result
+    
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/check-parts-exist', tags=["Assembly Production"])
+async def check_parts_exist(data: dict):
     try:
-        conn = connect_to_db2()
-        if conn is None:
-            raise HTTPException(status_code=500, detail="Database connection failed.")
+        barcodes = data.get("barcodes", [])
+        if not barcodes:
+            raise HTTPException(status_code=400, detail="No barcodes provided")
 
-        cursor = conn.cursor()
-        query = "SELECT COUNT(*) FROM dbo.Fact_Part_Usage WHERE BARCODE = %s"
-        cursor.execute(query, (barcode,))
-        count = cursor.fetchone()[0]
+        existing_barcodes = check_parts_exist_in_db(barcodes)
+        return {"existingBarcodes": existing_barcodes}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-        conn.close()
 
-        return {"exists": count > 0}  # Returns True if the part exists, False otherwise
+@app.post('/api/submit-parts-usage', tags=["Assembly Production"])
+async def handle_submit_parts_usage(data: dict):
+    try:
+        eastern = pytz.timezone('America/New_York')
+        now_eastern = datetime.now(pytz.utc).astimezone(eastern)
 
+        parts = data.get("parts", [])
+        if not parts:
+            raise HTTPException(status_code=400, detail="No parts provided")
+
+        result = submit_parts_usage(parts, now_eastern)
+        return {"message": "Entries added successfully", "result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
