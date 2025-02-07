@@ -516,7 +516,7 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
     except Exception as e:
         raise HTTPException(status_code=500, detail=(e))   
    
-   
+
 
 class PartUsageData(BaseModel):
     Barcode: str 
@@ -556,3 +556,23 @@ async def handle_submit_part_usage(data: PartUsageData):
     except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+@app.get('/api/check-part-exists/{barcode}', tags=["Assembly Production"])
+async def check_part_exists(barcode: str):
+    try:
+        conn = connect_to_db2()
+        if conn is None:
+            raise HTTPException(status_code=500, detail="Database connection failed.")
+
+        cursor = conn.cursor()
+        query = "SELECT COUNT(*) FROM dbo.Fact_Part_Usage WHERE BARCODE = %s"
+        cursor.execute(query, (barcode,))
+        count = cursor.fetchone()[0]
+
+        conn.close()
+
+        return {"exists": count > 0}  # Returns True if the part exists, False otherwise
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

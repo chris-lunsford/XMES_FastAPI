@@ -37,6 +37,8 @@ function setupEventHandlers() {
     listenerManager.addListener(document.getElementById('report-defect'), 'click', handleReportDefect);
     listenerManager.addListener(document.getElementById('submit-defect-button'), 'click', handleSubmitButton);
     listenerManager.addListener(document.getElementById('clear-table-button'), 'click', clearPartTable);
+
+    listenerManager.addListener(document.getElementById('start-article-button'), 'click', submitParts);
     
 
     // Add event listener for barcode field
@@ -827,3 +829,113 @@ function hideLoadingSpinner() {
         spinner.style.display = 'none';
     }
 }
+
+
+
+
+function collectTableData() {
+    const tableBody = document.getElementById('table-body');
+    const rows = Array.from(tableBody.children);
+    
+    let partsData = [];
+    let allChecked = true;
+
+    rows.forEach(row => {
+        const barcodeSpan = row.querySelector('span[data-barcode]');
+        const descriptionCell = row.children[1]; // Description column
+        const checkbox = row.querySelector('input[type="checkbox"]');
+
+        if (barcodeSpan && descriptionCell && checkbox) {
+            partsData.push({
+                Barcode: barcodeSpan.textContent.trim(),
+                Description: descriptionCell.textContent.trim(),
+                Scanned: checkbox.checked ? "Checked" : "Unchecked"
+            });
+            if (!checkbox.checked) {
+                allChecked = false; // Found an unchecked box
+            }
+        }
+    });
+
+    return { partsData, allChecked };
+}
+
+
+function collectFormData(actionType) {
+    return {
+        EmployeeID: document.getElementById('employee-id').value.trim() || "N/A",
+        Resource: document.getElementById('work-area').value.trim() || "N/A",
+        CustomerID: document.getElementById('customer-id').value.trim() || "N/A",
+        OrderID: document.getElementById('orderid').textContent.trim() || "N/A",
+        Cab_Info3: document.getElementById('cab-info').textContent.trim() || "N/A",
+        Article_ID: document.getElementById('article-id').textContent.trim() || "N/A",
+        PartDestination: document.getElementById('article-identifier').textContent.trim() || "N/A",
+        
+    };
+}
+
+async function submitParts() {
+    console.log("submitParts function called!");
+    showLoadingSpinner();
+    const { partsData, allChecked } = collectTableData();
+    const formData = collectFormData();
+
+    if (partsData.length === 0) {
+        alert("No parts to submit!");
+        return;
+    }
+
+     // ✅ Stop submission if not all parts are checked
+     if (!allChecked) {
+        alert("All parts must be checked before submitting.");
+        hideLoadingSpinner();
+        return;
+    }
+
+    try {
+        for (const part of partsData) {
+            const barcode = part.Barcode;
+
+            // Check if part already exists in the SQL database
+            const existsResponse = await fetch(`/api/check-part-exists/${encodeURIComponent(barcode)}`);
+            const existsData = await existsResponse.json();
+
+            if (existsData.exists) {
+                console.log(`Skipping barcode ${barcode}: Already exists in the database.`);
+                continue; // Skip this barcode if it already exists
+            }
+            const payload = {
+                Barcode: part.Barcode,
+                OrderID: formData.OrderID,
+                Cab_Info3: formData.Cab_Info3,
+                EmployeeID: formData.EmployeeID,
+                Resource: formData.Resource,
+                CustomerID: formData.CustomerID,
+                Article_ID: formData.Article_ID,
+                Status: "Used",
+                PartDestination: formData.PartDestination
+            };
+
+            const response = await fetch('/api/submit-part-usage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to submit ${part.Barcode}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log(`Success: ${result.message}`);
+        }
+
+        hideLoadingSpinner();
+        alert("All parts submitted successfully!");
+    } catch (error) {
+        console.error("Error submitting parts:", error);
+        alert(`Error submitting parts: ${error.message}`);
+    }
+}
+
+
