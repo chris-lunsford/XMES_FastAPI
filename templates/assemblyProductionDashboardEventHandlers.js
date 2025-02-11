@@ -84,29 +84,24 @@ async function clearPartTable() {
     }
 }
 
-
 async function fetchAndAddParts() {
     const barcodeInput = document.getElementById('barcode');
     const barcode = barcodeInput.value.trim();
     const tableBody = document.getElementById('table-body');
+
+    if (!barcode) return; // Prevent empty submissions
 
     showLoadingSpinner(); // Show the spinner before the API call
 
     try {
         console.log(`Processing barcode: ${barcode}`);
 
-        // Check if the table already has rows
+        let response;
         const tableIsEmpty = tableBody.children.length === 0;
 
-        let response;
-
         if (tableIsEmpty) {
-            // Table is empty, load all parts for the article
-            console.log("Table is empty. Fetching all parts for the article...");
             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=true`);
         } else {
-            // Table is not empty, load only the specific part for the scanned barcode
-            console.log("Table is not empty. Fetching only the part for the scanned barcode...");
             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=false`);
         }
 
@@ -114,50 +109,132 @@ async function fetchAndAddParts() {
             throw new Error(`API Error: ${response.statusText}`);
         }
 
-        const data = await response.json(); // The entire response object
-        let parts = data.parts; // Extract the parts from the response
+        const data = await response.json();
+        let parts = data.parts;
 
-        // Ensure parts is always an array
         if (!Array.isArray(parts)) {
-            parts = [parts]; // Convert single object into an array
+            parts = [parts];
         }
 
-        if (Array.isArray(parts)) {
-            // Process the parts
-            for (const part of parts) {
-                const isChecked = checkAndHandleBarcode(part.BARCODE);
-
-                if (isChecked === null) {
-                    // Add the part to the table if it's not already there
-                    addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber, part.ORDERID, part.ARTICLE_ID); // INFO1 is Description 
-                }
-            }
-
-            // Mark the scanned barcode as green
-            console.log(`Checking barcode: ${barcode}`);
-            const isScannedChecked = checkAndHandleBarcode(barcode);
-            if (isScannedChecked) {
-                alert(`This barcode is already in the table and checked green - "${barcode}"`);
-            } else if (isScannedChecked === false) {
-                markBarcodeCheckedGreen(barcode);
-            }
-        } else if (parts.message) {
-            // Display the message from the server as a popup alert
-            alert(parts.message);
-        } else {
-            // Handle unexpected responses
-            alert("Unexpected response from the server.");
+        if (parts.length === 0) {
+            alert("No parts found for this barcode.");
+            return;
         }
 
-        // Clear the input field after processing
+        // Extract barcodes to check if they exist in Fact_Part_Usage
+        const barcodesToCheck = parts.map(part => part.BARCODE);
+
+        // Check if barcodes are already used in the system
+        const existsResponse = await fetch('/api/check-parts-exist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcodes: barcodesToCheck })
+        });
+
+        const existsData = await existsResponse.json();
+        const existingBarcodes = new Set(existsData.existingBarcodes);
+
+        // Process parts
+        for (const part of parts) {
+            const isChecked = checkAndHandleBarcode(part.BARCODE);
+
+            if (isChecked === null) {
+                // Add the part to the table and mark it if already used
+                addBarcodeToTable(
+                    part.BARCODE, 
+                    part.INFO1, 
+                    part.CabinetNumber, 
+                    part.ORDERID, 
+                    part.ARTICLE_ID, 
+                    existingBarcodes.has(part.BARCODE)
+                );
+            }
+        }
+
+        // Clear the input field
         barcodeInput.value = '';
     } catch (error) {
         console.error("Failed to fetch parts:", error);
         alert("Error fetching parts: " + error.message);
     } finally {
-        hideLoadingSpinner(); // Hide the spinner after the API call
+        hideLoadingSpinner();
     }
 }
+
+
+// async function fetchAndAddParts() {
+//     const barcodeInput = document.getElementById('barcode');
+//     const barcode = barcodeInput.value.trim();
+//     const tableBody = document.getElementById('table-body');
+
+//     showLoadingSpinner(); // Show the spinner before the API call
+
+//     try {
+//         console.log(`Processing barcode: ${barcode}`);
+
+//         // Check if the table already has rows
+//         const tableIsEmpty = tableBody.children.length === 0;
+
+//         let response;
+
+//         if (tableIsEmpty) {
+//             // Table is empty, load all parts for the article
+//             console.log("Table is empty. Fetching all parts for the article...");
+//             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=true`);
+//         } else {
+//             // Table is not empty, load only the specific part for the scanned barcode
+//             console.log("Table is not empty. Fetching only the part for the scanned barcode...");
+//             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=false`);
+//         }
+
+//         if (!response.ok) {
+//             throw new Error(`API Error: ${response.statusText}`);
+//         }
+
+//         const data = await response.json(); // The entire response object
+//         let parts = data.parts; // Extract the parts from the response
+
+//         // Ensure parts is always an array
+//         if (!Array.isArray(parts)) {
+//             parts = [parts]; // Convert single object into an array
+//         }
+
+//         if (Array.isArray(parts)) {
+//             // Process the parts
+//             for (const part of parts) {
+//                 const isChecked = checkAndHandleBarcode(part.BARCODE);
+
+//                 if (isChecked === null) {
+//                     // Add the part to the table if it's not already there
+//                     addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber, part.ORDERID, part.ARTICLE_ID); // INFO1 is Description 
+//                 }
+//             }
+
+//             // Mark the scanned barcode as green
+//             console.log(`Checking barcode: ${barcode}`);
+//             const isScannedChecked = checkAndHandleBarcode(barcode);
+//             if (isScannedChecked) {
+//                 alert(`This barcode is already in the table and checked green - "${barcode}"`);
+//             } else if (isScannedChecked === false) {
+//                 markBarcodeCheckedGreen(barcode);
+//             }
+//         } else if (parts.message) {
+//             // Display the message from the server as a popup alert
+//             alert(parts.message);
+//         } else {
+//             // Handle unexpected responses
+//             alert("Unexpected response from the server.");
+//         }
+
+//         // Clear the input field after processing
+//         barcodeInput.value = '';
+//     } catch (error) {
+//         console.error("Failed to fetch parts:", error);
+//         alert("Error fetching parts: " + error.message);
+//     } finally {
+//         hideLoadingSpinner(); // Hide the spinner after the API call
+//     }
+// }
 
 
 function checkAndHandleBarcode(barcode) {
@@ -197,84 +274,61 @@ function markBarcodeCheckedGreen(barcode) {
 }
 
 
-
-function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId) {
+function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, isUsed) {
     const tableBody = document.getElementById('table-body');
 
-    // Only update cab-info and article-id if the table is empty.
+    // Only update cab-info and article-id if the table is empty
     if (tableBody.children.length === 0) {
-        const cabInfoSpan = document.getElementById('cab-info');
-        if (cabInfoSpan) {
-            cabInfoSpan.textContent = cabinfo || "N/A"; // Use cabinfo or "N/A" if not provided
-        }
-        const articleIdSpan = document.getElementById('article-id');
-        if (articleIdSpan) {
-            articleIdSpan.textContent = articleId || "N/A"; // Use articleId or "N/A"
-        }
-        const orderIdSpan = document.getElementById('orderid');
-        if (orderIdSpan) {
-            orderIdSpan.textContent = orderId || "N/A"; // Use articleId or "N/A"
-        }
-        // Combine orderid and article-id into article-identifier
-        const articleIdentifierSpan = document.getElementById('article-identifier');
-        if (articleIdentifierSpan) {
-            articleIdentifierSpan.textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
-        }
+        document.getElementById('cab-info').textContent = cabinfo || "N/A";
+        document.getElementById('article-id').textContent = articleId || "N/A";
+        document.getElementById('orderid').textContent = orderId || "N/A";
+        document.getElementById('article-identifier').textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
     }
 
-    // Check if the barcode exists in the table
+    // Check if barcode already exists in the table
     const existingRows = Array.from(tableBody.children);
     for (const row of existingRows) {
         const span = row.querySelector('span[data-barcode]');
         if (span && span.getAttribute('data-barcode') === barcode) {
-            return; // If barcode exists, do nothing
+            return; // Barcode already exists, do nothing
         }
     }
 
     // Create a new row
     const row = document.createElement('tr');
 
-    // Create cells for barcode with remove button, description, routing, and checkbox
+    // Create cells
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
-    // const routingCell = document.createElement('td');
-    // const lastScanCell = document.createElement('td');
     const checkboxCell = document.createElement('td');
-
-    // Create a container for barcode and button
-    const barcodeContainer = document.createElement('div');
-    barcodeContainer.style.display = 'flex';
-    barcodeContainer.style.alignItems = 'center'; /* Vertically center items */
-    barcodeContainer.style.justifyContent = 'flex-start'; /* Align items flush left */
-    barcodeContainer.style.gap = '20px'; /* Add spacing between barcode and button */
 
     // Barcode span
     const barcodeSpan = document.createElement('span');
     barcodeSpan.textContent = barcode;
-    barcodeSpan.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
+    barcodeSpan.setAttribute('data-barcode', barcode);
+
+    // Green check if barcode is already used
+    const checkMark = document.createElement('span');
+    checkMark.classList.add("check-mark");
+    if (isUsed) {
+        checkMark.classList.add("green-check");
+    }
 
     // Remove button
     const removeButton = document.createElement('button');
     removeButton.textContent = 'X';
     removeButton.style.cursor = 'pointer';
-    removeButton.style.marginRight = '20px'; // Add some spacing between the barcode and button
     removeButton.onclick = () => {
         tableBody.removeChild(row);
     };
 
-    // Append the barcode and remove button to the same cell
+    // Append barcode and checkmark
     barcodeCell.appendChild(removeButton);
     barcodeCell.appendChild(barcodeSpan);
-    
+    barcodeCell.appendChild(checkMark);
 
     // Description cell
     descriptionCell.textContent = description || "N/A";
-
-    // Routing cell
-    // routingCell.textContent = routing || "N/A";
-
-    // Last Scan cell
-    // lastScanCell.textContent = routing || "N/A";
 
     // Checkbox cell
     const checkbox = document.createElement('input');
@@ -282,27 +336,128 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId) {
     checkbox.style.cursor = 'pointer';
     checkbox.style.width = '24px';
     checkbox.style.height = '24px';
-    checkbox.onchange = () => {
-        if (checkbox.checked) {
-            checkbox.style.backgroundColor = 'green'; // Change background to green
-            checkbox.style.borderColor = 'black'; // Change border color
-        } else {
-            checkbox.style.backgroundColor = ''; // Reset background
-            checkbox.style.borderColor = ''; // Reset border
-        }
-    };
+    if (isUsed) {
+        checkbox.checked = true;
+        checkbox.disabled = true; // Prevent modification of used parts
+    }
+
     checkboxCell.appendChild(checkbox);
 
-    // Append all cells to the row
-    row.appendChild(barcodeCell); // Barcode and remove button in the same cell
+    // Append cells to row
+    row.appendChild(barcodeCell);
     row.appendChild(descriptionCell);
-    // row.appendChild(routingCell);
-    // row.appendChild(lastScanCell);
     row.appendChild(checkboxCell);
 
-    // Append the row to the table body
+    // Append row to table
     tableBody.appendChild(row);
 }
+
+
+// function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId) {
+//     const tableBody = document.getElementById('table-body');
+
+//     // Only update cab-info and article-id if the table is empty.
+//     if (tableBody.children.length === 0) {
+//         const cabInfoSpan = document.getElementById('cab-info');
+//         if (cabInfoSpan) {
+//             cabInfoSpan.textContent = cabinfo || "N/A"; // Use cabinfo or "N/A" if not provided
+//         }
+//         const articleIdSpan = document.getElementById('article-id');
+//         if (articleIdSpan) {
+//             articleIdSpan.textContent = articleId || "N/A"; // Use articleId or "N/A"
+//         }
+//         const orderIdSpan = document.getElementById('orderid');
+//         if (orderIdSpan) {
+//             orderIdSpan.textContent = orderId || "N/A"; // Use articleId or "N/A"
+//         }
+//         // Combine orderid and article-id into article-identifier
+//         const articleIdentifierSpan = document.getElementById('article-identifier');
+//         if (articleIdentifierSpan) {
+//             articleIdentifierSpan.textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
+//         }
+//     }
+
+//     // Check if the barcode exists in the table
+//     const existingRows = Array.from(tableBody.children);
+//     for (const row of existingRows) {
+//         const span = row.querySelector('span[data-barcode]');
+//         if (span && span.getAttribute('data-barcode') === barcode) {
+//             return; // If barcode exists, do nothing
+//         }
+//     }
+
+//     // Create a new row
+//     const row = document.createElement('tr');
+
+//     // Create cells for barcode with remove button, description, routing, and checkbox
+//     const barcodeCell = document.createElement('td');
+//     const descriptionCell = document.createElement('td');
+//     // const routingCell = document.createElement('td');
+//     // const lastScanCell = document.createElement('td');
+//     const checkboxCell = document.createElement('td');
+
+//     // Create a container for barcode and button
+//     const barcodeContainer = document.createElement('div');
+//     barcodeContainer.style.display = 'flex';
+//     barcodeContainer.style.alignItems = 'center'; /* Vertically center items */
+//     barcodeContainer.style.justifyContent = 'flex-start'; /* Align items flush left */
+//     barcodeContainer.style.gap = '20px'; /* Add spacing between barcode and button */
+
+//     // Barcode span
+//     const barcodeSpan = document.createElement('span');
+//     barcodeSpan.textContent = barcode;
+//     barcodeSpan.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
+
+//     // Remove button
+//     const removeButton = document.createElement('button');
+//     removeButton.textContent = 'X';
+//     removeButton.style.cursor = 'pointer';
+//     removeButton.style.marginRight = '20px'; // Add some spacing between the barcode and button
+//     removeButton.onclick = () => {
+//         tableBody.removeChild(row);
+//     };
+
+//     // Append the barcode and remove button to the same cell
+//     barcodeCell.appendChild(removeButton);
+//     barcodeCell.appendChild(barcodeSpan);
+    
+
+//     // Description cell
+//     descriptionCell.textContent = description || "N/A";
+
+//     // Routing cell
+//     // routingCell.textContent = routing || "N/A";
+
+//     // Last Scan cell
+//     // lastScanCell.textContent = routing || "N/A";
+
+//     // Checkbox cell
+//     const checkbox = document.createElement('input');
+//     checkbox.type = 'checkbox';
+//     checkbox.style.cursor = 'pointer';
+//     checkbox.style.width = '24px';
+//     checkbox.style.height = '24px';
+//     checkbox.onchange = () => {
+//         if (checkbox.checked) {
+//             checkbox.style.backgroundColor = 'green'; // Change background to green
+//             checkbox.style.borderColor = 'black'; // Change border color
+//         } else {
+//             checkbox.style.backgroundColor = ''; // Reset background
+//             checkbox.style.borderColor = ''; // Reset border
+//         }
+//     };
+//     checkboxCell.appendChild(checkbox);
+
+//     // Append all cells to the row
+//     row.appendChild(barcodeCell); // Barcode and remove button in the same cell
+//     row.appendChild(descriptionCell);
+//     // row.appendChild(routingCell);
+//     // row.appendChild(lastScanCell);
+//     row.appendChild(checkboxCell);
+
+//     // Append the row to the table body
+//     tableBody.appendChild(row);
+// }
 
 
 async function handleBarcodeKeyPress(event) {    

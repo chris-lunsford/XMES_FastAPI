@@ -1,7 +1,9 @@
 from datetime import datetime, date
 from fastapi import HTTPException
 from work_station_groups import WORK_STATION_GROUPS
+from models import *
 import pymssql
+import pytz
 
 ######################################################
 
@@ -1599,83 +1601,6 @@ def fetch_parts_in_article(barcode, loadAll):
 
 
 
-
-# def submit_part_usage(
-#         Barcode, 
-#         OrderID, 
-#         Cab_Info3, 
-#         Timestamp, 
-#         EmployeeID, 
-#         Resource, 
-#         CustomerID, 
-#         Article_ID, 
-#         Status, 
-#         PartDestination
-#     ):
-#     conn = connect_to_db2()
-#     if conn is None:
-#         raise Exception("Failed to connect to the database.")  # Raise an exception if the connection fails
-
-#     cursor = conn.cursor()
-#     try: 
-#         insert_query = """
-#                 INSERT INTO dbo.Fact_Part_Usage (
-#                     [BARCODE],
-#                     [ORDERID],
-#                     [CAB_INFO3],
-#                     [TIMESTAMP],
-#                     [EMPLOYEEID],
-#                     [RESOURCE],
-#                     [CUSTOMERID],
-#                     [ARTICLE_ID],
-#                     [STATUS],
-#                     [PARTDESTINATION]
-#                 )
-#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-#             """
-#         cursor.execute(insert_query, ( 
-#             Barcode, 
-#             OrderID, 
-#             Cab_Info3, 
-#             Timestamp, 
-#             EmployeeID, 
-#             Resource, 
-#             CustomerID, 
-#             Article_ID, 
-#             Status, 
-#             PartDestination
-#             ))
-#         conn.commit()
-#         return {"message": "Insert successful", "rows_affected": cursor.rowcount}
-#     except Exception as e:
-#         conn.rollback()
-#         raise e
-#     finally:
-#         conn.close()
-
-
-
-# def check_part_exists(barcode):
-#     try:
-#         conn = connect_to_db2()
-#         if conn is None:
-#             raise Exception("Failed to connect to the database.")
-
-#         cursor = conn.cursor()
-#         query = "SELECT COUNT(*) FROM dbo.Fact_Part_Usage WHERE BARCODE = %s"
-#         cursor.execute(query, (barcode,))
-#         count = cursor.fetchone()[0]
-
-#         conn.close()
-
-#         return {"exists": count > 0}  # Returns True if the part exists, False otherwise
-
-#     except Exception as e:
-#         raise e
-#     finally:
-#         if conn:
-#             conn.close()
-
 def check_parts_exist_in_db(barcodes):
     try:
         conn = connect_to_db2()
@@ -1732,3 +1657,238 @@ def submit_parts_usage(parts, timestamp):
         raise e
     finally:
         conn.close()
+
+
+   
+
+###################################################
+
+
+ 
+def start_article_time(article:ArticleTimeData, timestamp: datetime):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    cursor = conn.cursor()
+    try:
+        # Step 1: Check the last recorded entry
+        query_last_entry = """
+            SELECT TOP 1 START_TIME, STOP_TIME 
+            FROM dbo.Fact_Assembly_Time_Tracking 
+            WHERE ARTICLE_IDENTIFIER = %s 
+            ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
+        """
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        last_entry = cursor.fetchone()
+
+        if last_entry:
+            last_start_time, last_stop_time = last_entry
+
+            # If last entry was a START_TIME without a STOP_TIME, prevent new start
+            if last_start_time and not last_stop_time:
+                return {"error": "A start time has already been recorded without a corresponding stop. Please submit a stop time first."}
+
+        # Step 2: Insert new START_TIME
+        insert_query = """
+            INSERT INTO dbo.Fact_Assembly_Time_Tracking (
+                ARTICLE_IDENTIFIER, ORDERID, CAB_INFO3, ARTICLE_ID, 
+                EMPLOYEEID, RESOURCE, CUSTOMERID, 
+                STATUS, START_TIME
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        values = (
+                article.ARTICLE_IDENTIFIER, article.ORDERID, article.CAB_INFO3, article.ARTICLE_ID,
+            article.EMPLOYEEID, article.RESOURCE, article.CUSTOMERID,
+            "In Progress", timestamp
+            ) 
+
+        # Execute multiple insert queries at once
+        cursor.execute(insert_query, values)
+        conn.commit()
+
+        return {"message": "Insert successful", "rows_affected": cursor.rowcount}
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+###################################################
+
+
+ 
+def stop_article_time(article: ArticleTimeData, timestamp: datetime):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+
+    cursor = conn.cursor()
+    try:
+        eastern = pytz.timezone('America/New_York')  # Define timezone
+
+        # Step 1: Check the most recent scan
+        query_last_entry = """
+            SELECT TOP 1 START_TIME, STOP_TIME 
+            FROM dbo.Fact_Assembly_Time_Tracking 
+            WHERE ARTICLE_IDENTIFIER = %s 
+            ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
+        """
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        last_entry = cursor.fetchone()
+
+        if last_entry:
+            last_start_time, last_stop_time = last_entry
+
+            # If last entry was a STOP_TIME without a new START_TIME, prevent new stop
+            if last_stop_time and (last_start_time is None or last_start_time < last_stop_time):
+                return {"error": "A stop time has already been recorded without a corresponding new start. Please submit a start time first."}
+
+        # Step 2: Get the latest START_TIME to calculate assembly time
+        query_latest_start = """
+            SELECT TOP 1 START_TIME 
+            FROM dbo.Fact_Assembly_Time_Tracking 
+            WHERE ARTICLE_IDENTIFIER = %s 
+            AND START_TIME IS NOT NULL 
+            ORDER BY START_TIME DESC
+        """
+        cursor.execute(query_latest_start, (article.ARTICLE_IDENTIFIER,))
+        latest_start_row = cursor.fetchone()
+
+        assembly_time = None  # Default if no start time found
+
+        if latest_start_row:
+            start_time = latest_start_row[0]
+
+            # Ensure START_TIME is timezone-aware
+            if start_time.tzinfo is None:
+                start_time = eastern.localize(start_time)  # Convert to Eastern Time
+
+            # Ensure STOP_TIME is also in the same timezone
+            timestamp = timestamp.astimezone(eastern)
+
+            # Step 2: Calculate ASSEMBLY_TIME
+            assembly_time = (timestamp - start_time).total_seconds()
+
+        # Step 3: Insert stop time with assembly time
+        insert_query = """
+            INSERT INTO dbo.Fact_Assembly_Time_Tracking (
+                ARTICLE_IDENTIFIER, ORDERID, CAB_INFO3, ARTICLE_ID, 
+                EMPLOYEEID, RESOURCE, CUSTOMERID, 
+                STATUS, STOP_TIME, ASSEMBLY_TIME
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        values = (
+            article.ARTICLE_IDENTIFIER, article.ORDERID, article.CAB_INFO3, article.ARTICLE_ID,
+            article.EMPLOYEEID, article.RESOURCE, article.CUSTOMERID,
+            "In Progress", timestamp, assembly_time
+        )
+
+        cursor.execute(insert_query, values)
+        conn.commit()
+
+        return {"message": "Stop time recorded with assembly time", "assembly_time": assembly_time}
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+
+###################################################
+
+
+
+def complete_article_time(article: ArticleTimeData, timestamp: datetime):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    
+    cursor = conn.cursor()
+    try:
+        eastern = pytz.timezone('America/New_York')  # Define timezone
+
+         # Step 1: Check the last recorded entry to ensure it was a stop scan
+        query_last_entry = """
+            SELECT TOP 1 START_TIME, STOP_TIME 
+            FROM dbo.Fact_Assembly_Time_Tracking 
+            WHERE ARTICLE_IDENTIFIER = %s 
+            ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
+        """
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        last_entry = cursor.fetchone()
+
+        if last_entry:
+            last_start_time, last_stop_time = last_entry
+
+            # If last entry was a START_TIME without a STOP_TIME, prevent completion
+            if last_start_time and not last_stop_time:
+                return {"error": "The last recorded scan was a start scan. A stop scan must be recorded before marking the article as complete."}
+
+        # Step 2: Update the most recent STOP_TIME entry to "Complete"
+        update_last_stop_query = """
+            UPDATE dbo.Fact_Assembly_Time_Tracking
+            SET STATUS = 'Complete'
+            WHERE ARTICLE_IDENTIFIER = %s
+            AND STOP_TIME = (SELECT MAX(STOP_TIME) 
+                             FROM dbo.Fact_Assembly_Time_Tracking 
+                             WHERE ARTICLE_IDENTIFIER = %s)
+        """
+        cursor.execute(update_last_stop_query, (article.ARTICLE_IDENTIFIER, article.ARTICLE_IDENTIFIER))
+        
+        # Step 3: Calculate total assembly time (sum of all assembly times for the article)
+        sum_assembly_time_query = """
+            SELECT SUM(ASSEMBLY_TIME) 
+            FROM dbo.Fact_Assembly_Time_Tracking 
+            WHERE ARTICLE_IDENTIFIER = %s
+        """
+        cursor.execute(sum_assembly_time_query, (article.ARTICLE_IDENTIFIER,))
+        total_seconds = cursor.fetchone()[0]
+
+        if total_seconds is None:
+            total_seconds = 0  # Default to zero if no records exist
+
+        # Convert total seconds to HH:MM:SS format
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        formatted_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+
+        # Step 3: Insert data into `dbo.Fact_Article_Status`
+        insert_complete_status_query = """
+            INSERT INTO dbo.Fact_Article_Status (
+                ARTICLE_IDENTIFIER, ORDERID, CAB_INFO3, ARITICLE_ID,
+                EMPLOYEEID, RESOURCE, CUSTOMERID,
+                STATUS, TIMESTAMP, ASSEMBLY_TIME
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        values = (
+            article.ARTICLE_IDENTIFIER, article.ORDERID, article.CAB_INFO3, article.ARTICLE_ID,
+            article.EMPLOYEEID, article.RESOURCE, article.CUSTOMERID,
+            "Complete", timestamp, formatted_time  # Storing total assembly time as HH:MM:SS
+        )
+
+        cursor.execute(insert_complete_status_query, values)
+
+        # Commit all transactions
+        conn.commit()
+
+        return {"message": "Article marked as complete", "total_assembly_time": formatted_time}
+
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+
+
+ 

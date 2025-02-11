@@ -20,6 +20,7 @@ from notification_types import NOTIFICATION_TYPES
 from defect_types import DEFECT_TYPES
 from defect_actions import DEFECT_ACTIONS
 from sql_functions import *
+from models import *
 from ttc_plugin import router as ttc_router
 
 
@@ -518,43 +519,34 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
    
 
 
-class PartUsageData(BaseModel):
-    Barcode: str 
-    OrderID: str 
-    Cab_Info3: str
-    EmployeeID: str
-    Resource: str
-    CustomerID: str
-    Article_ID: str
-    Status: str
-    PartDestination: str
-    
-@app.post('/api/submit-part-usage', tags=["Assembly Production"])
-async def handle_submit_part_usage(data: PartUsageData):
-    try:
-        # Create a timezone object for Eastern Time
-        eastern = pytz.timezone('America/New_York')
-        # Get the current time in UTC and convert to Eastern Time
-        now_utc = datetime.now(pytz.utc)
-        now_eastern = now_utc.astimezone(eastern)
 
-        result = submit_part_usage(
-            data.Barcode, 
-            data.OrderID, 
-            data.Cab_Info3, 
-            now_eastern,
-            data.EmployeeID,
-            data.Resource,
-            data.CustomerID,
-            data.Article_ID,
-            data.Status,
-            data.PartDestination
-            )
-        return {"message": "Entry added successfully", "result": result}
-    except ValueError as e:  # Specific handling for known exceptions
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:  # Generic exception handling
-        raise HTTPException(status_code=500, detail=str(e))
+    
+# @app.post('/api/submit-part-usage', tags=["Assembly Production"])
+# async def handle_submit_part_usage(data: PartUsageData):
+#     try:
+#         # Create a timezone object for Eastern Time
+#         eastern = pytz.timezone('America/New_York')
+#         # Get the current time in UTC and convert to Eastern Time
+#         now_utc = datetime.now(pytz.utc)
+#         now_eastern = now_utc.astimezone(eastern)
+
+#         result = submit_part_usage(
+#             data.Barcode, 
+#             data.OrderID, 
+#             data.Cab_Info3, 
+#             now_eastern,
+#             data.EmployeeID,
+#             data.Resource,
+#             data.CustomerID,
+#             data.Article_ID,
+#             data.Status,
+#             data.PartDestination
+#             )
+#         return {"message": "Entry added successfully", "result": result}
+#     except ValueError as e:  # Specific handling for known exceptions
+#         raise HTTPException(status_code=400, detail=str(e))
+#     except Exception as e:  # Generic exception handling
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -587,6 +579,18 @@ async def handle_submit_part_usage(data: PartUsageData):
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
+class PartUsageData(BaseModel):
+    Barcode: str 
+    OrderID: str 
+    Cab_Info3: str
+    EmployeeID: str
+    Resource: str
+    CustomerID: str
+    Article_ID: str
+    Status: str
+    PartDestination: str
+
+
 @app.post('/api/check-parts-exist', tags=["Assembly Production"])
 async def check_parts_exist(data: dict):
     try:
@@ -615,4 +619,59 @@ async def handle_submit_parts_usage(data: dict):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+
+
+@app.post('/api/start-article-time', tags=["Assembly Production"])
+async def handle_start_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = start_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/stop-article-time', tags=["Assembly Production"])
+async def handle_stop_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = stop_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/complete-article-time', tags=["Assembly Production"])
+async def handle_complete_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = complete_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
         raise HTTPException(status_code=500, detail=str(e))
