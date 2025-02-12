@@ -153,6 +153,16 @@ async function fetchAndAddParts() {
             }
         }
 
+        // ✅ Mark the scanned barcode's checkbox as green
+        console.log(`Checking barcode: ${barcode}`);
+        const isScannedChecked = checkAndHandleBarcode(barcode);
+
+        if (isScannedChecked) {
+            alert(`This barcode is already in the table and checked green - "${barcode}"`);
+        } else if (isScannedChecked === false) {
+            markBarcodeCheckedGreen(barcode);
+        }
+
         // Clear the input field
         barcodeInput.value = '';
     } catch (error) {
@@ -338,9 +348,21 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     checkbox.style.cursor = 'pointer';
     checkbox.style.width = '24px';
     checkbox.style.height = '24px';
+
     if (isUsed) {
         checkbox.checked = true;
         checkbox.disabled = true; // Prevent modification of used parts
+        checkbox.style.backgroundColor = 'green'; // ✅ Mark as green immediately if already used
+    } else {
+        checkbox.onchange = () => {
+            if (checkbox.checked) {
+                checkbox.style.backgroundColor = 'green'; // ✅ Change background to green
+                checkbox.style.borderColor = 'black'; // ✅ Change border color
+            } else {
+                checkbox.style.backgroundColor = ''; // Reset background
+                checkbox.style.borderColor = ''; // Reset border
+            }
+        };
     }
 
     checkboxCell.appendChild(checkbox);
@@ -1032,117 +1054,6 @@ function collectFormData(actionType) {
 }
 
 
-
-// async function submitParts() {
-//     console.log("submitParts function called!");
-//     showLoadingSpinner();
-//     const { partsData, allChecked } = collectTableData();
-//     const formData = collectFormData();
-
-//     if (partsData.length === 0) {
-//         alert("No parts to submit!");
-//         hideLoadingSpinner();
-//         return;
-//     }
-
-//     // ✅ Stop submission if not all parts are checked
-//     if (!allChecked) {
-//         alert("All parts must be checked before submitting.");
-//         hideLoadingSpinner();
-//         return;
-//     }
-
-//     try {
-//         // Extract barcodes to check which ones exist
-//         const barcodes = partsData.map(part => part.Barcode);
-//         const existsResponse = await fetch('/api/check-parts-exist', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ barcodes })
-//         });
-
-//         const existsData = await existsResponse.json();
-//         const existingBarcodes = new Set(existsData.existingBarcodes);
-
-//         // Filter out new parts that need to be submitted
-//         const newParts = partsData.filter(part => !existingBarcodes.has(part.Barcode));
-
-//         let partsSubmitted = false;
-
-//         // ✅ If there are new parts, submit them
-//         if (newParts.length > 0) {
-//             const payload = newParts.map(part => ({
-//                 Barcode: part.Barcode,
-//                 OrderID: formData.OrderID,
-//                 Cab_Info3: formData.Cab_Info3,
-//                 EmployeeID: formData.EmployeeID,
-//                 Resource: formData.Resource,
-//                 CustomerID: formData.CustomerID,
-//                 Article_ID: formData.Article_ID,
-//                 Status: "Used",
-//                 PartDestination: formData.PartDestination
-//             }));
-
-//             const response = await fetch('/api/submit-parts-usage', {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify({ parts: payload })
-//             });
-
-//             if (!response.ok) {
-//                 throw new Error(`Failed to submit parts: ${response.statusText}`);
-//             }
-
-//             const result = await response.json();
-//             console.log(`Parts submission success: ${result.message}`);
-//             partsSubmitted = true;
-//         } else {
-//             console.log("All parts were already submitted.");
-//         }
-
-//         // ✅ Always attempt to record the article start time
-//         const startArticlePayload = {
-//             ARTICLE_IDENTIFIER: formData.PartDestination, 
-//             ORDERID: formData.OrderID,
-//             CAB_INFO3: formData.Cab_Info3,
-//             EMPLOYEEID: formData.EmployeeID,
-//             RESOURCE: formData.Resource,
-//             CUSTOMERID: formData.CustomerID,
-//             ARTICLE_ID: formData.Article_ID
-//         };
-
-//         const startArticleResponse = await fetch('/api/start-article-time', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify(startArticlePayload)
-//         });
-
-//         if (!startArticleResponse.ok) {
-//             // ✅ Handle warning case when a start scan already exists
-//             const errorData = await startArticleResponse.json();
-//             if (startArticleResponse.status === 400) {
-//                 console.warn(`Start article time warning: ${errorData.detail}`);
-//                 alert(errorData.detail); // Show the error message returned from Python
-//                 hideLoadingSpinner();
-//                 return;
-//             } else {
-//                 throw new Error(`Failed to start article time: ${startArticleResponse.statusText}`);
-//             }
-//         }
-
-//         const startArticleResult = await startArticleResponse.json();
-//         console.log(`Start article time success: ${startArticleResult.message}`);
-//         alert(partsSubmitted ? "Parts submitted and article start time recorded!" : "Article start time recorded!");
-
-
-//         hideLoadingSpinner();
-
-//     } catch (error) {
-//         console.error("Error:", error);
-//         alert(`Error: ${error.message}`);
-//         hideLoadingSpinner();
-//     }
-// }
 
 
 async function submitParts() {
