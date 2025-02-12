@@ -579,16 +579,7 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
 #         raise HTTPException(status_code=500, detail=str(e))
 
 
-class PartUsageData(BaseModel):
-    Barcode: str 
-    OrderID: str 
-    Cab_Info3: str
-    EmployeeID: str
-    Resource: str
-    CustomerID: str
-    Article_ID: str
-    Status: str
-    PartDestination: str
+
 
 
 @app.post('/api/check-parts-exist', tags=["Assembly Production"])

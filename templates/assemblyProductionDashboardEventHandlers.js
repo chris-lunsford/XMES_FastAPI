@@ -1203,6 +1203,7 @@ async function submitParts() {
         if (newParts.length > 0) {
             const payload = newParts.map(part => ({
                 Barcode: part.Barcode,
+                Description: part.Description,
                 OrderID: formData.OrderID,
                 Cab_Info3: formData.Cab_Info3,
                 EmployeeID: formData.EmployeeID,

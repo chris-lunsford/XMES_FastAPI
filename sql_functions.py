@@ -1632,15 +1632,15 @@ def submit_parts_usage(parts, timestamp):
     try:
         insert_query = """
             INSERT INTO dbo.Fact_Part_Usage (
-                [BARCODE], [ORDERID], [CAB_INFO3], [TIMESTAMP], 
+                [BARCODE], [DESCRIPTION], [ORDERID], [CAB_INFO3], [TIMESTAMP], 
                 [EMPLOYEEID], [RESOURCE], [CUSTOMERID], [ARTICLE_ID], 
                 [STATUS], [PARTDESTINATION]
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         values = [
             (
-                part["Barcode"], part["OrderID"], part["Cab_Info3"], timestamp,
+                part["Barcode"], part["Description"], part["OrderID"], part["Cab_Info3"], timestamp,
                 part["EmployeeID"], part["Resource"], part["CustomerID"],
                 part["Article_ID"], part["Status"], part["PartDestination"]
             ) for part in parts
