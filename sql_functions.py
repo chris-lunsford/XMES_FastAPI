@@ -1672,6 +1672,22 @@ def start_article_time(article:ArticleTimeData, timestamp: datetime):
 
     cursor = conn.cursor()
     try:
+
+        query_status = """
+            SELECT TOP 1 STATUS
+            FROM dbo.Fact_Assembly_Time_Tracking
+            WHERE ARTICLE_IDENTIFIER = %s
+            ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
+        """
+        cursor.execute(query_status, (article.ARTICLE_IDENTIFIER,)) # ✅ Ensure this is a tuple
+        last_status_row = cursor.fetchone()
+
+        if last_status_row:
+            last_status = last_status_row[0] # ✅ Extract status from the tuple
+            if last_status == "Complete":
+                raise ValueError("This article has already been marked complete. No new entry added.")
+
+
         # Step 1: Check the last recorded entry
         query_last_entry = """
             SELECT TOP 1 START_TIME, STOP_TIME 
@@ -1685,10 +1701,10 @@ def start_article_time(article:ArticleTimeData, timestamp: datetime):
         if last_entry:
             last_start_time, last_stop_time = last_entry
 
-            # If last entry was a START_TIME without a STOP_TIME, prevent new start
+            # ❌ If last entry was a START_TIME without a STOP_TIME, raise a ValueError
             if last_start_time and not last_stop_time:
-                return {"error": "A start time has already been recorded without a corresponding stop. Please submit a stop time first."}
-
+                raise ValueError("A start time has already been recorded without a corresponding stop. Please submit a stop time first.")
+            
         # Step 2: Insert new START_TIME
         insert_query = """
             INSERT INTO dbo.Fact_Assembly_Time_Tracking (
@@ -1745,7 +1761,7 @@ def stop_article_time(article: ArticleTimeData, timestamp: datetime):
 
             # If last entry was a STOP_TIME without a new START_TIME, prevent new stop
             if last_stop_time and (last_start_time is None or last_start_time < last_stop_time):
-                return {"error": "A stop time has already been recorded without a corresponding new start. Please submit a start time first."}
+                raise ValueError("A stop time has already been recorded without a corresponding start. Please submit a start time first.")
 
         # Step 2: Get the latest START_TIME to calculate assembly time
         query_latest_start = """
@@ -1814,7 +1830,19 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
     try:
         eastern = pytz.timezone('America/New_York')  # Define timezone
 
-         # Step 1: Check the last recorded entry to ensure it was a stop scan
+         # Step 1: Check if the article is already marked as complete in Fact_Article_Status
+        check_completion_query = """
+            SELECT COUNT(*) 
+            FROM dbo.Fact_Article_Status 
+            WHERE ARTICLE_IDENTIFIER = %s AND STATUS = 'Complete'
+        """
+        cursor.execute(check_completion_query, (article.ARTICLE_IDENTIFIER,))
+        existing_completion = cursor.fetchone()[0]
+
+        if existing_completion > 0:
+            raise ValueError("This article has already been marked as complete. No new entry added.")
+
+         # Step 2: Check the last recorded entry to ensure it was a stop scan
         query_last_entry = """
             SELECT TOP 1 START_TIME, STOP_TIME 
             FROM dbo.Fact_Assembly_Time_Tracking 
@@ -1829,9 +1857,9 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
 
             # If last entry was a START_TIME without a STOP_TIME, prevent completion
             if last_start_time and not last_stop_time:
-                return {"error": "The last recorded scan was a start scan. A stop scan must be recorded before marking the article as complete."}
+                raise ValueError("The last recorded scan was a start scan. A stop scan must be recorded before marking the article as complete.")
 
-        # Step 2: Update the most recent STOP_TIME entry to "Complete"
+        # Step 3: Update the most recent STOP_TIME entry to "Complete"
         update_last_stop_query = """
             UPDATE dbo.Fact_Assembly_Time_Tracking
             SET STATUS = 'Complete'
@@ -1842,7 +1870,7 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
         """
         cursor.execute(update_last_stop_query, (article.ARTICLE_IDENTIFIER, article.ARTICLE_IDENTIFIER))
         
-        # Step 3: Calculate total assembly time (sum of all assembly times for the article)
+        # Step 4: Calculate total assembly time (sum of all assembly times for the article)
         sum_assembly_time_query = """
             SELECT SUM(ASSEMBLY_TIME) 
             FROM dbo.Fact_Assembly_Time_Tracking 

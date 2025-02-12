@@ -39,6 +39,8 @@ function setupEventHandlers() {
     listenerManager.addListener(document.getElementById('clear-table-button'), 'click', clearPartTable);
 
     listenerManager.addListener(document.getElementById('start-article-button'), 'click', submitParts);
+    listenerManager.addListener(document.getElementById('stop-article-button'), 'click', stopArticle);
+    listenerManager.addListener(document.getElementById('complete-article-button'), 'click', completeArticle);
     
 
     // Add event listener for barcode field
@@ -1029,6 +1031,8 @@ function collectFormData(actionType) {
     };
 }
 
+
+
 // async function submitParts() {
 //     console.log("submitParts function called!");
 //     showLoadingSpinner();
@@ -1037,29 +1041,37 @@ function collectFormData(actionType) {
 
 //     if (partsData.length === 0) {
 //         alert("No parts to submit!");
+//         hideLoadingSpinner();
 //         return;
 //     }
 
-//      // ✅ Stop submission if not all parts are checked
-//      if (!allChecked) {
+//     // ✅ Stop submission if not all parts are checked
+//     if (!allChecked) {
 //         alert("All parts must be checked before submitting.");
 //         hideLoadingSpinner();
 //         return;
 //     }
 
 //     try {
-//         for (const part of partsData) {
-//             const barcode = part.Barcode;
+//         // Extract barcodes to check which ones exist
+//         const barcodes = partsData.map(part => part.Barcode);
+//         const existsResponse = await fetch('/api/check-parts-exist', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify({ barcodes })
+//         });
 
-//             // Check if part already exists in the SQL database
-//             const existsResponse = await fetch(`/api/check-part-exists/${encodeURIComponent(barcode)}`);
-//             const existsData = await existsResponse.json();
+//         const existsData = await existsResponse.json();
+//         const existingBarcodes = new Set(existsData.existingBarcodes);
 
-//             if (existsData.exists) {
-//                 console.log(`Skipping barcode ${barcode}: Already exists in the database.`);
-//                 continue; // Skip this barcode if it already exists
-//             }
-//             const payload = {
+//         // Filter out new parts that need to be submitted
+//         const newParts = partsData.filter(part => !existingBarcodes.has(part.Barcode));
+
+//         let partsSubmitted = false;
+
+//         // ✅ If there are new parts, submit them
+//         if (newParts.length > 0) {
+//             const payload = newParts.map(part => ({
 //                 Barcode: part.Barcode,
 //                 OrderID: formData.OrderID,
 //                 Cab_Info3: formData.Cab_Info3,
@@ -1069,27 +1081,66 @@ function collectFormData(actionType) {
 //                 Article_ID: formData.Article_ID,
 //                 Status: "Used",
 //                 PartDestination: formData.PartDestination
-//             };
+//             }));
 
-//             const response = await fetch('/api/submit-part-usage', {
+//             const response = await fetch('/api/submit-parts-usage', {
 //                 method: 'POST',
 //                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify(payload)
+//                 body: JSON.stringify({ parts: payload })
 //             });
 
 //             if (!response.ok) {
-//                 throw new Error(`Failed to submit ${part.Barcode}: ${response.statusText}`);
+//                 throw new Error(`Failed to submit parts: ${response.statusText}`);
 //             }
 
 //             const result = await response.json();
-//             console.log(`Success: ${result.message}`);
+//             console.log(`Parts submission success: ${result.message}`);
+//             partsSubmitted = true;
+//         } else {
+//             console.log("All parts were already submitted.");
 //         }
 
+//         // ✅ Always attempt to record the article start time
+//         const startArticlePayload = {
+//             ARTICLE_IDENTIFIER: formData.PartDestination, 
+//             ORDERID: formData.OrderID,
+//             CAB_INFO3: formData.Cab_Info3,
+//             EMPLOYEEID: formData.EmployeeID,
+//             RESOURCE: formData.Resource,
+//             CUSTOMERID: formData.CustomerID,
+//             ARTICLE_ID: formData.Article_ID
+//         };
+
+//         const startArticleResponse = await fetch('/api/start-article-time', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify(startArticlePayload)
+//         });
+
+//         if (!startArticleResponse.ok) {
+//             // ✅ Handle warning case when a start scan already exists
+//             const errorData = await startArticleResponse.json();
+//             if (startArticleResponse.status === 400) {
+//                 console.warn(`Start article time warning: ${errorData.detail}`);
+//                 alert(errorData.detail); // Show the error message returned from Python
+//                 hideLoadingSpinner();
+//                 return;
+//             } else {
+//                 throw new Error(`Failed to start article time: ${startArticleResponse.statusText}`);
+//             }
+//         }
+
+//         const startArticleResult = await startArticleResponse.json();
+//         console.log(`Start article time success: ${startArticleResult.message}`);
+//         alert(partsSubmitted ? "Parts submitted and article start time recorded!" : "Article start time recorded!");
+
+
 //         hideLoadingSpinner();
-//         alert("All parts submitted successfully!");
+
 //     } catch (error) {
-//         console.error("Error submitting parts:", error);
-//         alert(`Error submitting parts: ${error.message}`);
+//         console.error("Error:", error);
+//         alert(`Error: ${error.message}`);
+//         hideLoadingSpinner();
 //     }
 // }
 
@@ -1114,7 +1165,7 @@ async function submitParts() {
     }
 
     try {
-        // Extract barcodes to check which ones exist
+        // ✅ Extract barcodes to check which ones exist
         const barcodes = partsData.map(part => part.Barcode);
         const existsResponse = await fetch('/api/check-parts-exist', {
             method: 'POST',
@@ -1122,49 +1173,211 @@ async function submitParts() {
             body: JSON.stringify({ barcodes })
         });
 
+        if (!existsResponse.ok) {
+            throw new Error(`Failed to check existing parts: ${existsResponse.statusText}`);
+        }
+
         const existsData = await existsResponse.json();
         const existingBarcodes = new Set(existsData.existingBarcodes);
 
-        // Filter out existing barcodes
+        // ✅ Filter out new parts that need to be submitted
         const newParts = partsData.filter(part => !existingBarcodes.has(part.Barcode));
 
-        if (newParts.length === 0) {
-            alert("No new parts to submit!");
-            hideLoadingSpinner();
-            return;
+        let partsSubmitted = false;
+        let isSubAssembly = false;
+
+        // ✅ Check if ANY part belongs to a sub-assembly
+        if (newParts.length > 0) {
+            const firstBarcode = newParts[0].Barcode; // Check the first barcode only
+            const partCheckResponse = await fetch(`/api/fetch-parts-in-article?barcode=${firstBarcode}&loadAll=true`);
+
+            if (!partCheckResponse.ok) {
+                throw new Error(`Failed to check part assembly: ${partCheckResponse.statusText}`);
+            }
+
+            const partCheckData = await partCheckResponse.json();
+            isSubAssembly = partCheckData.is_sub_assembly; // ✅ Check global sub-assembly flag
         }
 
-        // Prepare the payload for batch submission
-        const payload = newParts.map(part => ({
-            Barcode: part.Barcode,
-            OrderID: formData.OrderID,
-            Cab_Info3: formData.Cab_Info3,
-            EmployeeID: formData.EmployeeID,
-            Resource: formData.Resource,
-            CustomerID: formData.CustomerID,
-            Article_ID: formData.Article_ID,
-            Status: "Used",
-            PartDestination: formData.PartDestination
-        }));
+        // ✅ If there are new parts, submit them
+        if (newParts.length > 0) {
+            const payload = newParts.map(part => ({
+                Barcode: part.Barcode,
+                OrderID: formData.OrderID,
+                Cab_Info3: formData.Cab_Info3,
+                EmployeeID: formData.EmployeeID,
+                Resource: formData.Resource,
+                CustomerID: formData.CustomerID,
+                Article_ID: formData.Article_ID,
+                Status: "Used",
+                PartDestination: formData.PartDestination
+            }));
 
-        // Send the batch request
-        const response = await fetch('/api/submit-parts-usage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ parts: payload })
-        });
+            const response = await fetch('/api/submit-parts-usage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parts: payload })
+            });
 
-        if (!response.ok) {
-            throw new Error(`Failed to submit parts: ${response.statusText}`);
+            if (!response.ok) {
+                throw new Error(`Failed to submit parts: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log(`Parts submission success: ${result.message}`);
+            partsSubmitted = true;
+        } else {
+            console.log("All parts were already submitted.");
         }
 
-        const result = await response.json();
-        console.log(`Success: ${result.message}`);
+        // ✅ If it's NOT a sub-assembly, start article time
+        if (!isSubAssembly) {
+            const startArticlePayload = {
+                ARTICLE_IDENTIFIER: formData.PartDestination, 
+                ORDERID: formData.OrderID,
+                CAB_INFO3: formData.Cab_Info3,
+                EMPLOYEEID: formData.EmployeeID,
+                RESOURCE: formData.Resource,
+                CUSTOMERID: formData.CustomerID,
+                ARTICLE_ID: formData.Article_ID
+            };
+
+            const startArticleResponse = await fetch('/api/start-article-time', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(startArticlePayload)
+            });
+
+            if (!startArticleResponse.ok) {
+                // ✅ Handle warning case when a start scan already exists
+                const errorData = await startArticleResponse.json();
+                if (startArticleResponse.status === 400) {
+                    console.warn(`Start article time warning: ${errorData.detail}`);
+                    alert(errorData.detail); // Show the error message returned from Python
+                    hideLoadingSpinner();
+                    return;
+                } else {
+                    throw new Error(`Failed to start article time: ${startArticleResponse.statusText}`);
+                }
+            }
+
+            console.log("Start article time recorded successfully!");
+        } else {
+            console.log("Skipping article time tracking because this is a sub-assembly.");
+        }
 
         hideLoadingSpinner();
-        alert("All parts submitted successfully!");
+        alert(partsSubmitted ? (isSubAssembly ? "Parts submitted (Sub-Assembly detected, no article time tracked)." : "Parts submitted successfully, start time recorded") : "Article start time recorded.");
+
     } catch (error) {
-        console.error("Error submitting parts:", error);
-        alert(`Error submitting parts: ${error.message}`);
+        console.error("Error:", error);
+        alert(`Error: ${error.message}`);
+        hideLoadingSpinner();
     }
+}
+
+
+
+
+
+async function stopArticle() {
+    console.log("stopArticle function called!");
+    showLoadingSpinner();
+    const formData = collectFormData();
+
+    try {        
+        // ✅ Record the article stop time
+        const stopArticlePayload = {
+            ARTICLE_IDENTIFIER: formData.PartDestination, 
+            ORDERID: formData.OrderID,
+            CAB_INFO3: formData.Cab_Info3,
+            EMPLOYEEID: formData.EmployeeID,
+            RESOURCE: formData.Resource,
+            CUSTOMERID: formData.CustomerID,
+            ARTICLE_ID: formData.Article_ID
+        };
+
+        const stopArticleResponse = await fetch('/api/stop-article-time', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stopArticlePayload)
+        });
+
+        if (!stopArticleResponse.ok) {
+            // ✅ Handle warning case when a stop scan already exists
+            const errorData = await stopArticleResponse.json();
+            if (stopArticleResponse.status === 400) {
+                console.warn(`Stop article time warning: ${errorData.detail}`);
+                alert(errorData.detail); // Show the error message returned from Python
+                hideLoadingSpinner();
+                return;
+            } else {
+                throw new Error(`Failed to stop article time: ${stopArticleResponse.statusText}`);
+            }
+        }
+
+        const stopArticleResult = await stopArticleResponse.json();
+        console.log(`Stop article time success: ${stopArticleResult.message}`);
+        alert("Article stop time recorded!");
+
+
+        hideLoadingSpinner();
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert(`Error: ${error.message}`);
+        hideLoadingSpinner();
+    }
+
+}
+
+
+async function completeArticle() {
+    console.log("completeArticle function called");
+    showLoadingSpinner();
+    const formData = collectFormData();
+
+    try {        
+        // ✅ Record the article stop time
+        const completeArticlePayload = {
+            ARTICLE_IDENTIFIER: formData.PartDestination, 
+            ORDERID: formData.OrderID,
+            CAB_INFO3: formData.Cab_Info3,
+            EMPLOYEEID: formData.EmployeeID,
+            RESOURCE: formData.Resource,
+            CUSTOMERID: formData.CustomerID,
+            ARTICLE_ID: formData.Article_ID
+        };
+    
+        const completeArticleResponse = await fetch('/api/complete-article-time', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(completeArticlePayload)
+        });
+
+        if (!completeArticleResponse.ok) {
+            // ✅ Handle warning case when a stop scan already exists
+            const errorData = await completeArticleResponse.json();
+            if (completeArticleResponse.status === 400) {
+                console.warn(`Complete article time warning: ${errorData.detail}`);
+                alert(errorData.detail); // Show the error message returned from Python
+                hideLoadingSpinner();
+                return;
+            } else {
+                throw new Error(`Failed to complete article time: ${completeArticleResponse.statusText}`);
+            }
+        }
+
+        const completeArticleResult = await completeArticleResponse.json();
+        console.log(`Complete article time success: ${completeArticleResult.message}`);
+        alert("Article complete time recorded!");
+
+        hideLoadingSpinner();
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert(`Error: ${error.message}`);
+        hideLoadingSpinner();
+    }
+
 }
