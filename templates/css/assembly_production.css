@@ -440,6 +440,11 @@ progress.complete::-moz-progress-bar {
     background-color: white; /* Default background */
 }
 
+.part-list-table span {
+    display: inline;
+    margin-right: 10px; /* Adjust as needed */
+}
+
 /* Style for checked state */
 .part-list-table td input[type="checkbox"]:checked {
     background-color: green;

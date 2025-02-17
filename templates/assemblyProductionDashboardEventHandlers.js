@@ -330,6 +330,7 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     const removeButton = document.createElement('button');
     removeButton.textContent = 'X';
     removeButton.style.cursor = 'pointer';
+    removeButton.style.marginRight = '20px';
     removeButton.onclick = () => {
         tableBody.removeChild(row);
     };
@@ -337,7 +338,7 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     // Append barcode and checkmark
     barcodeCell.appendChild(removeButton);
     barcodeCell.appendChild(barcodeSpan);
-    barcodeCell.appendChild(checkMark);
+    // barcodeCell.appendChild(checkMark);
 
     // Description cell
     descriptionCell.textContent = description || "N/A";
