@@ -153,14 +153,17 @@ async function fetchAndAddParts() {
             }
         }
 
-        // ✅ Mark the scanned barcode's checkbox as green
+        // ✅ Always check barcode status & mark green (even if table was empty)
         console.log(`Checking barcode: ${barcode}`);
         const isScannedChecked = checkAndHandleBarcode(barcode);
 
-        if (isScannedChecked) {
-            alert(`This barcode is already in the table and checked green - "${barcode}"`);
-        } else if (isScannedChecked === false) {
+        if (isScannedChecked === false) {
             markBarcodeCheckedGreen(barcode);
+        }
+
+        // ✅ Suppress alert only if the table was initially empty
+        if (!tableIsEmpty && isScannedChecked) {
+            alert(`This barcode is already in the table and checked green - "${barcode}"`);
         }
 
         // Clear the input field
@@ -172,81 +175,6 @@ async function fetchAndAddParts() {
         hideLoadingSpinner();
     }
 }
-
-
-// async function fetchAndAddParts() {
-//     const barcodeInput = document.getElementById('barcode');
-//     const barcode = barcodeInput.value.trim();
-//     const tableBody = document.getElementById('table-body');
-
-//     showLoadingSpinner(); // Show the spinner before the API call
-
-//     try {
-//         console.log(`Processing barcode: ${barcode}`);
-
-//         // Check if the table already has rows
-//         const tableIsEmpty = tableBody.children.length === 0;
-
-//         let response;
-
-//         if (tableIsEmpty) {
-//             // Table is empty, load all parts for the article
-//             console.log("Table is empty. Fetching all parts for the article...");
-//             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=true`);
-//         } else {
-//             // Table is not empty, load only the specific part for the scanned barcode
-//             console.log("Table is not empty. Fetching only the part for the scanned barcode...");
-//             response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=false`);
-//         }
-
-//         if (!response.ok) {
-//             throw new Error(`API Error: ${response.statusText}`);
-//         }
-
-//         const data = await response.json(); // The entire response object
-//         let parts = data.parts; // Extract the parts from the response
-
-//         // Ensure parts is always an array
-//         if (!Array.isArray(parts)) {
-//             parts = [parts]; // Convert single object into an array
-//         }
-
-//         if (Array.isArray(parts)) {
-//             // Process the parts
-//             for (const part of parts) {
-//                 const isChecked = checkAndHandleBarcode(part.BARCODE);
-
-//                 if (isChecked === null) {
-//                     // Add the part to the table if it's not already there
-//                     addBarcodeToTable(part.BARCODE, part.INFO1, part.CabinetNumber, part.ORDERID, part.ARTICLE_ID); // INFO1 is Description 
-//                 }
-//             }
-
-//             // Mark the scanned barcode as green
-//             console.log(`Checking barcode: ${barcode}`);
-//             const isScannedChecked = checkAndHandleBarcode(barcode);
-//             if (isScannedChecked) {
-//                 alert(`This barcode is already in the table and checked green - "${barcode}"`);
-//             } else if (isScannedChecked === false) {
-//                 markBarcodeCheckedGreen(barcode);
-//             }
-//         } else if (parts.message) {
-//             // Display the message from the server as a popup alert
-//             alert(parts.message);
-//         } else {
-//             // Handle unexpected responses
-//             alert("Unexpected response from the server.");
-//         }
-
-//         // Clear the input field after processing
-//         barcodeInput.value = '';
-//     } catch (error) {
-//         console.error("Failed to fetch parts:", error);
-//         alert("Error fetching parts: " + error.message);
-//     } finally {
-//         hideLoadingSpinner(); // Hide the spinner after the API call
-//     }
-// }
 
 
 function checkAndHandleBarcode(barcode) {
@@ -378,112 +306,6 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
 }
 
 
-// function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId) {
-//     const tableBody = document.getElementById('table-body');
-
-//     // Only update cab-info and article-id if the table is empty.
-//     if (tableBody.children.length === 0) {
-//         const cabInfoSpan = document.getElementById('cab-info');
-//         if (cabInfoSpan) {
-//             cabInfoSpan.textContent = cabinfo || "N/A"; // Use cabinfo or "N/A" if not provided
-//         }
-//         const articleIdSpan = document.getElementById('article-id');
-//         if (articleIdSpan) {
-//             articleIdSpan.textContent = articleId || "N/A"; // Use articleId or "N/A"
-//         }
-//         const orderIdSpan = document.getElementById('orderid');
-//         if (orderIdSpan) {
-//             orderIdSpan.textContent = orderId || "N/A"; // Use articleId or "N/A"
-//         }
-//         // Combine orderid and article-id into article-identifier
-//         const articleIdentifierSpan = document.getElementById('article-identifier');
-//         if (articleIdentifierSpan) {
-//             articleIdentifierSpan.textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
-//         }
-//     }
-
-//     // Check if the barcode exists in the table
-//     const existingRows = Array.from(tableBody.children);
-//     for (const row of existingRows) {
-//         const span = row.querySelector('span[data-barcode]');
-//         if (span && span.getAttribute('data-barcode') === barcode) {
-//             return; // If barcode exists, do nothing
-//         }
-//     }
-
-//     // Create a new row
-//     const row = document.createElement('tr');
-
-//     // Create cells for barcode with remove button, description, routing, and checkbox
-//     const barcodeCell = document.createElement('td');
-//     const descriptionCell = document.createElement('td');
-//     // const routingCell = document.createElement('td');
-//     // const lastScanCell = document.createElement('td');
-//     const checkboxCell = document.createElement('td');
-
-//     // Create a container for barcode and button
-//     const barcodeContainer = document.createElement('div');
-//     barcodeContainer.style.display = 'flex';
-//     barcodeContainer.style.alignItems = 'center'; /* Vertically center items */
-//     barcodeContainer.style.justifyContent = 'flex-start'; /* Align items flush left */
-//     barcodeContainer.style.gap = '20px'; /* Add spacing between barcode and button */
-
-//     // Barcode span
-//     const barcodeSpan = document.createElement('span');
-//     barcodeSpan.textContent = barcode;
-//     barcodeSpan.setAttribute('data-barcode', barcode); // Add data attribute for exact matching
-
-//     // Remove button
-//     const removeButton = document.createElement('button');
-//     removeButton.textContent = 'X';
-//     removeButton.style.cursor = 'pointer';
-//     removeButton.style.marginRight = '20px'; // Add some spacing between the barcode and button
-//     removeButton.onclick = () => {
-//         tableBody.removeChild(row);
-//     };
-
-//     // Append the barcode and remove button to the same cell
-//     barcodeCell.appendChild(removeButton);
-//     barcodeCell.appendChild(barcodeSpan);
-    
-
-//     // Description cell
-//     descriptionCell.textContent = description || "N/A";
-
-//     // Routing cell
-//     // routingCell.textContent = routing || "N/A";
-
-//     // Last Scan cell
-//     // lastScanCell.textContent = routing || "N/A";
-
-//     // Checkbox cell
-//     const checkbox = document.createElement('input');
-//     checkbox.type = 'checkbox';
-//     checkbox.style.cursor = 'pointer';
-//     checkbox.style.width = '24px';
-//     checkbox.style.height = '24px';
-//     checkbox.onchange = () => {
-//         if (checkbox.checked) {
-//             checkbox.style.backgroundColor = 'green'; // Change background to green
-//             checkbox.style.borderColor = 'black'; // Change border color
-//         } else {
-//             checkbox.style.backgroundColor = ''; // Reset background
-//             checkbox.style.borderColor = ''; // Reset border
-//         }
-//     };
-//     checkboxCell.appendChild(checkbox);
-
-//     // Append all cells to the row
-//     row.appendChild(barcodeCell); // Barcode and remove button in the same cell
-//     row.appendChild(descriptionCell);
-//     // row.appendChild(routingCell);
-//     // row.appendChild(lastScanCell);
-//     row.appendChild(checkboxCell);
-
-//     // Append the row to the table body
-//     tableBody.appendChild(row);
-// }
-
 
 async function handleBarcodeKeyPress(event) {    
 
@@ -494,6 +316,9 @@ async function handleBarcodeKeyPress(event) {
     if (event.target.id === 'barcode' && event.key === "Enter") {
         console.log("Enter pressed on barcode input");
         event.preventDefault();
+
+        // Get the scanned barcode value
+        const barcode = barcodeInput.value.trim();
 
         // Check if the submission is within the cooldown period
         const now = Date.now();
@@ -513,7 +338,9 @@ async function handleBarcodeKeyPress(event) {
         }
 
         try {
+            console.log(`updateButtonStates for: ${barcode}`);
             await fetchAndAddParts();
+            await updateButtonStates(barcode);
         } catch (error) {
             console.error('Failed to scan barcode to DB:', error);
         }
@@ -1064,7 +891,16 @@ async function submitParts() {
     const formData = collectFormData();
 
     if (partsData.length === 0) {
-        alert("No parts to submit!");
+        alert("No parts scanned, cannot start article!");
+        hideLoadingSpinner();
+        return;
+    }
+
+    // Get the first barcode from the scanned parts list
+    const barcode = partsData.length > 0 ? partsData[0].Barcode : null;
+
+    if (!barcode) {
+        console.warn("No barcode found in the scanned parts table.");
         hideLoadingSpinner();
         return;
     }
@@ -1179,6 +1015,9 @@ async function submitParts() {
             console.log("Skipping article time tracking because this is a sub-assembly.");
         }
 
+        // Update Button States after submission
+        await updateButtonStates(barcode);
+
         hideLoadingSpinner();
         alert(partsSubmitted ? (isSubAssembly ? "Parts submitted (Sub-Assembly detected, no article time tracked)." : "Parts submitted successfully, start time recorded") : "Article start time recorded.");
 
@@ -1197,6 +1036,23 @@ async function stopArticle() {
     console.log("stopArticle function called!");
     showLoadingSpinner();
     const formData = collectFormData();
+    const { partsData } = collectTableData();
+
+    // ✅ Prevent submission if no parts are scanned
+    if (partsData.length === 0) {
+        alert("No parts scanned, cannot stop article!");
+        hideLoadingSpinner();
+        return;
+    }
+
+    // Get the first barcode from the scanned parts list
+    const barcode = partsData.length > 0 ? partsData[0].Barcode : null;
+
+    if (!barcode) {
+        console.warn("No barcode found in the scanned parts table.");
+        hideLoadingSpinner();
+        return;
+    }
 
     try {        
         // ✅ Record the article stop time
@@ -1233,7 +1089,8 @@ async function stopArticle() {
         console.log(`Stop article time success: ${stopArticleResult.message}`);
         alert("Article stop time recorded!");
 
-
+        // Update Button States after submission
+        await updateButtonStates(barcode);
         hideLoadingSpinner();
 
     } catch (error) {
@@ -1249,6 +1106,23 @@ async function completeArticle() {
     console.log("completeArticle function called");
     showLoadingSpinner();
     const formData = collectFormData();
+    const { partsData } = collectTableData();
+
+    // ✅ Prevent submission if no parts are scanned
+    if (partsData.length === 0) {
+        alert("No parts scanned, cannot complete article!");
+        hideLoadingSpinner();
+        return;
+    }
+
+    // Get the first barcode from the scanned parts list
+    const barcode = partsData.length > 0 ? partsData[0].Barcode : null;
+
+    if (!barcode) {
+        console.warn("No barcode found in the scanned parts table.");
+        hideLoadingSpinner();
+        return;
+    }
 
     try {        
         // ✅ Record the article stop time
@@ -1285,6 +1159,8 @@ async function completeArticle() {
         console.log(`Complete article time success: ${completeArticleResult.message}`);
         alert("Article complete time recorded!");
 
+        // Update Button States after submission
+        await updateButtonStates(barcode);
         hideLoadingSpinner();
 
     } catch (error) {
@@ -1294,3 +1170,71 @@ async function completeArticle() {
     }
 
 }
+
+
+
+async function updateButtonStates(barcode) {
+    try {
+        // ✅ Prevent API request if barcode is empty or invalid
+        if (!barcode || barcode.trim() === "") {
+            console.warn("updateButtonStates: No barcode provided.");
+            return;
+        }
+
+        const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Part Status Response:", data);
+
+        const startButton = document.getElementById("start-article-button");
+        const stopButton = document.getElementById("stop-article-button");
+        const completeButton = document.getElementById("complete-article-button");
+
+        // ✅ Helper function to enable/disable buttons with CSS updates
+        function setButtonState(button, isEnabled, enabledClass = "button-enabled") {
+            if (button) {
+                button.disabled = !isEnabled;
+                
+                // ✅ Always reset button styles before applying new ones
+                button.classList.remove("button-disabled", "button-enabled", "button-stop-enabled");
+
+                if (isEnabled) {
+                    button.classList.add(enabledClass);
+                } else {
+                    button.classList.add("button-disabled");
+                }
+            }
+        }
+
+        // ✅ Default: Disable all buttons
+        setButtonState(startButton, false);
+        setButtonState(stopButton, false);
+        setButtonState(completeButton, false);
+
+        // ✅ If the article is complete, disable all buttons
+        if (data.article_status === "complete") {
+            console.log("Article is complete. All buttons disabled.");
+            return;
+        }
+
+        if (data.part_status === "new") {
+            setButtonState(startButton, true); // ✅ Allow submission if new
+        } else if (data.part_status === "used") {
+            if (data.assembly_status === "no record") {
+                setButtonState(startButton, true);
+            } else if (data.assembly_status === "running") {
+                setButtonState(stopButton, true, "button-stop-enabled"); // ✅ Stop button will be red
+            } else if (data.assembly_status === "stopped") {
+                setButtonState(startButton, true);
+                setButtonState(completeButton, true);
+            }
+        }
+
+    } catch (error) {
+        console.error("Error updating button states:", error);
+    }
+}
+

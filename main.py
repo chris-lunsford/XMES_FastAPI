@@ -580,6 +580,14 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
 
 
 
+@app.get('/api/check_part_status/', tags=["Assembly Production"])
+async def handle_check_part_status(barcode: str):
+    try:
+        status = check_part_status(barcode)
+        return(status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post('/api/check-parts-exist', tags=["Assembly Production"])

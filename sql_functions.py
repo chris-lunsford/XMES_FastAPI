@@ -1919,4 +1919,73 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
 
 
 
+###################################################
+
+
+
+def check_part_status(barcode):
+    conn = connect_to_db2()
+    if conn is None:
+        raise Exception("Failed to connect to the database.")
+    
+    cursor = conn.cursor(as_dict=True)
+    try:
+        # Check if the part exists in Fact_Part_Usage
+        check_part_usage_query = """
+        SELECT PARTDESTINATION AS ARTICLE_IDENTIFIER
+        FROM dbo.Fact_Part_Usage
+        WHERE BARCODE = %s
+        """
+        cursor.execute(check_part_usage_query, (barcode,))
+        part_record = cursor.fetchone() 
+
+        if not part_record:
+            return {"part_status": "new", "assembly_status": None, "article_status": None}
+        
+        article_id = part_record["ARTICLE_IDENTIFIER"]
+
+        # Check assembly status in Fact_Assembly_Time_Tracking
+        check_assembly_status_query = """
+        SELECT TOP 1 START_TIME, STOP_TIME, STATUS
+        FROM dbo.Fact_Assembly_Time_Tracking
+        WHERE ARTICLE_IDENTIFIER = %s
+        ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
+        """
+        cursor.execute(check_assembly_status_query, (article_id,))
+        assembly_record = cursor.fetchone()
+
+        # Default to "No Record" if no assembly entry is found
+        assembly_status = "no record"
+        if assembly_record:
+            status = assembly_record.get("STATUS", "").strip()  # Ensure safe access
+            stop_time = assembly_record.get("STOP_TIME")  # Safe access to STOP_TIME
+
+            if status == "In Progress" and stop_time is None:
+                assembly_status = "running"
+            elif status == "In Progress" and stop_time is not None:
+                assembly_status = "stopped"
+            elif status == "Complete":
+                assembly_status = "complete"
+        
+        # Check if the article is completed in Article_Status
+        check_article_status_query = """
+        SELECT STATUS 
+        FROM dbo.Fact_Article_Status
+        WHERE ARTICLE_IDENTIFIER = %s
+        """
+        cursor.execute(check_article_status_query, (article_id,))
+        article_record = cursor.fetchone()
+
+        article_status = article_record["STATUS"] if article_record else "none"
+
+        return {
+            "part_status": "used",
+            "assembly_status": assembly_status,
+            "article_status": article_status,
+            "article_identifier": article_id
+        }
+    finally:
+        conn.close()
+
+
  
