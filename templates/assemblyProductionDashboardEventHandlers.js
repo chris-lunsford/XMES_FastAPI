@@ -77,8 +77,9 @@ async function clearPartTable() {
             }
             console.log("Table cleared successfully.");
             // alert("The table has been cleared.");
+            resetButtonStates();
         } else {
-            console.log("Table clear action canceled.");
+            console.log("Table clear action cancelled.");
         }
     } catch (error) {
         console.error("Failed to clear the table:", error);
@@ -208,9 +209,10 @@ function markBarcodeCheckedGreen(barcode) {
                 checkbox.style.backgroundColor = 'green'; // Change background to green
                 checkbox.style.borderColor = 'black'; // Change border color to green
             }
-            return; // Exit once the barcode is found and marked
+            break;
         }
     }
+    updateStartButtonState();
 }
 
 
@@ -237,6 +239,11 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     // Create a new row
     const row = document.createElement('tr');
 
+    // ▼ Store extra data on the row itself via data attributes
+    row.dataset.orderId = orderId;
+    row.dataset.articleId = articleId;
+    row.dataset.isUsed = isUsed;
+
     // Create cells
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
@@ -247,13 +254,7 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     barcodeSpan.textContent = barcode;
     barcodeSpan.setAttribute('data-barcode', barcode);
 
-    // Green check if barcode is already used
-    const checkMark = document.createElement('span');
-    checkMark.classList.add("check-mark");
-    if (isUsed) {
-        checkMark.classList.add("green-check");
-    }
-
+    
     // Remove button
     const removeButton = document.createElement('button');
     removeButton.textContent = 'X';
@@ -266,7 +267,6 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     // Append barcode and checkmark
     barcodeCell.appendChild(removeButton);
     barcodeCell.appendChild(barcodeSpan);
-    // barcodeCell.appendChild(checkMark);
 
     // Description cell
     descriptionCell.textContent = description || "N/A";
@@ -291,6 +291,7 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
                 checkbox.style.backgroundColor = ''; // Reset background
                 checkbox.style.borderColor = ''; // Reset border
             }
+            updateStartButtonState();  // Update the start button based on current check states
         };
     }
 
@@ -853,10 +854,19 @@ function collectTableData() {
         const checkbox = row.querySelector('input[type="checkbox"]');
 
         if (barcodeSpan && descriptionCell && checkbox) {
+            // ▼ READ DATA ATTRIBUTES HERE:
+            const orderId = row.dataset.orderId; 
+            const articleId = row.dataset.articleId;
+            const isUsed = (row.dataset.isUsed === "true");
+
             partsData.push({
                 Barcode: barcodeSpan.textContent.trim(),
                 Description: descriptionCell.textContent.trim(),
-                Scanned: checkbox.checked ? "Checked" : "Unchecked"
+                Scanned: checkbox.checked ? "Checked" : "Unchecked",
+
+                // ▼ Optionally attach these additional fields to `partsData`:
+                OrderID: orderId,
+                ArticleID: articleId,
             });
             if (!checkbox.checked) {
                 allChecked = false; // Found an unchecked box
@@ -876,7 +886,7 @@ function collectFormData(actionType) {
         OrderID: document.getElementById('orderid').textContent.trim() || "N/A",
         Cab_Info3: document.getElementById('cab-info').textContent.trim() || "N/A",
         Article_ID: document.getElementById('article-id').textContent.trim() || "N/A",
-        PartDestination: document.getElementById('article-identifier').textContent.trim() || "N/A",
+        Used_Identifier: document.getElementById('article-identifier').textContent.trim() || "N/A",
         
     };
 }
@@ -952,14 +962,16 @@ async function submitParts() {
             const payload = newParts.map(part => ({
                 Barcode: part.Barcode,
                 Description: part.Description,
-                OrderID: formData.OrderID,
                 Cab_Info3: formData.Cab_Info3,
+                OrderID: part.OrderID,     
+                Article_ID: part.ArticleID,           
                 EmployeeID: formData.EmployeeID,
                 Resource: formData.Resource,
                 CustomerID: formData.CustomerID,
-                Article_ID: formData.Article_ID,
                 Status: "Used",
-                PartDestination: formData.PartDestination
+                Used_OrderID: formData.OrderID,
+                Used_ArticleID: formData.Article_ID,
+                Used_Identifier: formData.Used_Identifier
             }));
 
             const response = await fetch('/api/submit-parts-usage', {
@@ -982,7 +994,7 @@ async function submitParts() {
         // ✅ If it's NOT a sub-assembly, start article time
         if (!isSubAssembly) {
             const startArticlePayload = {
-                ARTICLE_IDENTIFIER: formData.PartDestination, 
+                ARTICLE_IDENTIFIER: formData.Used_Identifier, 
                 ORDERID: formData.OrderID,
                 CAB_INFO3: formData.Cab_Info3,
                 EMPLOYEEID: formData.EmployeeID,
@@ -1057,7 +1069,7 @@ async function stopArticle() {
     try {        
         // ✅ Record the article stop time
         const stopArticlePayload = {
-            ARTICLE_IDENTIFIER: formData.PartDestination, 
+            ARTICLE_IDENTIFIER: formData.Used_Identifier, 
             ORDERID: formData.OrderID,
             CAB_INFO3: formData.Cab_Info3,
             EMPLOYEEID: formData.EmployeeID,
@@ -1127,7 +1139,7 @@ async function completeArticle() {
     try {        
         // ✅ Record the article stop time
         const completeArticlePayload = {
-            ARTICLE_IDENTIFIER: formData.PartDestination, 
+            ARTICLE_IDENTIFIER: formData.Used_Identifier, 
             ORDERID: formData.OrderID,
             CAB_INFO3: formData.Cab_Info3,
             EMPLOYEEID: formData.EmployeeID,
@@ -1222,6 +1234,7 @@ async function updateButtonStates(barcode) {
 
         if (data.part_status === "new") {
             setButtonState(startButton, true); // ✅ Allow submission if new
+            updateStartButtonState();
         } else if (data.part_status === "used") {
             if (data.assembly_status === "no record") {
                 setButtonState(startButton, true);
@@ -1238,3 +1251,52 @@ async function updateButtonStates(barcode) {
     }
 }
 
+
+function resetButtonStates() {
+    const startButton = document.getElementById("start-article-button");
+    const stopButton = document.getElementById("stop-article-button");
+    const completeButton = document.getElementById("complete-article-button");
+
+    // Reuse your internal helper from updateButtonStates (setButtonState) or create a simple local version
+    function setButtonState(button, isEnabled) {
+        if (!button) return;
+        button.disabled = !isEnabled;
+        button.classList.remove("button-disabled", "button-enabled", "button-stop-enabled");
+        button.classList.add(isEnabled ? "button-enabled" : "button-disabled");
+    }
+
+    // Disable them all
+    setButtonState(startButton, false);
+    setButtonState(stopButton, false);
+    setButtonState(completeButton, false);
+}
+
+
+
+
+
+function updateStartButtonState() {
+    const tableBody = document.getElementById('table-body');
+    const checkboxes = tableBody.querySelectorAll('input[type="checkbox"]');
+    const startButton = document.getElementById('start-article-button');
+    
+    // Check if every checkbox is checked
+    let allChecked = true;
+    checkboxes.forEach(checkbox => {
+        if (!checkbox.checked) {
+            allChecked = false;
+        }
+    });
+    
+    // Enable the start button only if all checkboxes are checked
+    startButton.disabled = !allChecked;
+    
+    // Optionally update CSS classes for visual feedback
+    if (allChecked) {
+        startButton.classList.remove('button-disabled');
+        startButton.classList.add('button-enabled');
+    } else {
+        startButton.classList.remove('button-enabled');
+        startButton.classList.add('button-disabled');
+    }
+}

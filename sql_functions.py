@@ -1319,77 +1319,6 @@ def fetch_runtime_machines(orderid):
         conn.close()
 
 
-################################################################
-
-
-# def fetch_parts_in_article(barcode, loadAll):
-#     conn = connect_to_db2()
-#     if conn is None:
-#         raise Exception("Failed to connect to the database.")
-#     try:
-#         cursor = conn.cursor()
-
-#         # Query to check if ARTICLE_ID is null
-#         check_query = """
-#         SELECT ORDERID, ARTICLE_ID 
-#         FROM dbo.Part
-#         WHERE BARCODE = %s
-#         """
-#         cursor.execute(check_query, (barcode,))
-#         result = cursor.fetchone()
-
-#         if not result or result[1] is None:
-#             # If ARTICLE_ID is null or no row is found
-#             return {"message": "No related part or article data available for the provided barcode."}
-
-#         # Extract ORDERID and ARTICLE_ID
-#         order_id, article_id = result
-
-#         if loadAll:
-#             # Fetch all parts for the article, ensuring uniqueness by combining ORDERID and ARTICLE_ID
-#             query = """
-#             WITH BarcodeRow AS (
-#                 SELECT ORDERID, ARTICLE_ID
-#                 FROM dbo.Part
-#                 WHERE BARCODE = %s 
-#             )
-#             SELECT 
-#                 p.BARCODE, 
-#                 p.INFO1, 
-#                 p.INFO2, 
-#                 a.INFO3 AS CabinetNumber
-#             FROM dbo.Part p
-#             INNER JOIN BarcodeRow br
-#                 ON p.ORDERID = br.ORDERID AND p.ARTICLE_ID = br.ARTICLE_ID
-#             LEFT JOIN dbo.Article a
-#                 ON br.ORDERID = a.ORDERID AND br.ARTICLE_ID = a.ID
-#             WHERE p.COLOR1 IS NOT NULL AND p.COLOR1 != '_'
-# 			AND CNC_BARCODE1 IS NOT NULL AND CNC_BARCODE1 != ''
-#             ORDER BY p.BARCODE
-
-#             """
-#         else:
-#             # Fetch only the specific part represented by the scanned barcode
-#             # ensuring uniqueness by combining ORDERID and ARTICLE_ID
-#             query = """
-#             SELECT BARCODE, INFO1, INFO2
-#             FROM dbo.Part
-#             WHERE BARCODE = %s
-#             ORDER BY BARCODE
-#             """
-#         cursor.execute(query, (barcode,))
-#         columns = [desc[0] for desc in cursor.description]  # Get column names
-#         results = [dict(zip(columns, row)) for row in cursor.fetchall()]  # Convert rows to dictionaries
-
-#         # Check if results are empty and include CabinetNumber if available
-#         if not results:
-#             return {"message": "No parts or article data available for the provided barcode."}
-
-#         return results
-#     except Exception as e:
-#         raise Exception(f"Database query failed: {e}")
-#     finally:
-#         conn.close()
 
 
 ###################################################
@@ -1450,15 +1379,21 @@ def fetch_parts_in_article(barcode, loadAll):
             # making sure we return a list-of-dicts for consistency
             single_part_query = """
                 SELECT 
+                    p.ORDERID,
                     p.ID, 
                     p.PARENTID, 
                     p.BARCODE, 
                     p.INFO1, 
-                    p.INFO2
+                    p.INFO2,
+                    a.INFO3 AS CabinetNumber,
+                    p.ARTICLE_ID
                 FROM dbo.Part p
+                LEFT JOIN dbo.Article a 
+                    ON p.ORDERID = a.ORDERID
+                    AND p.ARTICLE_ID = a.ID                
                 WHERE p.BARCODE = %s
             """
-            cursor.execute(single_part_query, (barcode,))
+            cursor.execute(single_part_query, (barcode, ))
             columns = [desc[0] for desc in cursor.description]
             single_row = cursor.fetchone()
 
@@ -1601,6 +1536,43 @@ def fetch_parts_in_article(barcode, loadAll):
 
 
 
+def fetch_used_article(identifier):
+    try:
+        conn = connect_to_db2()
+        if conn is None:
+            raise Exception("Failed to connect to the database.")
+        
+        cursor = conn.cursor()
+        query = """
+            SELECT 
+                USED_ORDERID AS ORDERID,                
+                BARCODE,
+                DESCRIPTION AS INFO1,
+                CAB_INFO3 AS CabinetNumber,
+                USED_ARTICLEID AS ARTICLE_ID
+            FROM dbo.Fact_Part_Usage
+            WHERE USED_IDENTIFIER = %s
+        """
+        cursor.execute(query, (identifier,))
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        if not rows:
+            return {"message": "No parts or article data found for this cabinet."}
+        # Convert each row into a dict
+        all_parts = [dict(zip(columns, row)) for row in rows]
+
+        # Return them under a "parts" key for consistency
+        return {"parts": all_parts}
+    except Exception as e:
+        raise Exception(f"Database query failed: {e}")
+    finally:
+        conn.close
+
+
+
+###################################################
+
+
 def check_parts_exist_in_db(barcodes):
     try:
         conn = connect_to_db2()
@@ -1632,17 +1604,17 @@ def submit_parts_usage(parts, timestamp):
     try:
         insert_query = """
             INSERT INTO dbo.Fact_Part_Usage (
-                [BARCODE], [DESCRIPTION], [ORDERID], [CAB_INFO3], [TIMESTAMP], 
-                [EMPLOYEEID], [RESOURCE], [CUSTOMERID], [ARTICLE_ID], 
-                [STATUS], [PARTDESTINATION]
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                [BARCODE], [DESCRIPTION], [CAB_INFO3], [ORIGINAL_ORDERID], [ORIGINAL_ARTICLEID], [TIMESTAMP], 
+                [EMPLOYEEID], [RESOURCE], [CUSTOMERID],  
+                [STATUS], [USED_ORDERID], [USED_ARTICLEID], [USED_IDENTIFIER]
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         values = [
             (
-                part["Barcode"], part["Description"], part["OrderID"], part["Cab_Info3"], timestamp,
+                part["Barcode"], part["Description"], part["Cab_Info3"], part["OrderID"], part["Article_ID"], timestamp,
                 part["EmployeeID"], part["Resource"], part["CustomerID"],
-                part["Article_ID"], part["Status"], part["PartDestination"]
+                part["Status"], part["Used_OrderID"], part["Used_ArticleID"], part["Used_Identifier"]
             ) for part in parts
         ]
 
@@ -1932,7 +1904,7 @@ def check_part_status(barcode):
     try:
         # Check if the part exists in Fact_Part_Usage
         check_part_usage_query = """
-        SELECT PARTDESTINATION AS ARTICLE_IDENTIFIER
+        SELECT USED_IDENTIFIER AS ARTICLE_IDENTIFIER
         FROM dbo.Fact_Part_Usage
         WHERE BARCODE = %s
         """

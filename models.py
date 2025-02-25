@@ -4,14 +4,16 @@ from pydantic import BaseModel
 class PartUsageData(BaseModel):
     Barcode: str 
     Description: str
-    OrderID: str 
     Cab_Info3: str
+    OrderID: str
+    Article_ID: str     
     EmployeeID: str
     Resource: str
-    CustomerID: str
-    Article_ID: str
+    CustomerID: str    
     Status: str
-    PartDestination: str
+    Used_OrderID: str
+    Used_AriticleID: str
+    Used_Identifier: str
 
 
 
