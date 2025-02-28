@@ -518,7 +518,7 @@ async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
         raise HTTPException(status_code=500, detail=(e))   
     
  
-@app.get('/api/fetch-used-article')
+@app.get('/api/fetch-used-article', tags=["Assembly Production"])
 def handle_fetch_used_cabinet(identifier: str):  
     try:
         result = fetch_used_article(identifier)

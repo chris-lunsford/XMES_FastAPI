@@ -99,15 +99,44 @@ async function fetchAndAddParts() {
     try {
         console.log(`Processing barcode: ${barcode}`);
 
-        let response;
-        const tableIsEmpty = tableBody.children.length === 0;
+        // Define tableIsEmpty up front so it's available to both "new" and "used" logic
+        const tableIsEmpty = (tableBody.children.length === 0);
 
-        if (tableIsEmpty) {
-            response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=true`);
-        } else {
-            response = await fetch(`/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=false`);
+        // 1) Check if part is "new" or "used"
+        const statusRes = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}`);
+        if (!statusRes.ok) {
+            throw new Error(`Failed to check part status: ${statusRes.statusText}`);
+        }
+        const statusData = await statusRes.json();
+        console.log("Part status:", statusData);
+
+        let response;
+        let urlToFetch;
+        
+        // 2) If it's new, use your existing logic for /api/fetch-parts-in-article
+        if (statusData.part_status === "new") {
+            console.log("Part is new, fetching from /api/fetch-parts-in-article");
+
+            // If the table is empty => loadAll=true, else => loadAll=false
+            const loadAllParam = tableIsEmpty ? "true" : "false";
+
+            urlToFetch = `/api/fetch-parts-in-article?barcode=${encodeURIComponent(barcode)}&loadAll=${loadAllParam}`;
+        } 
+        // 3) If it's used, fetch from /api/fetch-used-article
+        else {
+            console.log("Part is used, fetching from /api/fetch-used-article");
+            
+            const usedIdentifier = statusData.article_identifier; 
+            if (!usedIdentifier) {
+                throw new Error("Used part has no article_identifier");
+            }
+
+            // e.g. /api/fetch-used-article?identifier=someOrderID_SomeArticleID
+            urlToFetch = `/api/fetch-used-article?identifier=${encodeURIComponent(usedIdentifier)}`;
         }
 
+        // 4) Make the request to whichever URL we decided
+        response = await fetch(urlToFetch);
         if (!response.ok) {
             throw new Error(`API Error: ${response.statusText}`);
         }
@@ -188,7 +217,10 @@ function checkAndHandleBarcode(barcode) {
         const checkbox = item.querySelector('input[type="checkbox"]');
 
         if (span && span.getAttribute('data-barcode') === barcode) {
-            // Return true if the barcode is found, along with its checked state
+            // If no checkbox, it's a "used" row
+            if (!checkbox) {
+                return true; // Treat it as “checked” or “already used”
+            }
             return checkbox.checked;
         }
     }
@@ -204,27 +236,30 @@ function markBarcodeCheckedGreen(barcode) {
         const checkbox = row.querySelector('input[type="checkbox"]');
 
         if (span && span.getAttribute('data-barcode') === barcode) {
-            if (!checkbox.checked) {
+            if (checkbox && !checkbox.checked) {
                 checkbox.checked = true;
-                checkbox.style.backgroundColor = 'green'; // Change background to green
-                checkbox.style.borderColor = 'black'; // Change border color to green
+                checkbox.style.backgroundColor = 'green';
+                checkbox.style.borderColor = 'black';
             }
-            break;
+            updateStartButtonState();
+            return; 
         }
-    }
-    updateStartButtonState();
+    }    
 }
 
 
 function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, isUsed) {
     const tableBody = document.getElementById('table-body');
+    
 
     // Only update cab-info and article-id if the table is empty
     if (tableBody.children.length === 0) {
-        document.getElementById('cab-info').textContent = cabinfo || "N/A";
+        document.getElementById('cab-info').textContent = cabinfo || "N/A";        
         document.getElementById('article-id').textContent = articleId || "N/A";
         document.getElementById('orderid').textContent = orderId || "N/A";
-        document.getElementById('article-identifier').textContent = `${orderId || "N/A"}_${articleId || "N/A"}`;
+        // Compute and display the article identifier
+        const articleIdentifier = `${orderId || "N/A"}_${articleId || "N/A"}`;
+        document.getElementById('article-identifier').textContent = articleIdentifier;
     }
 
     // Check if barcode already exists in the table
@@ -236,8 +271,14 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
         }
     }
 
-    // Create a new row
+    // Compute the article identifier (same as above)
+    const articleIdentifier = `${orderId || "N/A"}_${articleId || "N/A"}`;
+
+    // Create a new row and tag it
     const row = document.createElement('tr');
+    row.dataset.isUsed = isUsed ? "true" : "false";
+    // If the part is used, store its used article ID; otherwise leave it blank.
+    row.dataset.usedArticleIdentifier = isUsed ? articleIdentifier : "";
 
     // ▼ Store extra data on the row itself via data attributes
     row.dataset.orderId = orderId;
@@ -247,7 +288,7 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     // Create cells
     const barcodeCell = document.createElement('td');
     const descriptionCell = document.createElement('td');
-    const checkboxCell = document.createElement('td');
+    const statusCell = document.createElement('td');
 
     // Barcode span
     const barcodeSpan = document.createElement('span');
@@ -262,6 +303,8 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     removeButton.style.marginRight = '20px';
     removeButton.onclick = () => {
         tableBody.removeChild(row);
+        // After removing a part, re-check the table
+        updateStartButtonState();
     };
 
     // Append barcode and checkmark
@@ -271,39 +314,47 @@ function addBarcodeToTable(barcode, description, cabinfo, orderId, articleId, is
     // Description cell
     descriptionCell.textContent = description || "N/A";
 
-    // Checkbox cell
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.style.cursor = 'pointer';
-    checkbox.style.width = '24px';
-    checkbox.style.height = '24px';
-
     if (isUsed) {
-        checkbox.checked = true;
-        checkbox.disabled = true; // Prevent modification of used parts
-        checkbox.style.backgroundColor = 'green'; // ✅ Mark as green immediately if already used
+        // 1) If this part was used, show a text label
+        const usedLabel = document.createElement('span');
+        usedLabel.textContent = 'USED';
+        usedLabel.style.color = 'green';      // or something like '#00cc00'
+        usedLabel.style.fontWeight = 'bold';  // make it stand out
+        statusCell.appendChild(usedLabel);
     } else {
+        // 2) Otherwise, create a normal checkbox for new parts
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.style.cursor = 'pointer';
+        checkbox.style.width = '24px';
+        checkbox.style.height = '24px';
+        
         checkbox.onchange = () => {
+            // If you still want a green background for checked items
             if (checkbox.checked) {
-                checkbox.style.backgroundColor = 'green'; // ✅ Change background to green
-                checkbox.style.borderColor = 'black'; // ✅ Change border color
+                checkbox.style.backgroundColor = 'green';
+                checkbox.style.borderColor = 'black';
             } else {
-                checkbox.style.backgroundColor = ''; // Reset background
-                checkbox.style.borderColor = ''; // Reset border
+                checkbox.style.backgroundColor = '';
+                checkbox.style.borderColor = '';
             }
-            updateStartButtonState();  // Update the start button based on current check states
+            updateStartButtonState();
         };
+
+        statusCell.appendChild(checkbox);
     }
 
-    checkboxCell.appendChild(checkbox);
 
     // Append cells to row
     row.appendChild(barcodeCell);
     row.appendChild(descriptionCell);
-    row.appendChild(checkboxCell);
+    row.appendChild(statusCell);
 
     // Append row to table
     tableBody.appendChild(row);
+    
+    // Update the Start button state whenever a row is added
+    updateStartButtonState();    
 }
 
 
@@ -853,8 +904,10 @@ function collectTableData() {
         const descriptionCell = row.children[1]; // Description column
         const checkbox = row.querySelector('input[type="checkbox"]');
 
-        if (barcodeSpan && descriptionCell && checkbox) {
-            // ▼ READ DATA ATTRIBUTES HERE:
+        if (barcodeSpan && descriptionCell) {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            const isChecked = checkbox && checkbox.checked;
+
             const orderId = row.dataset.orderId; 
             const articleId = row.dataset.articleId;
             const isUsed = (row.dataset.isUsed === "true");
@@ -862,20 +915,22 @@ function collectTableData() {
             partsData.push({
                 Barcode: barcodeSpan.textContent.trim(),
                 Description: descriptionCell.textContent.trim(),
-                Scanned: checkbox.checked ? "Checked" : "Unchecked",
-
-                // ▼ Optionally attach these additional fields to `partsData`:
+                // If there's a checkbox, we use "Checked"/"Unchecked",
+                // otherwise, if it's used, treat it as "Checked"
+                Scanned: isUsed ? "Checked" : (isChecked ? "Checked" : "Unchecked"),
                 OrderID: orderId,
-                ArticleID: articleId,
+                ArticleID: articleId
             });
-            if (!checkbox.checked) {
-                allChecked = false; // Found an unchecked box
+            // If there's a checkbox, also update `allChecked` if not checked
+            if (!isUsed && !isChecked) {
+                allChecked = false;
             }
         }
     });
 
     return { partsData, allChecked };
 }
+
 
 
 function collectFormData(actionType) {
@@ -1184,119 +1239,228 @@ async function completeArticle() {
 }
 
 
-
+//
+// 1) The main server-based function for Stop/Complete
+//
 async function updateButtonStates(barcode) {
     try {
-        // ✅ Prevent API request if barcode is empty or invalid
-        if (!barcode || barcode.trim() === "") {
-            console.warn("updateButtonStates: No barcode provided.");
-            return;
+      if (!barcode || barcode.trim() === "") {
+        console.warn("updateButtonStates: No barcode provided.");
+        return;
+      }
+  
+      const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+      console.log("Part Status Response:", data);
+
+      // ▼ Store the assembly status on the table body
+      const table = document.getElementById("table-body");
+      table.dataset.assemblyStatus = data.assembly_status || "no record";
+      table.dataset.articleStatus = data.article_status || "none";
+    
+      const startButton = document.getElementById("start-article-button");
+      const stopButton = document.getElementById("stop-article-button");
+      const completeButton = document.getElementById("complete-article-button");
+  
+      // We'll use the shared setButtonState helper
+      setButtonState(startButton, false);
+      setButtonState(stopButton, false);
+      setButtonState(completeButton, false);
+  
+      // If the article is complete, disable all
+      if (data.article_status === "complete") {
+        console.log("Article is complete. All buttons disabled.");
+        // Now let the table logic run. (It likely will keep the Start button disabled anyway.)
+        updateStartButtonState();
+        updateAssemblyStatus();
+        return;
+      }
+  
+      // For "new" or "used", we won't unilaterally enable the Start button here.
+      // Instead, we'll rely on updateStartButtonState to do so if the table logic is okay.
+      // We only set STOP/COMPLETE if needed:
+  
+      if (data.part_status === "used") {
+        if (data.assembly_status === "running") {
+          // Part is used and assembly is running => enable STOP
+          setButtonState(stopButton, true, "button-stop-enabled");
+        } else if (data.assembly_status === "stopped") {
+          // Part is used, assembly is stopped => enable COMPLETE
+          setButtonState(completeButton, true);
         }
-
-        const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Part Status Response:", data);
-
-        const startButton = document.getElementById("start-article-button");
-        const stopButton = document.getElementById("stop-article-button");
-        const completeButton = document.getElementById("complete-article-button");
-
-        // ✅ Helper function to enable/disable buttons with CSS updates
-        function setButtonState(button, isEnabled, enabledClass = "button-enabled") {
-            if (button) {
-                button.disabled = !isEnabled;
-                
-                // ✅ Always reset button styles before applying new ones
-                button.classList.remove("button-disabled", "button-enabled", "button-stop-enabled");
-
-                if (isEnabled) {
-                    button.classList.add(enabledClass);
-                } else {
-                    button.classList.add("button-disabled");
-                }
-            }
-        }
-
-        // ✅ Default: Disable all buttons
-        setButtonState(startButton, false);
-        setButtonState(stopButton, false);
-        setButtonState(completeButton, false);
-
-        // ✅ If the article is complete, disable all buttons
-        if (data.article_status === "complete") {
-            console.log("Article is complete. All buttons disabled.");
-            return;
-        }
-
-        if (data.part_status === "new") {
-            setButtonState(startButton, true); // ✅ Allow submission if new
-            updateStartButtonState();
-        } else if (data.part_status === "used") {
-            if (data.assembly_status === "no record") {
-                setButtonState(startButton, true);
-            } else if (data.assembly_status === "running") {
-                setButtonState(stopButton, true, "button-stop-enabled"); // ✅ Stop button will be red
-            } else if (data.assembly_status === "stopped") {
-                setButtonState(startButton, true);
-                setButtonState(completeButton, true);
-            }
-        }
-
+        // If data.assembly_status === "no record" => no special action for stop/complete
+        // The Start logic is still delegated to the local table logic below
+      }
+  
+      // Finally, we let our local table logic handle the Start button:
+      updateStartButtonState();
+      updateAssemblyStatus();  
     } catch (error) {
-        console.error("Error updating button states:", error);
+      console.error("Error updating button states:", error);
     }
 }
-
+  
+  
 
 function resetButtonStates() {
     const startButton = document.getElementById("start-article-button");
     const stopButton = document.getElementById("stop-article-button");
     const completeButton = document.getElementById("complete-article-button");
 
-    // Reuse your internal helper from updateButtonStates (setButtonState) or create a simple local version
-    function setButtonState(button, isEnabled) {
-        if (!button) return;
-        button.disabled = !isEnabled;
-        button.classList.remove("button-disabled", "button-enabled", "button-stop-enabled");
-        button.classList.add(isEnabled ? "button-enabled" : "button-disabled");
-    }
-
-    // Disable them all
     setButtonState(startButton, false);
     setButtonState(stopButton, false);
     setButtonState(completeButton, false);
 }
+  
+ 
 
+
+function setButtonState(button, isEnabled, enabledClass = "button-enabled") {
+    if (!button) return;
+    button.disabled = !isEnabled;
+    button.classList.remove("button-disabled", "button-enabled", "button-stop-enabled");
+
+    if (isEnabled) {
+        button.classList.add(enabledClass);
+    } else {
+        button.classList.add("button-disabled");
+    }
+}
 
 
 
 
 function updateStartButtonState() {
-    const tableBody = document.getElementById('table-body');
-    const checkboxes = tableBody.querySelectorAll('input[type="checkbox"]');
-    const startButton = document.getElementById('start-article-button');
-    
-    // Check if every checkbox is checked
-    let allChecked = true;
-    checkboxes.forEach(checkbox => {
-        if (!checkbox.checked) {
-            allChecked = false;
+    const startButton = document.getElementById("start-article-button");
+    if (!startButton) return;
+
+    // Get the table and read its assembly status from the dataset
+    const table = document.getElementById("table-body");
+    const assemblyStatus = table.dataset.assemblyStatus || "no record";
+    const articleStatus = table.dataset.articleStatus || "none";
+
+    // If the article is already complete, disable the Start button
+    if (articleStatus === "Complete") {
+        setButtonState(startButton, false);
+        return;
+    }
+
+    // If the article is already running or stopped, we disable Start right away
+    if (assemblyStatus === "running") {
+        setButtonState(startButton, false);
+        return;
+    }
+
+    // Note: If it's "stopped," we do NOT short-circuit here,
+    // so the local table logic below can re-enable Start if appropriate.
+
+    const rows = Array.from(document.getElementById("table-body").children);
+    if (rows.length === 0) {
+        setButtonState(startButton, false);
+        return;
+    }
+
+    let usedCount = 0;
+    let newCount = 0;
+    let usedArticles = new Set();
+
+    // For enforcing that all new (non-used) parts are checked
+    let allNewChecked = true;
+
+    rows.forEach(row => {
+        const isUsed = row.dataset.isUsed === "true";
+
+        if (isUsed) {
+        usedCount++;
+        const usedArticleId = row.dataset.usedArticleIdentifier || "UNKNOWN";
+        usedArticles.add(usedArticleId);
+        } else {
+        newCount++;
+        // For each new part, see if there's a checkbox and if it's checked
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        if (!checkbox || !checkbox.checked) {
+            allNewChecked = false;
+        }
         }
     });
-    
-    // Enable the start button only if all checkboxes are checked
-    startButton.disabled = !allChecked;
-    
-    // Optionally update CSS classes for visual feedback
-    if (allChecked) {
-        startButton.classList.remove('button-disabled');
-        startButton.classList.add('button-enabled');
-    } else {
-        startButton.classList.remove('button-enabled');
-        startButton.classList.add('button-disabled');
-    }
+
+    // Rule A: If there's a mix of new and used, disable the Start button.
+    if (usedCount > 0 && newCount > 0) {
+        setButtonState(startButton, false);
+        return;
 }
+
+// Rule B: If all parts are new, only enable if all checkboxes are checked
+if (usedCount === 0) {
+    // Because usedCount === 0, everything is new
+    if (allNewChecked) {
+    setButtonState(startButton, true);
+    } else {
+    setButtonState(startButton, false);
+    }
+    return;
+}
+
+// Rule C: If all parts are used, check if they share the same usedArticleId
+if (usedCount === rows.length) {
+    if (usedArticles.size > 1) {
+    setButtonState(startButton, false);
+    } else {
+    const [usedArticleId] = Array.from(usedArticles);
+    setButtonState(startButton, (usedArticleId !== "UNKNOWN"));
+    }
+    return;
+}
+
+// Fallback: disable
+setButtonState(startButton, false);
+}
+  
+  
+
+function updateAssemblyStatus() {
+    const tableBody = document.getElementById("table-body");
+
+    // Retrieve the assembly status and article status from the table-body element
+    const assemblyStatus = tableBody.dataset.assemblyStatus || "N/A";  // Default to "no record" if not set
+    const articleStatus = tableBody.dataset.articleStatus || "none";  // Default to "none" if not set
+
+    console.log("Assembly Status from table-body:", assemblyStatus); // Debugging
+    console.log("Article Status from table-body:", articleStatus); // Debugging
+
+    // Update the UI with the assembly and article status
+    document.getElementById('cab-status').textContent = assemblyStatus;
+    // document.getElementById('article-status').textContent = articleStatus;
+}
+
+
+
+// function updateStartButtonState() {
+//     const tableBody = document.getElementById('table-body');
+//     const checkboxes = tableBody.querySelectorAll('input[type="checkbox"]');
+//     const startButton = document.getElementById('start-article-button');
+    
+//     // Check if every checkbox is checked
+//     let allChecked = true;
+//     checkboxes.forEach(checkbox => {
+//         if (!checkbox.checked) {
+//             allChecked = false;
+//         }
+//     });
+    
+//     // Enable the start button only if all checkboxes are checked
+//     startButton.disabled = !allChecked;
+    
+//     // Optionally update CSS classes for visual feedback
+//     if (allChecked) {
+//         startButton.classList.remove('button-disabled');
+//         startButton.classList.add('button-enabled');
+//     } else {
+//         startButton.classList.remove('button-enabled');
+//         startButton.classList.add('button-disabled');
+//     }
+// }
