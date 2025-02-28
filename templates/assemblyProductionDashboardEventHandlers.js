@@ -62,6 +62,8 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
 async function clearPartTable() {
     const cabInfoSpan = document.getElementById('cab-info');   
     cabInfoSpan.textContent = ""; 
+    const cabStatusSpan = document.getElementById('cab-status');   
+    cabStatusSpan.textContent = ""; 
     const articleIdSpan = document.getElementById('article-id');
     articleIdSpan.textContent ="";
     
