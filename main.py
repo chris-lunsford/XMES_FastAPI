@@ -15,6 +15,7 @@ from typing import Optional, Dict, List
 
 from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
+from assembly_work_stations import ASSEMBLY_WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
 from defect_types import DEFECT_TYPES
@@ -95,6 +96,10 @@ async def ttc_plugin(request: Request, response: Response):
 @app.get('/api/work-stations', tags=["Lists"])
 async def get_work_stations():
     return WORK_STATIONS
+
+@app.get('/api/assembly-work-stations', tags=["Lists"])
+async def get_work_stations():
+    return ASSEMBLY_WORK_STATIONS
 
 
 class WorkStationGroups(BaseModel):
@@ -613,6 +618,18 @@ async def handle_complete_article_time(article: ArticleTimeData):
 
         result = complete_article_time(article, timestamp)
         return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.post('/api/fetch-assembly-job-status', tags=["Assembly Order Status"])
+async def handle_fetch_assembly_job_status(ORDERID):
+    try:
+        result = fetch_assembly_job_status(ORDERID)
+        return {"result": result}
     except ValueError as e:  # Specific handling for known exceptions
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:  # Generic exception handling

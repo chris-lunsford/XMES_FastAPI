@@ -15,7 +15,7 @@ function initializeAssemblyProductionDashboard() {
 
     // Initialize dashboard functionalities
     populateCustomerIDs(); // Populate customer IDs
-    populateWorkAreas(); // Populate work areas
+    populateAssemblyWorkAreas(); // Populate work areas
     populateDefectTypes();
     populateDefectActions();
 

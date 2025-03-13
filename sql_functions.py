@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from fastapi import HTTPException
+from assembly_work_stations import ASSEMBLY_WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
 from models import *
 import pymssql
@@ -7,23 +8,20 @@ import pytz
 
 ######################################################
 
+# def connect_to_db():
+#     server = "cfx-azure-server.database.windows.net"
+#     user = "MatthewC"
+#     password = "CFX-4500!"
+#     database = "CFX-DW-AzSQLDB"
+
+#     try:
+#         conn = pymssql.connect(server, user, password, database)
+#         return conn  # Return the connection object
+#     except Exception as e:
+#         print(f"Database connection failed: {str(e)}")
+#         return None  # Return None if connection failed
+
 def connect_to_db():
-    server = "cfx-azure-server.database.windows.net"
-    user = "MatthewC"
-    password = "CFX-4500!"
-    database = "CFX-DW-AzSQLDB"
-
-    try:
-        conn = pymssql.connect(server, user, password, database)
-        return conn  # Return the connection object
-    except Exception as e:
-        print(f"Database connection failed: {str(e)}")
-        return None  # Return None if connection failed
-
-#######################################################    
-
-
-def connect_to_db2():
     server = "cfx-azure-server.database.windows.net"
     user = "Chrisl"
     password = "CFX-4500!"
@@ -35,6 +33,22 @@ def connect_to_db2():
     except Exception as e:
         print(f"Database connection failed: {str(e)}")
         return None  # Return None if connection failed
+
+#######################################################    
+
+
+# def connect_to_db2():
+#     server = "cfx-azure-server.database.windows.net"
+#     user = "Chrisl"
+#     password = "CFX-4500!"
+#     database = "cfx-primary-datastore"
+
+#     try:
+#         conn = pymssql.connect(server, user, password, database)
+#         return conn  # Return the connection object
+#     except Exception as e:
+#         print(f"Database connection failed: {str(e)}")
+#         return None  # Return None if connection failed
 
 ####################################################### 
 
@@ -49,13 +63,13 @@ def fetch_last_timestamp():
 
     try:
         query = f"""
-           SELECT Resource, MAX(TimeStamp) as LastScan
-           FROM DBA.Fact_WIP
-           GROUP BY Resource; 
+           SELECT RESOURCE, MAX(TIMESTAMP) as LastScan
+           FROM dbo.Fact_Machining_Scans
+           GROUP BY RESOURCE; 
         """
         cursor.execute(query)
         rows = cursor.fetchall()  # Fetch all rows returned by the SQL query
-        results = {row[0]: row[1] for row in rows}  # Create a dict with Resource as key and LastScan as value
+        results = {row[0]: row[1] for row in rows}  # Create a dict with RESOURCE as key and LastScan as value
     except Exception as e:
             print("Failed to load timestamps", e)
             return {}
@@ -70,16 +84,16 @@ def fetch_last_timestamp():
 ########################################################
 
 
-def get_resource_group(Resource):
+def get_resource_group(RESOURCE):
     """Return the group for a given work area, or the work area itself if no group is defined."""
-    return WORK_STATION_GROUPS.get(Resource, Resource)
+    return WORK_STATION_GROUPS.get(RESOURCE, RESOURCE)
 
 def get_resources_in_group(group):
-    """Retrieve all resources that are part of the specified group."""
-    # If the group itself is a resource (no other resources in its group), return it in a list
+    """Retrieve all RESOURCEs that are part of the specified group."""
+    # If the group itself is a RESOURCE (no other RESOURCEs in its group), return it in a list
     if group in WORK_STATION_GROUPS.values():
         return [res for res, grp in WORK_STATION_GROUPS.items() if grp == group]
-    return [group]  # Return the resource itself if it's not a group
+    return [group]  # Return the RESOURCE itself if it's not a group
 
 
 ########################################################
@@ -97,8 +111,8 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
     try:
         # Construct the base query
         query = """
-        SELECT Resource, COUNT(Barcode) AS ScanCount
-        FROM DBA.Fact_WIP
+        SELECT RESOURCE, COUNT(BARCODE) AS ScanCount
+        FROM dbo.Fact_Machining_Scans
         """
 
         # Add conditions based on the provided dates
@@ -111,7 +125,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
 
-        query += " GROUP BY Resource;"
+        query += " GROUP BY RESOURCE;"
 
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -130,7 +144,7 @@ def fetch_machine_part_counts(start_date=None, end_date=None):
 ############################################################
 
 
-def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, CustomerID, forceContinue=False):
+def barcode_scan_to_db(BARCODE, ORDERID, TIMESTAMP, EMPLOYEEID, RESOURCE, CUSTOMERID, forceContinue=False):
     conn = connect_to_db()
     if conn is None:
         print("Failed to connect to the database.")
@@ -139,43 +153,43 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
     cursor = conn.cursor()
 
     try:
-        # First, check if the barcode is expected in dbo.View_WIP
+        # First, check if the BARCODE is expected in dbo.View_Part_Data
         expected_system_check_query = """
-            SELECT Barcode FROM dbo.View_WIP
-            WHERE Barcode = %s
+            SELECT BARCODE FROM dbo.View_Part_Data
+            WHERE BARCODE = %s
         """
-        cursor.execute(expected_system_check_query, (Barcode,))
+        cursor.execute(expected_system_check_query, (BARCODE,))
         expected_entry = cursor.fetchone()
 
         if not expected_entry:
-            raise ValueError("Barcode not expected in the system")
+            raise ValueError("BARCODE not expected in the system")
         
         # Translate the specific work area to its routing group
-        resource_group = WORK_STATION_GROUPS.get(Resource, None)
-        if resource_group is None:
+        RESOURCE_group = WORK_STATION_GROUPS.get(RESOURCE, None)
+        if RESOURCE_group is None:
             raise ValueError("Invalid work area specified")
         
         if not forceContinue:
-            expected_resource_check_query = """
-                SELECT Barcode FROM dbo.View_WIP
-                WHERE Barcode = %s AND Info2 LIKE %s
+            expected_RESOURCE_check_query = """
+                SELECT BARCODE FROM dbo.View_Part_Data
+                WHERE BARCODE = %s AND Info2 LIKE %s
             """
 
-            like_pattern = f'%{resource_group}%'
-            cursor.execute(expected_resource_check_query, (Barcode, like_pattern))
+            like_pattern = f'%{RESOURCE_group}%'
+            cursor.execute(expected_RESOURCE_check_query, (BARCODE, like_pattern))
             expected_entry = cursor.fetchone()
 
             if not expected_entry:
-                raise ValueError("Barcode not expected at work area")
+                raise ValueError("BARCODE not expected at work area")
             
 
-        # Check for duplicate barcodes in DBA.Fact_WIP
-        if CustomerID != "TPS":
+        # Check for duplicate BARCODEs in dbo.Fact_Machining_Scans
+        if CUSTOMERID != "TPS":
             check_query = """
-                SELECT * FROM DBA.Fact_WIP
-                WHERE Barcode = %s AND Resource = %s AND OrderID = %s
+                SELECT * FROM dbo.Fact_Machining_Scans
+                WHERE BARCODE = %s AND RESOURCE = %s AND ORDERID = %s
             """
-            cursor.execute(check_query, (Barcode, Resource, OrderID))
+            cursor.execute(check_query, (BARCODE, RESOURCE, ORDERID))
             existing_entry = cursor.fetchone()
 
             if existing_entry:
@@ -183,11 +197,11 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
 
         # Proceed with the insert if checks pass
         insert_query = """
-            INSERT INTO DBA.Fact_WIP (
-                Barcode, OrderID, Timestamp, EmployeeID, Resource, Recut, CustomerID
+            INSERT INTO dbo.Fact_Machining_Scans (
+                BARCODE, ORDERID, TIMESTAMP, EMPLOYEEID, RESOURCE, RECUT, CUSTOMERID
             ) VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(insert_query, (Barcode, OrderID, Timestamp, EmployeeID, Resource, 0, CustomerID))
+        cursor.execute(insert_query, (BARCODE, ORDERID, TIMESTAMP, EMPLOYEEID, RESOURCE, 0, CUSTOMERID))
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -199,7 +213,7 @@ def barcode_scan_to_db(Barcode, OrderID, Timestamp, EmployeeID, Resource, Custom
 ############################################################
 
 
-def update_recut_in_db(Barcode, OrderID, Resource, Recut):
+def update_recut_in_db(BARCODE, ORDERID, RESOURCE, RECUT):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -207,10 +221,10 @@ def update_recut_in_db(Barcode, OrderID, Resource, Recut):
         with conn.cursor() as cursor:
             # First, fetch the current Recut value
             select_query = """
-            SELECT Recut FROM DBA.Fact_WIP
-            WHERE Barcode = %s AND OrderID = %s AND Resource = %s
+            SELECT RECUT FROM dbo.Fact_Machining_Scans
+            WHERE BARCODE = %s AND ORDERID = %s AND RESOURCE = %s
             """
-            cursor.execute(select_query, (Barcode, OrderID, Resource))
+            cursor.execute(select_query, (BARCODE, ORDERID, RESOURCE))
             result = cursor.fetchone()
             if result:
                 current_recut = result[0]
@@ -218,14 +232,14 @@ def update_recut_in_db(Barcode, OrderID, Resource, Recut):
 
                 # Now, update the Recut value
                 update_query = """
-                UPDATE DBA.Fact_WIP
-                SET Recut = %s
-                WHERE Barcode = %s AND OrderID = %s AND Resource = %s
+                UPDATE dbo.Fact_Machining_Scans
+                SET RECUT = %s
+                WHERE BARCODE = %s AND ORDERID = %s AND RESOURCE = %s
                 """
-                cursor.execute(update_query, (new_recut, Barcode, OrderID, Resource))
+                cursor.execute(update_query, (new_recut, BARCODE, ORDERID, RESOURCE))
                 conn.commit()
             else:
-                raise ValueError("Barcode not found in database.")
+                raise ValueError("BARCODE not found in database.")
     except Exception as e:
         conn.rollback()
         raise e
@@ -237,7 +251,7 @@ def update_recut_in_db(Barcode, OrderID, Resource, Recut):
 ############################################################
 
 
-def get_employee_areaparts_count(EmployeeID, Resource):
+def get_employee_areaparts_count(EMPLOYEEID, RESOURCE):
     today = date.today()
     formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
 
@@ -247,11 +261,11 @@ def get_employee_areaparts_count(EmployeeID, Resource):
     try:
         with conn.cursor() as cursor:
             select_query= """
-            SELECT COUNT(Barcode)
-            FROM DBA.Fact_WIP
-            WHERE EmployeeID = %s AND Resource = %s AND CONVERT(date, Timestamp) = %s
+            SELECT COUNT(BARCODE)
+            FROM dbo.Fact_Machining_Scans
+            WHERE EMPLOYEEID = %s AND RESOURCE = %s AND CONVERT(date, Timestamp) = %s
             """
-            cursor.execute(select_query, (EmployeeID, Resource, formatted_date))
+            cursor.execute(select_query, (EMPLOYEEID, RESOURCE, formatted_date))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
     except Exception as e:
@@ -264,7 +278,7 @@ def get_employee_areaparts_count(EmployeeID, Resource):
 
 
 
-def get_employee_totalparts_count(EmployeeID):
+def get_employee_totalparts_count(EMPLOYEEID):
     today = date.today()
     formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
 
@@ -274,11 +288,11 @@ def get_employee_totalparts_count(EmployeeID):
     try:
         with conn.cursor() as cursor:
             select_query= """
-            SELECT COUNT(Barcode)
-            FROM DBA.Fact_WIP
-            WHERE EmployeeID = %s AND CONVERT(date, Timestamp) = %s
+            SELECT COUNT(BARCODE)
+            FROM dbo.Fact_Machining_Scans
+            WHERE EMPLOYEEID = %s AND CONVERT(date, Timestamp) = %s
             """
-            cursor.execute(select_query, (EmployeeID, formatted_date))
+            cursor.execute(select_query, (EMPLOYEEID, formatted_date))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
     except Exception as e:
@@ -290,7 +304,7 @@ def get_employee_totalparts_count(EmployeeID):
 ############################################################
 
 
-def get_order_area_scanned_count(OrderID, Resource, EmployeeID):
+def get_order_area_scanned_count(ORDERID, RESOURCE, EMPLOYEEID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -298,11 +312,11 @@ def get_order_area_scanned_count(OrderID, Resource, EmployeeID):
         with conn.cursor() as cursor:
             select_query = """
             SELECT COUNT(BARCODE)
-            FROM dba.Fact_WIP
-            WHERE OrderID = %s
-            AND (Resource = %s AND EmployeeID = %s)
+            FROM dbo.Fact_Machining_Scans
+            WHERE ORDERID = %s
+            AND (RESOURCE = %s AND EMPLOYEEID = %s)
             """
-            cursor.execute(select_query, (OrderID, Resource, EmployeeID))
+            cursor.execute(select_query, (ORDERID, RESOURCE, EMPLOYEEID))
             (count, ) = cursor.fetchone()
             return count or 0
     except Exception as e:
@@ -314,25 +328,25 @@ def get_order_area_scanned_count(OrderID, Resource, EmployeeID):
 ############################################################
 
 
-def get_order_machinegroup_scan_count(OrderID, Resource):
+def get_order_machinegroup_scan_count(ORDERID, RESOURCE):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
     
-    # Get the resource group (or the resource itself if it's not in a group)
-    Resource_Group = get_resource_group(Resource)
-    resources_in_group = get_resources_in_group(Resource_Group)
+    # Get the RESOURCE group (or the RESOURCE itself if it's not in a group)
+    RESOURCE_Group = get_resource_group(RESOURCE)
+    RESOURCEs_in_group = get_resources_in_group(RESOURCE_Group)
 
     try:
         with conn.cursor() as cursor:
-            # Modify the query to select scans for all resources in the group or the resource itself
+            # Modify the query to select scans for all RESOURCEs in the group or the RESOURCE itself
             select_query = """
             SELECT COUNT(BARCODE)
-            FROM dba.Fact_WIP
-            WHERE OrderID = %s AND Resource IN %s
+            FROM dbo.Fact_Machining_Scans
+            WHERE ORDERID = %s AND RESOURCE IN %s
             """
             # Use tuple conversion to handle list formatting in SQL query properly
-            cursor.execute(select_query, (OrderID, tuple(resources_in_group)))
+            cursor.execute(select_query, (ORDERID, tuple(RESOURCEs_in_group)))
             (count, ) = cursor.fetchone()
             return count or 0
     except Exception as e:
@@ -344,22 +358,22 @@ def get_order_machinegroup_scan_count(OrderID, Resource):
 ############################################################
 
 
-def get_order_totalarea_count(OrderID, Resource):
-    Formatted_Resource = f'%{Resource}%'
+def get_order_totalarea_count(ORDERID, RESOURCE):
+    Formatted_RESOURCE = f'%{RESOURCE}%'
 
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
     try:
         with conn.cursor() as cursor:            
-            Formatted_Resource = f'%{Resource}%'
+            Formatted_RESOURCE = f'%{RESOURCE}%'
             select_query = """
             SELECT COUNT(BARCODE)
-            FROM dbo.View_WIP
-            WHERE OrderID = %s AND INFO2 LIKE %s
+            FROM dbo.View_Part_Data
+            WHERE ORDERID = %s AND INFO2 LIKE %s
             AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
             """
-            cursor.execute(select_query, (OrderID, Formatted_Resource))
+            cursor.execute(select_query, (ORDERID, Formatted_RESOURCE))
                 
             (count,) = cursor.fetchone()
             return count or 0  # Return 0 if count is None
@@ -373,7 +387,7 @@ def get_order_totalarea_count(OrderID, Resource):
 
 
 
-def get_order_total_count(OrderID):
+def get_order_total_count(ORDERID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -381,11 +395,11 @@ def get_order_total_count(OrderID):
         with conn.cursor() as cursor:
             select_query= """
             SELECT COUNT(BARCODE)
-            FROM dbo.View_WIP
-            WHERE OrderID = %s 
+            FROM dbo.View_Part_Data
+            WHERE ORDERID = %s 
             AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
             """
-            cursor.execute(select_query, (OrderID))
+            cursor.execute(select_query, (ORDERID))
             (count,) = cursor.fetchone()
             return count or 0 # Return 0 if count is None
     except Exception as e:
@@ -397,7 +411,7 @@ def get_order_total_count(OrderID):
 ############################################################
 
 
-def get_order_part_counts(OrderID):
+def get_order_part_counts(ORDERID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
@@ -415,10 +429,10 @@ def get_order_part_counts(OrderID):
                 COUNT(CASE WHEN INFO2 LIKE '%PBZ%' THEN BARCODE END) AS PBZ,
                 COUNT(CASE WHEN INFO2 LIKE '%SCZ%' THEN BARCODE END) AS SCZ,                
                 COUNT(DISTINCT BARCODE) AS Total
-            FROM dbo.View_WIP
-            WHERE OrderID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+            FROM dbo.View_Part_Data
+            WHERE ORDERID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
             """
-            cursor.execute(select_query, (OrderID))
+            cursor.execute(select_query, (ORDERID))
             result = cursor.fetchone()
             keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ','PBZ', 'SCZ', "Total"]
             counts = {key: result[i] for i, key in enumerate(keys)}            
@@ -440,7 +454,7 @@ def fetch_scanned_order_part_counts_data(order_id):
     if conn is not None:
         try:
             with conn.cursor(as_dict=True) as cursor:
-                cursor.execute("SELECT Barcode, Resource FROM DBA.Fact_WIP WHERE OrderID = %s", (order_id,))
+                cursor.execute("SELECT BARCODE, RESOURCE FROM dbo.Fact_Machining_Scans WHERE ORDERID = %s", (order_id,))
                 return cursor.fetchall()
         finally:
             conn.close()
@@ -450,20 +464,20 @@ def fetch_scanned_order_part_counts_data(order_id):
 def process_scanned_order_part_counts_data(data):
     grouped_counts = {}
     for row in data:
-        barcode = row['Barcode']
-        resource = row['Resource']
-        group = WORK_STATION_GROUPS.get(resource, "Unknown")
+        BARCODE = row['BARCODE']
+        RESOURCE = row['RESOURCE']
+        group = WORK_STATION_GROUPS.get(RESOURCE, "Unknown")
         if group not in grouped_counts:
             grouped_counts[group] = set()
-        grouped_counts[group].add(barcode)
-    return {group: len(barcodes) for group, barcodes in grouped_counts.items()}
+        grouped_counts[group].add(BARCODE)
+    return {group: len(BARCODEs) for group, BARCODEs in grouped_counts.items()}
 
 
 ############################################################
 
 
 
-def get_employee_joblist_day(EmployeeID):
+def get_employee_joblist_day(EMPLOYEEID):
     today = date.today()
     formatted_date = today.strftime('%Y-%m-%d')  # Adjust the format if needed
 
@@ -473,11 +487,11 @@ def get_employee_joblist_day(EmployeeID):
     try:
         with conn.cursor() as cursor:
             select_query= """
-            SELECT DISTINCT OrderID
-            FROM DBA.Fact_WIP
-            WHERE EmployeeID = %s and CONVERT(date, Timestamp) = %s
+            SELECT DISTINCT ORDERID
+            FROM dbo.Fact_Machining_Scans
+            WHERE EMPLOYEEID = %s and CONVERT(date, Timestamp) = %s
             """
-            cursor.execute(select_query, (EmployeeID, formatted_date))
+            cursor.execute(select_query, (EMPLOYEEID, formatted_date))
             result = cursor.fetchall()
             job_list = [job[0] for job in result]  # Extract JobID from each tuple
             return job_list
@@ -491,19 +505,19 @@ def get_employee_joblist_day(EmployeeID):
 ############################################################
 
 
-def get_jobid_notifications(OrderID):
+def get_jobid_notifications(ORDERID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
     try:
         with conn.cursor() as cursor:
             select_query="""
-            SELECT DateSubmitted, RowID, NotificationType, OrderNotification
-            FROM dba.Fact_XMesNotifications
-            WHERE OrderID = %s
-            ORDER BY DateSubmitted DESC
+            SELECT DATE_SUBMITTED, ROWID, NOTIFICATION_TYPE, ORDER_NOTIFICATION
+            FROM dbo.Fact_Xmes_Notifications
+            WHERE ORDERID = %s
+            ORDER BY DATE_SUBMITTED DESC
             """
-            cursor.execute(select_query, (OrderID))
+            cursor.execute(select_query, (ORDERID))
             result = cursor.fetchall()
             notification_list = [notification for notification in result]
             return notification_list
@@ -517,7 +531,7 @@ def get_jobid_notifications(OrderID):
 
 
 
-def submit_order_notification(OrderID, NotificationType, OrderNotification, SubmittedBy):
+def submit_order_notification(ORDERID, NOTIFICATION_TYPE, ORDER_NOTIFICATION, SUBMITTED_BY):
     current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = connect_to_db()
     if conn is None:
@@ -525,11 +539,11 @@ def submit_order_notification(OrderID, NotificationType, OrderNotification, Subm
     try:
         with conn.cursor() as cursor:
             submit_query=f"""
-            INSERT INTO DBA.Fact_XMesNotifications
-            (OrderID, NotificationType, OrderNotification, DateSubmitted, SubmittedBy)
+            INSERT INTO dbo.Fact_Xmes_Notifications
+            (ORDERID, NOTIFICATION_TYPE, ORDER_NOTIFICATION, DATE_SUBMITTED, SUBMITTED_BY)
             VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(submit_query, (OrderID, NotificationType, OrderNotification, current_date, SubmittedBy))
+            cursor.execute(submit_query, (ORDERID, NOTIFICATION_TYPE, ORDER_NOTIFICATION, current_date, SUBMITTED_BY))
             conn.commit()
             return "Success"
     except Exception as e:
@@ -558,8 +572,8 @@ def delete_order_notification(notificationID):
     try:
         with conn.cursor() as cursor:
             select_query="""
-            DELETE FROM dba.Fact_XMesNotifications
-            WHERE RowID = %s
+            DELETE FROM dbo.Fact_Xmes_Notifications
+            WHERE ROWID = %s
             """
             cursor.execute(select_query, (notificationID))
             conn.commit()
@@ -575,19 +589,19 @@ def delete_order_notification(notificationID):
 ############################################################
 
 
-async def get_not_scanned_parts(OrderID: str):
+async def get_not_scanned_parts(ORDERID: str):
     query = """
     SELECT
         vw.BARCODE,
         vw.INFO1 AS Description
     FROM
-        [dbo].[View_WIP] vw
+        dbo.View_Part_Data vw
     WHERE
         vw.ORDERID = %s
         AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
         AND NOT EXISTS (
             SELECT 1
-            FROM [DBA].[Fact_WIP] fw
+            FROM dbo.Fact_Machining_Scans fw
             WHERE fw.BARCODE = vw.BARCODE
             AND fw.RESOURCE IN ('SC1', 'SC2')
             AND fw.ORDERID = vw.ORDERID
@@ -597,7 +611,7 @@ async def get_not_scanned_parts(OrderID: str):
     try:
         conn = connect_to_db()
         cursor = conn.cursor(as_dict=True)
-        cursor.execute(query, (OrderID,))
+        cursor.execute(query, (ORDERID,))
         result = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -610,8 +624,8 @@ async def get_not_scanned_parts(OrderID: str):
     ############################################################
 
 
-async def get_not_scanned_byarea(OrderID: str, Resource: str):
-    work_group = WORK_STATION_GROUPS.get(Resource)
+async def get_not_scanned_byarea(ORDERID: str, RESOURCE: str):
+    work_group = WORK_STATION_GROUPS.get(RESOURCE)
     if not work_group:
         raise HTTPException(status_code=400, detail="Invalid work area")
     
@@ -624,22 +638,22 @@ async def get_not_scanned_byarea(OrderID: str, Resource: str):
             vw.BARCODE,
             vw.INFO1 AS Description
         FROM
-            [dbo].[View_WIP] vw
+            dbo.View_Part_Data vw
         WHERE
             vw.ORDERID = %s
             AND vw.INFO2 LIKE %s
             AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
             AND NOT EXISTS (
                 SELECT 1
-                FROM [DBA].[Fact_WIP] fw
+                FROM dbo.Fact_Machining_Scans fw
                 WHERE fw.BARCODE = vw.BARCODE
                 AND fw.RESOURCE LIKE %s
                 AND fw.ORDERID = vw.ORDERID
             )
         ORDER BY BARCODE
         """
-        formatted_resource = f'%{work_group}%'
-        cursor.execute(query, (OrderID, formatted_resource, Resource))
+        formatted_RESOURCE = f'%{work_group}%'
+        cursor.execute(query, (ORDERID, formatted_RESOURCE, RESOURCE))
         result = cursor.fetchall()       
         
         cursor.close()
@@ -654,9 +668,9 @@ async def get_not_scanned_byarea(OrderID: str, Resource: str):
 
 ############################################################
 
-async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
+async def get_not_scanned_bymachinegroup(ORDERID: str, RESOURCE: str):
     # This retrieves machine codes from groups, ensure this mapping is available and correct
-    group_members = [k for k, v in WORK_STATION_GROUPS.items() if v == Resource]
+    group_members = [k for k, v in WORK_STATION_GROUPS.items() if v == RESOURCE]
     if not group_members:
         raise HTTPException(status_code=400, detail="Invalid work area or group")
 
@@ -668,45 +682,45 @@ async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
         placeholders = ', '.join(['%s'] * len(group_members))
 
         query = f"""
-        WITH LatestResources AS (
+        WITH LatestRESOURCEs AS (
             SELECT
                 fw.BARCODE,
                 fw.RESOURCE,
-                fw.Timestamp,
+                fw.TIMESTAMP,
                 ROW_NUMBER() OVER (PARTITION BY fw.BARCODE ORDER BY fw.TIMESTAMP DESC) AS rn
             FROM
-                [DBA].[Fact_WIP] fw
+                dbo.Fact_Machining_Scans fw
         )
         SELECT
             vw.BARCODE,
             vw.CNC_BARCODE1,
             vw.INFO1 AS Description,
             vw.INFO2 AS Routing,
-            lr.RESOURCE AS LastResource,
-            lr.Timestamp 
+            lr.RESOURCE AS LastRESOURCE,
+            lr.TIMESTAMP 
         FROM
-            [dbo].[View_WIP] vw
+            dbo.View_Part_Data vw
         LEFT JOIN
-            LatestResources lr ON vw.BARCODE = lr.BARCODE AND lr.rn = 1
+            LatestRESOURCEs lr ON vw.BARCODE = lr.BARCODE AND lr.rn = 1
         WHERE
             vw.ORDERID = %s
             AND vw.INFO2 LIKE %s
             AND (vw.CNC_BARCODE1 IS NULL OR vw.CNC_BARCODE1 <> '')
             AND NOT EXISTS (
                 SELECT 1
-                FROM [DBA].[Fact_WIP] fw
+                FROM dbo.Fact_Machining_Scans fw
                 WHERE fw.BARCODE = vw.BARCODE
                 AND fw.RESOURCE IN ({placeholders})
                 AND fw.ORDERID = vw.ORDERID
             )
         ORDER BY BARCODE
         """
-        formatted_resource = f'%{Resource}%'
+        formatted_RESOURCE = f'%{RESOURCE}%'
         # Ensure that the parameters are in tuple form
-        parameters = tuple([OrderID, formatted_resource] + group_members)        
+        parameters = tuple([ORDERID, formatted_RESOURCE] + group_members)        
         
         cursor.execute(query, parameters)
-        print(Resource, parameters)
+        print(RESOURCE, parameters)
         result = cursor.fetchall()
         
     except Exception as e:
@@ -723,25 +737,25 @@ async def get_not_scanned_bymachinegroup(OrderID: str, Resource: str):
 ############################################################
 
 
-def generate_packlist(OrderID: str):
+def generate_packlist(ORDERID: str):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
     cursor = conn.cursor()
     try:        
         query = """
-        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME, f.Timestamp, v.INFO4, v.INFO3, v.CNC_BARCODE1, v.CUSTOMER
-        FROM dbo.View_WIP v
-        LEFT JOIN dba.Fact_WIP f 
+        SELECT v.BARCODE, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME, f.TIMESTAMP, v.INFO4, v.INFO3, v.CNC_BARCODE1, v.CUSTOMER
+        FROM dbo.View_Part_Data v
+        LEFT JOIN dbo.Fact_Machining_Scans f 
             ON v.BARCODE = f.BARCODE 
             AND f.ORDERID = v.ORDERID
-            AND f.Resource IN ('SC1', 'SC2')
+            AND f.RESOURCE IN ('SC1', 'SC2')
         WHERE v.ORDERID = %s
         AND v.BARCODE IS NOT NULL
         AND (v.CNC_BARCODE1 IS NULL OR v.CNC_BARCODE1 <> '')
         ORDER BY INFO4 DESC, INFO3;
         """
-        cursor.execute(query, (OrderID,))
+        cursor.execute(query, (ORDERID,))
         result = cursor.fetchall()
         print("Data fetched:", result)  # Debugging line
         customer_name = result[0][-1] if result else "No Customer"
@@ -758,7 +772,7 @@ def generate_packlist(OrderID: str):
 ############################################################
 
 
-def generate_packlist2(OrderID: str):
+def generate_packlist2(ORDERID: str):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
@@ -774,13 +788,13 @@ def generate_packlist2(OrderID: str):
             v.THICKNESS AS Height,
             v.MATNAME AS Material,  -- Material name
             MAX(v.CUSTOMER) AS CustomerName  -- Assuming customer name is in the same view
-        FROM dbo.View_WIP v
+        FROM dbo.View_Part_Data v
         WHERE v.ORDERID = %s
         GROUP BY
             v.INFO4, v.INFO1, v.LENGTH, v.WIDTH, v.THICKNESS, v.MATNAME
         ORDER BY v.INFO4 DESC, v.INFO1, v.MATNAME;
         """
-        cursor.execute(query, (OrderID,))
+        cursor.execute(query, (ORDERID,))
         result = cursor.fetchall()
         customer_name = result[0][-1] if result else "No Customer"
         return result, customer_name
@@ -796,7 +810,7 @@ def generate_packlist2(OrderID: str):
 
 
 
-def submit_defect(OrderID, DefectType, DefectDetails, DefectAction, EmployeeID, Resource, Barcode):
+def submit_defect(ORDERID, DEFECT_TYPE, DEFECT_DETAILS, DEFECT_ACTION, EMPLOYEEID, RESOURCE, BARCODE):
     current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = connect_to_db()
     if conn is None:
@@ -804,11 +818,11 @@ def submit_defect(OrderID, DefectType, DefectDetails, DefectAction, EmployeeID, 
     try:
         with conn.cursor() as cursor:
             submit_query=f"""
-            INSERT INTO [DBA].[Fact_Defects]
-            (OrderID, DefectType, DefectDetails, DefectAction, DateSubmitted, EmployeeID, Resource, Barcode)
+            INSERT INTO dbo.Fact_Defects
+            (ORDERID, DEFECT_TYPE, DEFECT_DETAILS, DEFECT_ACTION, DATE_SUBMITTED, EMPLOYEEID, RESOURCE, BARCODE)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(submit_query, (OrderID, DefectType, DefectDetails, DefectAction, current_date, EmployeeID, Resource, Barcode))
+            cursor.execute(submit_query, (ORDERID, DEFECT_TYPE, DEFECT_DETAILS, DEFECT_ACTION, current_date, EMPLOYEEID, RESOURCE, BARCODE))
             conn.commit()
             return "Success"
     except Exception as e:
@@ -834,23 +848,23 @@ def fetch_defect_list(order_id=None, defect_type=None, defect_action=None, work_
         raise Exception("Failed to connect to the database.")
     
     query=f"""
-            SELECT OrderID, DefectType, DefectDetails, DefectAction, DateSubmitted, EmployeeID, Resource, Barcode
-            FROM [DBA].[Fact_Defects]
+            SELECT ORDERID, DEFECT_TYPE, DEFECT_DETAILS, DEFECT_ACTION, DATE_SUBMITTED, EMPLOYEEID, RESOURCE, BARCODE
+            FROM dbo.Fact_Defects
             WHERE 1=1
             """
     params = []
     # Append conditions and parameters to the list as needed
     if order_id:
-        query += " AND OrderID = %s"
+        query += " AND ORDERID = %s"
         params.append(order_id)
     if defect_type:
-        query += " AND DefectType = %s"
+        query += " AND DEFECT_TYPE = %s"
         params.append(defect_type)
     if defect_action:
-        query += " AND DefectAction = %s"
+        query += " AND DEFECT_ACTION = %s"
         params.append(defect_action)
     if work_area:
-        query += " AND Resource = %s"
+        query += " AND RESOURCE = %s"
         params.append(work_area)
 
     try:
@@ -870,55 +884,55 @@ def fetch_defect_list(order_id=None, defect_type=None, defect_action=None, work_
 
 ############################################################
 
-def fetch_uptime_downtime(resource):
+def fetch_uptime_downtime(RESOURCE):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")    
     try:
         with conn.cursor() as cursor:
             query = """
-            DECLARE @resource NVARCHAR(50) = %s;
+            DECLARE @RESOURCE NVARCHAR(50) = %s;
             DECLARE @today DATE = CAST(GETDATE() AS DATE);
             DECLARE @gap INT = 15;
 
             WITH Scans AS (
                 SELECT
                     *,
-                    LAG(Timestamp) OVER (PARTITION BY Resource ORDER BY Timestamp) AS PrevTimestamp
+                    LAG(TIMESTAMP) OVER (PARTITION BY RESOURCE ORDER BY TIMESTAMP) AS PrevTimestamp
                 FROM
-                    [DBA].[Fact_WIP]
+                    dbo.Fact_Machining_Scans
                 WHERE
-                    Resource = @resource
-                    AND CAST(Timestamp AS DATE) = @today
+                    RESOURCE = @RESOURCE
+                    AND CAST(TIMESTAMP AS DATE) = @today
             ),
             Gaps AS (
                 SELECT
                     *,
                     CASE 
-                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) > @gap OR PrevTimestamp IS NULL THEN 1
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP) > @gap OR PrevTimestamp IS NULL THEN 1
                         ELSE 0
                     END AS IsGap,
-                    DATEDIFF(MINUTE, PrevTimestamp, Timestamp) AS GapDuration
+                    DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP) AS GapDuration
                 FROM
                     Scans
             ),
             GroupedScans AS (
                 SELECT
                     *,
-                    SUM(IsGap) OVER (ORDER BY Timestamp ROWS UNBOUNDED PRECEDING) AS GroupID
+                    SUM(IsGap) OVER (ORDER BY TIMESTAMP ROWS UNBOUNDED PRECEDING) AS GroupID
                 FROM
                     Gaps
             ),
             RunTimes AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     GroupID,
-                    MIN(Timestamp) AS StartTime,
-                    MAX(Timestamp) AS EndTime
+                    MIN(TIMESTAMP) AS StartTime,
+                    MAX(TIMESTAMP) AS EndTime
                 FROM
                     GroupedScans
                 GROUP BY
-                    Resource,
+                    RESOURCE,
                     GroupID
             ),
             Downtime AS (
@@ -941,7 +955,7 @@ def fetch_uptime_downtime(resource):
             FROM
                 RunTime R, Downtime D;
             """
-            cursor.execute(query, (resource))
+            cursor.execute(query, (RESOURCE))
             result = cursor.fetchall()        
             return result
     except Exception as e:
@@ -954,25 +968,25 @@ def fetch_uptime_downtime(resource):
 
 
 
-def connect_and_prepare_query(resources, start_date=None, end_date=None):
+def connect_and_prepare_query(RESOURCEs, start_date=None, end_date=None):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
     
-    resource_placeholders = ','.join(['%s'] * len(resources))
-    params = tuple(resources)
+    RESOURCE_placeholders = ','.join(['%s'] * len(RESOURCEs))
+    params = tuple(RESOURCEs)
 
     if start_date:
         params += (start_date,)
     if end_date:
         params += (end_date,)
 
-    return conn, resource_placeholders, params
+    return conn, RESOURCE_placeholders, params
 
 
 
-def fetch_uptime_all(resources, start_date=None, end_date=None):
-    conn, resource_placeholders, params = connect_and_prepare_query(resources, start_date, end_date)
+def fetch_uptime_all(RESOURCEs, start_date=None, end_date=None):
+    conn, RESOURCE_placeholders, params = connect_and_prepare_query(RESOURCEs, start_date, end_date)
     
     try:
         with conn.cursor() as cursor:
@@ -981,33 +995,33 @@ def fetch_uptime_all(resources, start_date=None, end_date=None):
 
             WITH Scans AS (
                 SELECT
-                    Resource,
-                    Timestamp,
-                    CAST(Timestamp AS DATE) AS ScanDate,
-                    LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+                    RESOURCE,
+                    TIMESTAMP,
+                    CAST(TIMESTAMP AS DATE) AS ScanDate,
+                    LAG(TIMESTAMP) OVER (PARTITION BY RESOURCE, CAST(TIMESTAMP AS DATE) ORDER BY TIMESTAMP) AS PrevTimestamp
                 FROM
-                    [DBA].[Fact_WIP]
+                    dbo.Fact_Machining_Scans
                 WHERE
-                    Resource IN ({resource_placeholders})
+                    RESOURCE IN ({RESOURCE_placeholders})
             """
 
             if start_date:
-                query += " AND CAST(Timestamp AS DATE) >= %s"
+                query += " AND CAST(TIMESTAMP AS DATE) >= %s"
                 params += (start_date,)
             if end_date:
-                query += " AND CAST(Timestamp AS DATE) <= %s"
+                query += " AND CAST(TIMESTAMP AS DATE) <= %s"
                 params += (end_date,)
 
             query += f"""
             ),
             Gaps AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
-                    Timestamp,
+                    TIMESTAMP,
                     PrevTimestamp,
                     CASE 
-                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP)
                         ELSE 0
                     END AS GapDuration
                 FROM
@@ -1015,26 +1029,26 @@ def fetch_uptime_all(resources, start_date=None, end_date=None):
             ),
             DailyUptime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
-                    SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, Timestamp) - GapDuration END) AS UptimeMinutes
+                    SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP) - GapDuration END) AS UptimeMinutes
                 FROM
                     Gaps
                 GROUP BY
-                    Resource,
+                    RESOURCE,
                     ScanDate
             ),
             TotalUptime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     SUM(UptimeMinutes) AS TotalUptimeMinutes
                 FROM
                     DailyUptime
                 GROUP BY
-                    Resource
+                    RESOURCE
             )
             SELECT
-                Resource,
+                RESOURCE,
                 TotalUptimeMinutes
             FROM
                 TotalUptime
@@ -1050,8 +1064,8 @@ def fetch_uptime_all(resources, start_date=None, end_date=None):
 
 
 
-def fetch_downtime_all(resources, start_date=None, end_date=None):
-    conn, resource_placeholders, params = connect_and_prepare_query(resources, start_date, end_date)
+def fetch_downtime_all(RESOURCEs, start_date=None, end_date=None):
+    conn, RESOURCE_placeholders, params = connect_and_prepare_query(RESOURCEs, start_date, end_date)
     
     try:
         with conn.cursor() as cursor:
@@ -1060,31 +1074,31 @@ def fetch_downtime_all(resources, start_date=None, end_date=None):
 
             WITH Scans AS (
                 SELECT
-                    Resource,
-                    Timestamp,
-                    CAST(Timestamp AS DATE) AS ScanDate,
-                    LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+                    RESOURCE,
+                    TIMESTAMP,
+                    CAST(TIMESTAMP AS DATE) AS ScanDate,
+                    LAG(TIMESTAMP) OVER (PARTITION BY RESOURCE, CAST(TIMESTAMP AS DATE) ORDER BY TIMESTAMP) AS PrevTimestamp
                 FROM
-                    [DBA].[Fact_WIP]
+                    dbo.Fact_Machining_Scans
                 WHERE
-                    Resource IN ({resource_placeholders})
+                    RESOURCE IN ({RESOURCE_placeholders})
             """
 
             if start_date:
-                query += " AND CAST(Timestamp AS DATE) >= %s"
+                query += " AND CAST(TIMESTAMP AS DATE) >= %s"
                 params += (start_date,)
             if end_date:
-                query += " AND CAST(Timestamp AS DATE) <= %s"
+                query += " AND CAST(TIMESTAMP AS DATE) <= %s"
                 params += (end_date,)
 
             query += f"""
             ),
             Gaps AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
                     CASE 
-                        WHEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, Timestamp)
+                        WHEN DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP) >= @gap THEN DATEDIFF(MINUTE, PrevTimestamp, TIMESTAMP)
                         ELSE 0
                     END AS GapDuration
                 FROM
@@ -1092,26 +1106,26 @@ def fetch_downtime_all(resources, start_date=None, end_date=None):
             ),
             DailyDowntime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
                     SUM(GapDuration) AS DowntimeMinutes
                 FROM
                     Gaps
                 GROUP BY
-                    Resource,
+                    RESOURCE,
                     ScanDate
             ),
             TotalDowntime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     SUM(DowntimeMinutes) AS TotalDowntimeMinutes
                 FROM
                     DailyDowntime
                 GROUP BY
-                    Resource
+                    RESOURCE
             )
             SELECT
-                Resource,
+                RESOURCE,
                 TotalDowntimeMinutes
             FROM
                 TotalDowntime
@@ -1131,19 +1145,19 @@ def fetch_downtime_all(resources, start_date=None, end_date=None):
 
 
 
-def fetch_last_scan(resource):
+def fetch_last_scan(RESOURCE):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")    
     try:
         cursor = conn.cursor()
         query = """
-        SELECT TOP 1 Barcode, EmployeeID, Timestamp
-        FROM [DBA].[Fact_WIP]
-        WHERE Resource = %s
-        ORDER BY Timestamp DESC;
+        SELECT TOP 1 BARCODE, EMPLOYEEID, TIMESTAMP
+        FROM dbo.Fact_Machining_Scans
+        WHERE RESOURCE = %s
+        ORDER BY TIMESTAMP DESC;
         """
-        cursor.execute(query, (resource))
+        cursor.execute(query, (RESOURCE))
         result = cursor.fetchone()
         if result:
             return {
@@ -1161,7 +1175,7 @@ def fetch_last_scan(resource):
 
 
 
-def fetch_joblist_daterange(resource, start_date, end_date):
+def fetch_joblist_daterange(RESOURCE, start_date, end_date):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
@@ -1169,12 +1183,12 @@ def fetch_joblist_daterange(resource, start_date, end_date):
         cursor = conn.cursor()
         query = """
         SELECT DISTINCT ORDERID
-        FROM [DBA].[Fact_WIP]
-        WHERE Resource = %s
+        FROM dbo.Fact_Machining_Scans
+        WHERE RESOURCE = %s
             AND Timestamp > %s AND Timestamp < %s
-        ORDER BY OrderID
+        ORDER BY ORDERID
         """
-        cursor.execute(query, (resource, start_date, end_date))
+        cursor.execute(query, (RESOURCE, start_date, end_date))
         results = cursor.fetchall() 
         return results
     except Exception as e:
@@ -1191,24 +1205,24 @@ def fetch_joblist_daterange(resource, start_date, end_date):
 
 
 
-def connect_and_prepare_query(resources, start_date=None, end_date=None):
+def connect_and_prepare_query(RESOURCEs, start_date=None, end_date=None):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
     
-    resource_placeholders = ','.join(['%s'] * len(resources))
-    params = tuple(resources)
+    RESOURCE_placeholders = ','.join(['%s'] * len(RESOURCEs))
+    params = tuple(RESOURCEs)
 
     if start_date:
         params += (start_date,)
     if end_date:
         params += (end_date,)
 
-    return conn, resource_placeholders, params
+    return conn, RESOURCE_placeholders, params
 
 
 
-def fetch_runtime_machines(orderid):
+def fetch_runtime_machines(ORDERID):
     conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to database.")
@@ -1223,8 +1237,8 @@ def fetch_runtime_machines(orderid):
 
     # Get all machines
     all_machines = list(WORK_STATION_GROUPS.keys())
-    resource_placeholders = ','.join(['%s'] * len(all_machines))
-    params = tuple(all_machines) + (orderid,)
+    RESOURCE_placeholders = ','.join(['%s'] * len(all_machines))
+    params = tuple(all_machines) + (ORDERID,)
 
     try:
         with conn.cursor() as cursor:
@@ -1239,19 +1253,19 @@ def fetch_runtime_machines(orderid):
             ),
             Scans AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     Timestamp,
                     CAST(Timestamp AS DATE) AS ScanDate,
-                    LAG(Timestamp) OVER (PARTITION BY Resource, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
+                    LAG(Timestamp) OVER (PARTITION BY RESOURCE, CAST(Timestamp AS DATE) ORDER BY Timestamp) AS PrevTimestamp
                 FROM
-                    [DBA].[Fact_WIP]
+                    dbo.Fact_Machining_Scans
                 WHERE
-                    Resource IN ({resource_placeholders})
-                    AND OrderID = %s
+                    RESOURCE IN ({RESOURCE_placeholders})
+                    AND ORDERID = %s
             ),
             Gaps AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
                     Timestamp,
                     PrevTimestamp,
@@ -1264,39 +1278,39 @@ def fetch_runtime_machines(orderid):
             ),
             DailyUptime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     ScanDate,
                     SUM(CASE WHEN PrevTimestamp IS NULL THEN 0 ELSE DATEDIFF(MINUTE, PrevTimestamp, Timestamp) - GapDuration END) AS UptimeMinutes
                 FROM
                     Gaps
                 GROUP BY
-                    Resource,
+                    RESOURCE,
                     ScanDate
             ),
             TotalUptime AS (
                 SELECT
-                    Resource,
+                    RESOURCE,
                     SUM(UptimeMinutes) AS MachineTime
                 FROM
                     DailyUptime
                 GROUP BY
-                    Resource
+                    RESOURCE
             ),
             WorkGroupUptime AS (
                 SELECT
-                    ISNULL(MG.WorkGroup, TU.Resource) AS WorkGroup,
+                    ISNULL(MG.WorkGroup, TU.RESOURCE) AS WorkGroup,
                     SUM(TU.MachineTime) AS MachineTime
                 FROM
                     TotalUptime TU
                 LEFT JOIN
                     MachineGroups MG
                 ON
-                    TU.Resource = MG.Machine
+                    TU.RESOURCE = MG.Machine
                 GROUP BY
-                    ISNULL(MG.WorkGroup, TU.Resource)
+                    ISNULL(MG.WorkGroup, TU.RESOURCE)
             )
             SELECT
-                WorkGroup AS Resource,
+                WorkGroup AS RESOURCE,
                 MachineTime
             FROM
                 WorkGroupUptime
@@ -1304,7 +1318,7 @@ def fetch_runtime_machines(orderid):
             UNION ALL
 
             SELECT
-                'Total' AS Resource,
+                'Total' AS RESOURCE,
                 SUM(MachineTime) AS MachineTime
             FROM
                 WorkGroupUptime;
@@ -1325,7 +1339,7 @@ def fetch_runtime_machines(orderid):
 
 
 
-def fetch_parts_in_article(barcode, loadAll):
+def fetch_parts_in_article(BARCODE, loadAll):
     """
     1) If the scanned part (or any ancestor) belongs to a sub-assembly that requires assembly
        (i.e., a parent with INFO2 == 'SAZ'), return ONLY that sub-assembly's children.
@@ -1339,7 +1353,7 @@ def fetch_parts_in_article(barcode, loadAll):
     If loadAll is False, we skip the filtering logic and simply return the single scanned part.
     """
 
-    conn = connect_to_db2()
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
 
@@ -1359,15 +1373,15 @@ def fetch_parts_in_article(barcode, loadAll):
             FROM dbo.Part p
             WHERE p.BARCODE = %s
         """
-        cursor.execute(scanned_query, (barcode,))
+        cursor.execute(scanned_query, (BARCODE,))
         scanned_row = cursor.fetchone()
 
         if not scanned_row:
-            return {"message": "No part found for that barcode."}
+            return {"message": "No part found for that BARCODE."}
 
         order_id, article_id, scanned_id, scanned_info2, scanned_parentid = scanned_row
         if not article_id:
-            return {"message": "No article data available for the provided barcode."}
+            return {"message": "No article data available for the provided BARCODE."}
 
         scanned_info2 = (scanned_info2 or "").upper()
 
@@ -1393,12 +1407,12 @@ def fetch_parts_in_article(barcode, loadAll):
                     AND p.ARTICLE_ID = a.ID                
                 WHERE p.BARCODE = %s
             """
-            cursor.execute(single_part_query, (barcode, ))
+            cursor.execute(single_part_query, (BARCODE, ))
             columns = [desc[0] for desc in cursor.description]
             single_row = cursor.fetchone()
 
             if not single_row:
-                return {"message": "No part data found for the provided barcode."}
+                return {"message": "No part data found for the provided BARCODE."}
 
             part_data = dict(zip(columns, single_row))
             # You can add or remove fields here if you like, or join Article for CabinetNumber
@@ -1538,7 +1552,7 @@ def fetch_parts_in_article(barcode, loadAll):
 
 def fetch_used_article(identifier):
     try:
-        conn = connect_to_db2()
+        conn = connect_to_db()
         if conn is None:
             raise Exception("Failed to connect to the database.")
         
@@ -1573,19 +1587,19 @@ def fetch_used_article(identifier):
 ###################################################
 
 
-def check_parts_exist_in_db(barcodes):
+def check_parts_exist_in_db(BARCODEs):
     try:
-        conn = connect_to_db2()
+        conn = connect_to_db()
         if conn is None:
             raise Exception("Failed to connect to the database.")
 
         cursor = conn.cursor()
-        query = f"SELECT BARCODE FROM dbo.Fact_Part_Usage WHERE BARCODE IN ({','.join(['%s'] * len(barcodes))})"
-        cursor.execute(query, tuple(barcodes))
-        existing_barcodes = {row[0] for row in cursor.fetchall()}
+        query = f"SELECT BARCODE FROM dbo.Fact_Part_Usage WHERE BARCODE IN ({','.join(['%s'] * len(BARCODEs))})"
+        cursor.execute(query, tuple(BARCODEs))
+        existing_BARCODEs = {row[0] for row in cursor.fetchall()}
 
         conn.close()
-        return existing_barcodes
+        return existing_BARCODEs
     except Exception as e:
         raise e
     finally:
@@ -1596,7 +1610,7 @@ def check_parts_exist_in_db(barcodes):
 
 
 def submit_parts_usage(parts, timestamp):
-    conn = connect_to_db2()
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
 
@@ -1638,7 +1652,7 @@ def submit_parts_usage(parts, timestamp):
 
  
 def start_article_time(article:ArticleTimeData, timestamp: datetime):
-    conn = connect_to_db2()
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
 
@@ -1710,7 +1724,7 @@ def start_article_time(article:ArticleTimeData, timestamp: datetime):
 
  
 def stop_article_time(article: ArticleTimeData, timestamp: datetime):
-    conn = connect_to_db2()
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
 
@@ -1794,7 +1808,7 @@ def stop_article_time(article: ArticleTimeData, timestamp: datetime):
 
 
 def complete_article_time(article: ArticleTimeData, timestamp: datetime):
-    conn = connect_to_db2()
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
     
@@ -1895,8 +1909,8 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
 
 
 
-def check_part_status(barcode):
-    conn = connect_to_db2()
+def check_part_status(BARCODE):
+    conn = connect_to_db()
     if conn is None:
         raise Exception("Failed to connect to the database.")
     
@@ -1908,7 +1922,7 @@ def check_part_status(barcode):
         FROM dbo.Fact_Part_Usage
         WHERE BARCODE = %s
         """
-        cursor.execute(check_part_usage_query, (barcode,))
+        cursor.execute(check_part_usage_query, (BARCODE,))
         part_record = cursor.fetchone() 
 
         if not part_record:
@@ -1960,4 +1974,106 @@ def check_part_status(barcode):
         conn.close()
 
 
- 
+
+###################################################
+
+
+
+
+# def fetch_assembly_job_status(ORDERID):
+#     conn = connect_to_db()
+#     if conn is None:
+#         raise Exception("Failed to connect to the database.")
+    
+#     cursor = conn.cursor()
+#     try:
+#         query = """
+#         SELECT ORDERID, NAME, INFO1, INFO2, INFO3, ARTICLE_ID
+#         FROM dbo.Article
+#         WHERE ORDERID = %s
+#         """
+#         cursor.execute(query, (ORDERID,))
+#         result = cursor.fetchall()
+
+#         return result
+#     except Exception as e:
+#         conn.rollback()
+#         raise e
+#     finally:
+#         conn.close
+        
+
+
+def fetch_assembly_job_status(ORDERID: str):
+    """
+    Fetch the assembly job status from the database.
+    """
+    conn = connect_to_db()
+    if conn is None:
+        raise ValueError("Failed to connect to the database.")
+    
+    cursor = conn.cursor()
+    try:
+        # Fetch articles with routing info
+        query = """
+        SELECT ORDERID, NAME, INFO1, INFO2, INFO3, ARTICLE_ID
+        FROM dbo.Article
+        WHERE ORDERID = %s
+        """
+        cursor.execute(query, (ORDERID,))
+        articles = cursor.fetchall()
+
+        result = []
+        
+        for article in articles:
+            order_id, name, info1, info2, info3, article_id = article
+            
+            # Generate ARTICLE_IDENTIFIER (ORDERID_ARTICLE_ID)
+            article_identifier = f"{order_id}_{article_id}"
+            
+            # Extract valid routing steps from INFO2
+            routing_steps = [ws for ws in ASSEMBLY_WORK_STATIONS if ws and ws in info2]
+            total_operations = len(routing_steps)
+
+            if total_operations == 0:
+                completion_percentage = "0%"
+                completed_steps = 0
+            else:
+                # Dynamically format SQL with placeholders
+                placeholders = ", ".join(["%s"] * len(routing_steps))
+                sql_query = f"""
+                    SELECT COUNT(DISTINCT RESOURCE) 
+                    FROM dbo.Fact_Assembly_Time_Tracking 
+                    WHERE ARTICLE_IDENTIFIER = %s 
+                    AND RESOURCE IN ({placeholders}) 
+                    AND STATUS = 'complete'
+                """
+                
+                # Execute query with parameters (ARTICLE_IDENTIFIER first, then routing steps)
+                cursor.execute(sql_query, (article_identifier, *routing_steps))
+                
+                completed_steps = cursor.fetchone()[0] or 0
+                
+                # Calculate completion percentage
+                completion_percentage = f"{round((completed_steps / total_operations) * 100, 2)}%"
+
+            result.append({
+                "ORDERID": order_id,
+                "NAME": name,
+                "INFO1": info1,
+                "INFO2": info2,
+                "INFO3": info3,
+                "ARTICLE_ID": article_id,
+                "Completed_Steps": completed_steps,
+                "Total_Operations": total_operations,
+                "Completion_Percentage": completion_percentage
+            })
+
+        return result
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()

@@ -271,6 +271,25 @@ function populateWorkAreas() {
         .catch(error => console.error('Error fetching work stations:', error));
 }
 
+function populateAssemblyWorkAreas() {
+    fetch('/api/assembly-work-stations')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('work-area');
+            if (select) {
+                // Clear existing options before adding new ones
+                select.innerHTML = '';
+                data.forEach(station => {
+                    let option = new Option(station, station);
+                    select.add(option);
+                });
+            } else {
+                console.log('Work area select element not found');
+            }
+        })
+        .catch(error => console.error('Error fetching work stations:', error));
+}
+
 function populateDefectTypes() {
     fetch('/api/defect-types')
         .then(response => response.json())
