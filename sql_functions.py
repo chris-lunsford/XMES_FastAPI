@@ -1975,33 +1975,8 @@ def check_part_status(BARCODE):
 
 
 
-###################################################
-
-
-
-
-# def fetch_assembly_job_status(ORDERID):
-#     conn = connect_to_db()
-#     if conn is None:
-#         raise Exception("Failed to connect to the database.")
-    
-#     cursor = conn.cursor()
-#     try:
-#         query = """
-#         SELECT ORDERID, NAME, INFO1, INFO2, INFO3, ARTICLE_ID
-#         FROM dbo.Article
-#         WHERE ORDERID = %s
-#         """
-#         cursor.execute(query, (ORDERID,))
-#         result = cursor.fetchall()
-
-#         return result
-#     except Exception as e:
-#         conn.rollback()
-#         raise e
-#     finally:
-#         conn.close
-        
+####################################################
+   
 
 
 def fetch_assembly_job_status(ORDERID: str):

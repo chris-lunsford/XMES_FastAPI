@@ -69,6 +69,11 @@ async function clearPartTable() {
     
     const tableBody = document.getElementById('table-body');
 
+    // const assemblyStatus = table.dataset.assemblyStatus || "no record";
+    // const articleStatus = table.dataset.articleStatus || "none";
+
+    // table.dataset.articleStatus = data.article_status || "none";
+
     try {
         // Confirm with the user before clearing the table
         const confirmation = confirm("Are you sure you want to clear the table?");
@@ -77,6 +82,10 @@ async function clearPartTable() {
             while (tableBody.firstChild) {
                 tableBody.removeChild(tableBody.firstChild);
             }
+            // Clear the assembly and article status from dataset
+            tableBody.dataset.articleStatus = "";
+            tableBody.dataset.assemblyStatus = "";
+
             console.log("Table cleared successfully.");
             // alert("The table has been cleared.");
             resetButtonStates();
@@ -148,6 +157,11 @@ async function fetchAndAddParts() {
 
         if (!Array.isArray(parts)) {
             parts = [parts];
+        }
+
+        // 🚨 Only keep the scanned part if it's "used" and the table is NOT empty
+        if (statusData.part_status === "used" && !tableIsEmpty) {
+            parts = parts.filter(part => part.BARCODE === barcode);
         }
 
         if (parts.length === 0) {
@@ -553,15 +567,6 @@ async function processBarcodeInput(barcodeInput) {
         return;
     }
 
-    // try {
-    //     await handleBarcodeScan_to_DB(); // Wait for the DB operation to complete
-    //     updatePartCountsOnScan();        // Then update parts counts
-    //     updateEEJobListDay();            // Update other UI elements
-    //     updateAreaProgressBar();
-    //     document.activeElement.blur();
-    // } catch (error) {
-    //     console.error('Failed to process barcode input:', error);
-    // }
 }
 
 
@@ -583,106 +588,19 @@ function handleDynamicInputs(event) {
     if (event.target.id === 'barcode' && event.target.value.length === 12) {
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
-        // fetchOrderTotalCount(orderIDField.value);        
-
-        // if (workArea && workArea !== '') {
-        //     fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);                        
-        // } else {
-        //     console.log("Work Area not selected");
-        // }
     }
-
-    // Listen for changes in 'employee-id' or 'work-area' elements
-    // if (event.target.id === 'employee-id' && employeeID.length === 4|| event.target.id === 'work-area') {
-    //     updatePartCountsOnInputs(employeeID, workArea);
-
-    //     if (orderID && orderID.length === 8 && workArea && workArea !== "" && employeeID) {
-    //         fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-    //         // fetchOrderTotalAreaCount(orderID, workArea);
-    //     }else if (orderID && orderID.length === 8 && workArea && workArea !== "") {
-    //         // fetchOrderTotalAreaCount(orderID, workArea);
-    //     }
-    // } else if (event.target.id === 'employee-id' && employeeID.length != 0) {
-    //     resetEmployeeData();
-    // }
 
     // Handle OrderID input and Resource & Order input together for proper validation
     if (event.target.id === 'order-id' && orderID.length === 8) {
         fetchJobNotifications(orderID);
-        // fetchOrderTotalCount(orderID);
-
-        // Verify that the work area has a valid selection
-        // if (workArea && workArea !== "") {
-        //     // fetchOrderTotalAreaCount(orderID, workArea);
-        //     updateAreaProgressBar();
-        // } else {
-        //     console.log("Order ID or Work Area is not properly selected.");
-        //     // Optionally, alert the user or handle the error in the UI
-        // }
-
-        // if (employeeID) {
-        //     fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-        // }
     } else if (event.target.id === 'order-id' && orderID.length != 0) {
         resetNotifications()
         resetMissingPartsTable()
     }
-
-    // if (event.target.id === 'work-area' && workArea !== '') {
-    //     if (orderID && orderID.length === 8) {
-    //         // fetchOrderTotalAreaCount(orderID, workArea);
-    //         // updateAreaProgressBar()
-    //     } else {
-    //         console.log("Order ID or Work Area is not properly selected.");
-    //         // Optionally, alert the user or handle the error in the UI
-    //     }
-    // }
 }
 
 
-// function updatePartCountsOnInputs(employeeID, workArea) {
-//     if (employeeID.length === 4) {
-//         if (workArea) {
-//             fetchAreaPartsCount(employeeID, workArea);
-//             fetchEETotalPartsCount(employeeID);
-//             fetchEEJobListDay(employeeID);
-//         } else {
-//             fetchEETotalPartsCount(employeeID);
-//             fetchEEJobListDay(employeeID);
-//         }
-//         if (!workArea) {
-//             document.getElementById('partcount-area').textContent = 0;
-//         }
-//     }
-// }
 
-
-
-// function updatePartCountsOnScan() {
-//     const employeeID = document.getElementById('employee-id').value;
-//     const workAreaSelect = document.getElementById('work-area');
-//     const workArea = workAreaSelect.value;
-//     const orderID = document.getElementById('order-id').value.trim();
-//     fetchAreaPartsCount(employeeID, workArea);
-//     fetchEETotalPartsCount(employeeID);
-//     fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-
-// }
-
-// function updateEEJobListDay() {
-//     const employeeID = document.getElementById('employee-id').value;
-//     fetchEEJobListDay(employeeID)
-// }
-
-
-// Event handler for fetching parts not scanned by shipping
-// function handleFetchPartsNotScanned() {
-//     const orderID = document.getElementById('order-id').value.trim();
-//     const workAreaField = document.getElementById('work-area').value;
-//     if (orderID) {
-//         fetchPartsNotScanned(orderID, workAreaField);  // This function will be defined in global.js
-//     }
-// }
 
 function resetBarcodeField() {
     console.log("Resetting barcode field")
@@ -700,24 +618,7 @@ function resetNotifications() {
 }
 }
 
-// function resetMissingPartsTable() {
-//     console.log("Resetting missing parts table for invalid or no order ID");
 
-//     const tableBody = document.getElementById('table-body');
-//         if (tableBody) {
-//             tableBody.innerHTML = '';
-//         }
-// }
-
-// function resetEmployeeData() {
-//     console.log("Resetting employee data")
-//     const jobListContainer = document.querySelector('.job-list');
-    
-//     document.getElementById('ordercount-area').textContent = '0';
-//     jobListContainer.innerHTML = ''
-//     document.getElementById('partcount-emp').textContent = '0';
-//     document.getElementById('partcount-area').textContent = '0';
-// }
 
 
 function handleReportDefect() {
@@ -827,53 +728,6 @@ function handleSubmitButton(event) {
     }
 }
 
-
-
-async function updateAreaProgressBar() {
-    console.log("Updating progress bar");
-    const orderIDField = document.getElementById('order-id');
-    const workAreaSelect = document.getElementById('work-area');
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-
-    const orderID = orderIDField ? orderIDField.value : null;
-    const workArea = workAreaSelect ? workAreaSelect.value : null;
-
-    try {
-        // Ensure both promises are awaited properly
-        const partCountResponse = await fetchOrderTotalAreaCount(orderID, workArea);
-        const currentCountResponse = await fetchMachineGroupScanCount(orderID, workArea);
-
-        const partCount = partCountResponse.area_total_count; // Assuming the response has this structure
-        const currentCount = currentCountResponse.order_machinegroup_scan_count; // Assuming the response has this structure
-
-        console.log(`Part count: ${partCount}, Current count: ${currentCount}`);
-
-        if (partCount > 0 && currentCount !== undefined) {
-            const percentComplete = (currentCount / partCount) * 100;
-            progressBar.value = percentComplete;
-            progressText.textContent = `${Math.round(percentComplete)}%`;
-
-            console.log(`Progress bar updated to ${Math.round(percentComplete)}% completion.`);
-
-            if (Math.round(percentComplete) === 100) {
-                progressBar.classList.add('complete');
-            } else {
-                progressBar.classList.remove('complete');
-            }
-        } else {
-            progressBar.value = 0;
-            progressText.textContent = "0%";
-            progressBar.classList.remove('complete');
-            console.log("No parts to count, progress bar reset.");
-        }
-    } catch (error) {
-        console.error("Failed to update progress bar:", error);
-        progressBar.value = 0;
-        progressText.textContent = "0%";
-        progressBar.classList.remove('complete');
-    }
-}
 
 
 
@@ -1246,47 +1100,58 @@ async function completeArticle() {
 //
 async function updateButtonStates(barcode) {
     try {
-      if (!barcode || barcode.trim() === "") {
-        console.warn("updateButtonStates: No barcode provided.");
-        return;
-      }
-  
-      const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-      }
-  
-      const data = await response.json();
-      console.log("Part Status Response:", data);
-
-      // ▼ Store the assembly status on the table body
-      const table = document.getElementById("table-body");
-      table.dataset.assemblyStatus = data.assembly_status || "no record";
-      table.dataset.articleStatus = data.article_status || "none";
+        if (!barcode || barcode.trim() === "") {
+            console.warn("updateButtonStates: No barcode provided.");
+            return;
+        }
     
-      const startButton = document.getElementById("start-article-button");
-      const stopButton = document.getElementById("stop-article-button");
-      const completeButton = document.getElementById("complete-article-button");
-  
-      // We'll use the shared setButtonState helper
-      setButtonState(startButton, false);
-      setButtonState(stopButton, false);
-      setButtonState(completeButton, false);
-  
-      // If the article is complete, disable all
-      if (data.article_status === "complete") {
-        console.log("Article is complete. All buttons disabled.");
-        // Now let the table logic run. (It likely will keep the Start button disabled anyway.)
-        updateStartButtonState();
-        updateAssemblyStatus();
-        return;
-      }
+        const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+        }
+    
+        const data = await response.json();
+        console.log("Part Status Response:", data);
+
+        // ▼ Store the assembly status on the table body
+        const table = document.getElementById("table-body");
+        const currentAssemblyStatus = table.dataset.assemblyStatus || "no record";
+        const newAssemblyStatus = data.assembly_status || "no record";
+
+        // 🚀 Allow updating only if status is blank or process-related changes occur
+        const isProcessStatusChange = ["running", "stopped", "complete"].includes(newAssemblyStatus);
+
+        if (currentAssemblyStatus === "no record" || currentAssemblyStatus === "" || isProcessStatusChange) {
+            table.dataset.assemblyStatus = newAssemblyStatus;
+            table.dataset.articleStatus = data.article_status || "none";
+            console.log("Updating cab-status:", newAssemblyStatus);
+        } else {
+            console.log("Table is populated, keeping existing cab-status:", currentAssemblyStatus);
+        }
+    
+        const startButton = document.getElementById("start-article-button");
+        const stopButton = document.getElementById("stop-article-button");
+        const completeButton = document.getElementById("complete-article-button");
+    
+        // We'll use the shared setButtonState helper
+        setButtonState(startButton, false);
+        setButtonState(stopButton, false);
+        setButtonState(completeButton, false);
+    
+        // If the article is complete, disable all
+        if (data.article_status === "complete") {
+            console.log("Article is complete. All buttons disabled.");
+            // Now let the table logic run. (It likely will keep the Start button disabled anyway.)
+            updateStartButtonState();
+            updateAssemblyStatus();
+            return;
+        }
   
       // For "new" or "used", we won't unilaterally enable the Start button here.
       // Instead, we'll rely on updateStartButtonState to do so if the table logic is okay.
       // We only set STOP/COMPLETE if needed:
   
-      if (data.part_status === "used") {
+    if (data.part_status === "used") {
         if (data.assembly_status === "running") {
           // Part is used and assembly is running => enable STOP
           setButtonState(stopButton, true, "button-stop-enabled");
@@ -1296,7 +1161,7 @@ async function updateButtonStates(barcode) {
         }
         // If data.assembly_status === "no record" => no special action for stop/complete
         // The Start logic is still delegated to the local table logic below
-      }
+    }
   
       // Finally, we let our local table logic handle the Start button:
       updateStartButtonState();
@@ -1357,6 +1222,10 @@ function updateStartButtonState() {
         return;
     }
 
+    // If the article is stopped, allow re-evaluating whether Start should be enabled
+    const isStopped = assemblyStatus === "stopped";
+
+
     // Note: If it's "stopped," we do NOT short-circuit here,
     // so the local table logic below can re-enable Start if appropriate.
 
@@ -1390,33 +1259,39 @@ function updateStartButtonState() {
         }
     });
 
-    // Rule A: If there's a mix of new and used, disable the Start button.
+    // Rule A: If there's a mix of new and used, only allow Start if the cabinet was stopped
     if (usedCount > 0 && newCount > 0) {
-        setButtonState(startButton, false);
+        if (isStopped && allNewChecked) {
+            console.log("Cabinet was stopped, allowing Start even with mixed parts.");
+            setButtonState(startButton, true);
+        } else {
+            console.log("Mix of new and used parts detected. Preventing Start.");
+            setButtonState(startButton, false);
+        }
         return;
-}
-
-// Rule B: If all parts are new, only enable if all checkboxes are checked
-if (usedCount === 0) {
-    // Because usedCount === 0, everything is new
-    if (allNewChecked) {
-    setButtonState(startButton, true);
-    } else {
-    setButtonState(startButton, false);
     }
-    return;
-}
 
-// Rule C: If all parts are used, check if they share the same usedArticleId
-if (usedCount === rows.length) {
-    if (usedArticles.size > 1) {
-    setButtonState(startButton, false);
-    } else {
-    const [usedArticleId] = Array.from(usedArticles);
-    setButtonState(startButton, (usedArticleId !== "UNKNOWN"));
+    // Rule B: If all parts are new, only enable if all checkboxes are checked
+    if (usedCount === 0) {
+        // Because usedCount === 0, everything is new
+        if (allNewChecked) {
+        setButtonState(startButton, true);
+        } else {
+        setButtonState(startButton, false);
+        }
+        return;
     }
-    return;
-}
+
+    // Rule C: If all parts are used, check if they share the same usedArticleId
+    if (usedCount === rows.length) {
+        if (usedArticles.size > 1) {
+        setButtonState(startButton, false);
+        } else {
+        const [usedArticleId] = Array.from(usedArticles);
+        setButtonState(startButton, (usedArticleId !== "UNKNOWN"));
+        }
+        return;
+    }
 
 // Fallback: disable
 setButtonState(startButton, false);
@@ -1440,29 +1315,3 @@ function updateAssemblyStatus() {
 }
 
 
-
-// function updateStartButtonState() {
-//     const tableBody = document.getElementById('table-body');
-//     const checkboxes = tableBody.querySelectorAll('input[type="checkbox"]');
-//     const startButton = document.getElementById('start-article-button');
-    
-//     // Check if every checkbox is checked
-//     let allChecked = true;
-//     checkboxes.forEach(checkbox => {
-//         if (!checkbox.checked) {
-//             allChecked = false;
-//         }
-//     });
-    
-//     // Enable the start button only if all checkboxes are checked
-//     startButton.disabled = !allChecked;
-    
-//     // Optionally update CSS classes for visual feedback
-//     if (allChecked) {
-//         startButton.classList.remove('button-disabled');
-//         startButton.classList.add('button-enabled');
-//     } else {
-//         startButton.classList.remove('button-enabled');
-//         startButton.classList.add('button-disabled');
-//     }
-// }
