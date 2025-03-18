@@ -855,7 +855,7 @@ async function submitParts() {
         let partsSubmitted = false;
         let isSubAssembly = false;
 
-        // ✅ Check if ANY part belongs to a sub-assembly
+        // Check if ANY part belongs to a sub-assembly
         if (newParts.length > 0) {
             const firstBarcode = newParts[0].Barcode; // Check the first barcode only
             const partCheckResponse = await fetch(`/api/fetch-parts-in-article?barcode=${firstBarcode}&loadAll=true`);
@@ -865,10 +865,10 @@ async function submitParts() {
             }
 
             const partCheckData = await partCheckResponse.json();
-            isSubAssembly = partCheckData.is_sub_assembly; // ✅ Check global sub-assembly flag
+            isSubAssembly = partCheckData.is_sub_assembly; // Check global sub-assembly flag
         }
 
-        // ✅ If there are new parts, submit them
+        // If there are new parts, submit them
         if (newParts.length > 0) {
             const payload = newParts.map(part => ({
                 Barcode: part.Barcode,
@@ -902,7 +902,7 @@ async function submitParts() {
             console.log("All parts were already submitted.");
         }
 
-        // ✅ If it's NOT a sub-assembly, start article time
+        // If it's NOT a sub-assembly, start article time
         if (!isSubAssembly) {
             const startArticlePayload = {
                 ARTICLE_IDENTIFIER: formData.Used_Identifier, 
@@ -921,7 +921,7 @@ async function submitParts() {
             });
 
             if (!startArticleResponse.ok) {
-                // ✅ Handle warning case when a start scan already exists
+                // Handle warning case when a start scan already exists
                 const errorData = await startArticleResponse.json();
                 if (startArticleResponse.status === 400) {
                     console.warn(`Start article time warning: ${errorData.detail}`);
