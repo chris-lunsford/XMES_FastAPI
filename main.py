@@ -539,6 +539,15 @@ async def handle_check_part_status(barcode: str):
         return(status)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/check_part_status_resource/', tags=["Assembly Production"])
+async def handle_check_part_status_resource(barcode: str, resource: str):
+    try:
+        status = check_part_status_resource(barcode, resource)
+        return(status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
