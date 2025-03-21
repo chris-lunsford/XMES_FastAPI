@@ -58,6 +58,7 @@ if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
     window.BARCODE_SUBMISSION_COOLDOWN_MS = 2000;
 }
 
+var lastScannedBarcode = lastScannedBarcode || null;
 
 async function clearPartTable() {
     const cabInfoSpan = document.getElementById('cab-info');   
@@ -407,8 +408,9 @@ async function handleBarcodeKeyPress(event) {
 
         try {
             console.log(`updateButtonStates for: ${barcode}`);
+            const workArea = document.getElementById('work-area')?.value || '';
             await fetchAndAddParts();
-            await updateButtonStates(barcode);
+            await updateButtonStates(barcode, workArea);
         } catch (error) {
             console.error('Failed to scan barcode to DB:', error);
         }
@@ -584,8 +586,10 @@ function handleDynamicInputs(event) {
     const workArea = workAreaSelect ? workAreaSelect.value : null;
     const employeeID = employeeIDField ? employeeIDField.value : null;
 
+
     // Handle barcode input
     if (event.target.id === 'barcode' && event.target.value.length === 12) {
+        lastScannedBarcode = event.target.value;  // Store barcode globally
         orderIDField.value = event.target.value.substring(0, 8);
         fetchJobNotifications(orderIDField.value);
     }
@@ -597,7 +601,20 @@ function handleDynamicInputs(event) {
         resetNotifications()
         resetMissingPartsTable()
     }
+
+    if (event.target.id === 'work-area') {
+        if (workArea && workArea !== '') {
+            if (lastScannedBarcode) {
+                updateButtonStates(lastScannedBarcode, workArea);
+            } else {
+                console.log("No barcode scanned yet.");
+            }
+        } else {
+            console.warn("Work Area is not properly selected.");
+        }
+    }
 }
+
 
 
 
@@ -810,6 +827,7 @@ async function submitParts() {
     showLoadingSpinner();
     const { partsData, allChecked } = collectTableData();
     const formData = collectFormData();
+    const workArea = document.getElementById("work-area")?.value || '';
 
     if (partsData.length === 0) {
         alert("No parts scanned, cannot start article!");
@@ -939,10 +957,10 @@ async function submitParts() {
         }
 
         // Update Button States after submission
-        await updateButtonStates(barcode);
+        await updateButtonStates(barcode, workArea);
 
         hideLoadingSpinner();
-        alert(partsSubmitted ? (isSubAssembly ? "Parts submitted (Sub-Assembly detected, no article time tracked)." : "Parts submitted successfully, start time recorded") : "Article start time recorded.");
+        // alert(partsSubmitted ? (isSubAssembly ? "Parts submitted (Sub-Assembly detected, no article time tracked)." : "Parts submitted successfully, start time recorded") : "Article start time recorded.");
 
     } catch (error) {
         console.error("Error:", error);
@@ -960,6 +978,7 @@ async function stopArticle() {
     showLoadingSpinner();
     const formData = collectFormData();
     const { partsData } = collectTableData();
+    const workArea = document.getElementById("work-area")?.value || '';
 
     // ✅ Prevent submission if no parts are scanned
     if (partsData.length === 0) {
@@ -1010,10 +1029,10 @@ async function stopArticle() {
 
         const stopArticleResult = await stopArticleResponse.json();
         console.log(`Stop article time success: ${stopArticleResult.message}`);
-        alert("Article stop time recorded!");
+        // alert("Article stop time recorded!");
 
         // Update Button States after submission
-        await updateButtonStates(barcode);
+        await updateButtonStates(barcode, workArea);
         hideLoadingSpinner();
 
     } catch (error) {
@@ -1030,6 +1049,7 @@ async function completeArticle() {
     showLoadingSpinner();
     const formData = collectFormData();
     const { partsData } = collectTableData();
+    const workArea = document.getElementById("work-area")?.value || '';
 
     // ✅ Prevent submission if no parts are scanned
     if (partsData.length === 0) {
@@ -1080,10 +1100,10 @@ async function completeArticle() {
 
         const completeArticleResult = await completeArticleResponse.json();
         console.log(`Complete article time success: ${completeArticleResult.message}`);
-        alert("Article complete time recorded!");
+        // alert("Article complete time recorded!");
 
         // Update Button States after submission
-        await updateButtonStates(barcode);
+        await updateButtonStates(barcode, workArea);
         hideLoadingSpinner();
 
     } catch (error) {
@@ -1096,80 +1116,186 @@ async function completeArticle() {
 
 
 //
-// 1) The main server-based function for Stop/Complete
+// 1) The main server-based function for Start/Stop/Complete
 //
-async function updateButtonStates(barcode) {
+// async function updateButtonStates(barcode, workArea) {
+//     try {
+//         if (!barcode || barcode.trim() === "") {
+//             console.warn("updateButtonStates: No barcode provided.");
+//             return;
+//         }
+//         if (!workArea) {
+//             console.warn("updateButtonStates: No Work Area selected.");
+//             return;
+//         }
+    
+//         const response = await fetch(`/api/check_part_status_resource/?barcode=${encodeURIComponent(barcode)}&resource=${encodeURIComponent(workArea)}&t=${Date.now()}`);
+//         if (!response.ok) {
+//             throw new Error(`API Error: ${response.statusText}`);
+//         }
+    
+//         const data = await response.json();
+//         console.log("Part Status Response:", data);
+
+//         // ▼ Store the assembly status on the table body
+//         const table = document.getElementById("table-body");
+//         const currentAssemblyStatus = table.dataset.assemblyStatus || "no record";
+//         const newAssemblyStatus = data.assembly_status || "no record";
+
+//         // 🚀 Allow updating only if status is blank or process-related changes occur
+//         const isProcessStatusChange = ["running", "stopped", "complete"].includes(newAssemblyStatus);
+
+//         if (currentAssemblyStatus === "no record" || currentAssemblyStatus === "" || isProcessStatusChange) {
+//             table.dataset.assemblyStatus = newAssemblyStatus;
+//             table.dataset.articleStatus = data.article_status || "none";
+//             console.log("Updating cab-status:", newAssemblyStatus);
+//         } else {
+//             console.log("Table is populated, keeping existing cab-status:", currentAssemblyStatus);
+//         }
+    
+//         const startButton = document.getElementById("start-article-button");
+//         const stopButton = document.getElementById("stop-article-button");
+//         const completeButton = document.getElementById("complete-article-button");
+    
+//         // We'll use the shared setButtonState helper
+//         setButtonState(startButton, false);
+//         setButtonState(stopButton, false);
+//         setButtonState(completeButton, false);
+    
+//         // If the article is complete, disable all
+//         if (data.article_status === "complete") {
+//             console.log("Article is complete. All buttons disabled.");
+//             // Now let the table logic run. (It likely will keep the Start button disabled anyway.)
+//             updateStartButtonState();
+//             updateAssemblyStatus();
+//             return;
+//         }
+  
+//       // For "new" or "used", we won't unilaterally enable the Start button here.
+//       // Instead, we'll rely on updateStartButtonState to do so if the table logic is okay.
+//       // We only set STOP/COMPLETE if needed:
+  
+//     if (data.part_status === "used") {
+//         if (data.assembly_status === "running") {
+//           // Part is used and assembly is running => enable STOP
+//           setButtonState(stopButton, true, "button-stop-enabled");
+//         } else if (data.assembly_status === "stopped") {
+//           // Part is used, assembly is stopped => enable COMPLETE
+//           setButtonState(completeButton, true);
+//         }
+//         // If data.assembly_status === "no record" => no special action for stop/complete
+//         // The Start logic is still delegated to the local table logic below
+//     }
+  
+//       // Finally, we let our local table logic handle the Start button:
+//       updateStartButtonState();
+//       updateAssemblyStatus();  
+//     } catch (error) {
+//       console.error("Error updating button states:", error);
+//     }
+// }
+
+async function updateButtonStates(barcode, workArea) {
     try {
         if (!barcode || barcode.trim() === "") {
             console.warn("updateButtonStates: No barcode provided.");
             return;
         }
-    
-        const response = await fetch(`/api/check_part_status/?barcode=${encodeURIComponent(barcode)}&t=${Date.now()}`);
+        if (!workArea) {
+            console.warn("updateButtonStates: No Work Area selected.");
+            return;
+        }
+
+        const response = await fetch(`/api/check_part_status_resource/?barcode=${encodeURIComponent(barcode)}&resource=${encodeURIComponent(workArea)}&t=${Date.now()}`);
         if (!response.ok) {
             throw new Error(`API Error: ${response.statusText}`);
         }
-    
+
         const data = await response.json();
         console.log("Part Status Response:", data);
 
-        // ▼ Store the assembly status on the table body
         const table = document.getElementById("table-body");
         const currentAssemblyStatus = table.dataset.assemblyStatus || "no record";
+        const currentWorkArea = table.dataset.workArea || null;
         const newAssemblyStatus = data.assembly_status || "no record";
+        const newWorkArea = workArea;
+        const isSameWorkArea = currentWorkArea === newWorkArea;
 
-        // 🚀 Allow updating only if status is blank or process-related changes occur
-        const isProcessStatusChange = ["running", "stopped", "complete"].includes(newAssemblyStatus);
+        let shouldUpdate = false;
 
-        if (currentAssemblyStatus === "no record" || currentAssemblyStatus === "" || isProcessStatusChange) {
+        // ----------------------------------
+        // Status transition rules:
+        // ----------------------------------
+
+        // Case 1: SAME work area logic
+        if (isSameWorkArea) {
+            if (currentAssemblyStatus === "no record" && ["running", "stopped"].includes(newAssemblyStatus)) {
+                shouldUpdate = true;
+            } else if (currentAssemblyStatus === "running" && ["stopped", "complete"].includes(newAssemblyStatus)) {
+                shouldUpdate = true;
+            } else if (currentAssemblyStatus === "stopped" && ["running", "complete"].includes(newAssemblyStatus)) {
+                shouldUpdate = true;
+            } else if (currentAssemblyStatus === "complete") {
+                // Lock complete in same work area
+                shouldUpdate = false;
+            }
+        }
+        // Case 2: SWITCHING to a new work area (e.g., AS1 -> AS5)
+        else if (!isSameWorkArea) {
+            // Always allow reset when entering a new area
+            shouldUpdate = true;
+        }
+
+        // ----------------------------------
+        // Apply status update
+        // ----------------------------------
+        if (shouldUpdate) {
             table.dataset.assemblyStatus = newAssemblyStatus;
             table.dataset.articleStatus = data.article_status || "none";
-            console.log("Updating cab-status:", newAssemblyStatus);
+            table.dataset.workArea = newWorkArea;
+            console.log(`✅ Updated cab-status to: ${newAssemblyStatus} in work area ${newWorkArea}`);
         } else {
-            console.log("Table is populated, keeping existing cab-status:", currentAssemblyStatus);
+            console.log(`⛔ Keeping existing cab-status: ${currentAssemblyStatus} for ${currentWorkArea}`);
         }
-    
+
+        // ----------------------------------
+        // Button state management
+        // ----------------------------------
         const startButton = document.getElementById("start-article-button");
         const stopButton = document.getElementById("stop-article-button");
         const completeButton = document.getElementById("complete-article-button");
-    
-        // We'll use the shared setButtonState helper
+
+        // Disable all buttons by default
         setButtonState(startButton, false);
         setButtonState(stopButton, false);
         setButtonState(completeButton, false);
-    
-        // If the article is complete, disable all
-        if (data.article_status === "complete") {
-            console.log("Article is complete. All buttons disabled.");
-            // Now let the table logic run. (It likely will keep the Start button disabled anyway.)
+
+        // Article completed in this work area? Lock everything
+        if (table.dataset.assemblyStatus === "complete") {
+            console.log("🔒 Assembly marked complete in this work area, buttons locked.");
             updateStartButtonState();
             updateAssemblyStatus();
             return;
         }
-  
-      // For "new" or "used", we won't unilaterally enable the Start button here.
-      // Instead, we'll rely on updateStartButtonState to do so if the table logic is okay.
-      // We only set STOP/COMPLETE if needed:
-  
-    if (data.part_status === "used") {
-        if (data.assembly_status === "running") {
-          // Part is used and assembly is running => enable STOP
-          setButtonState(stopButton, true, "button-stop-enabled");
-        } else if (data.assembly_status === "stopped") {
-          // Part is used, assembly is stopped => enable COMPLETE
-          setButtonState(completeButton, true);
+
+        // Button logic based on updated status
+        if (data.part_status === "used") {
+            if (table.dataset.assemblyStatus === "running") {
+                setButtonState(stopButton, true, "button-stop-enabled");
+            } else if (table.dataset.assemblyStatus === "stopped") {
+                setButtonState(completeButton, true);
+            }
         }
-        // If data.assembly_status === "no record" => no special action for stop/complete
-        // The Start logic is still delegated to the local table logic below
-    }
-  
-      // Finally, we let our local table logic handle the Start button:
-      updateStartButtonState();
-      updateAssemblyStatus();  
+
+        // Start button logic delegated to table conditions
+        updateStartButtonState();
+        updateAssemblyStatus();
+
     } catch (error) {
-      console.error("Error updating button states:", error);
+        console.error("Error updating button states:", error);
     }
 }
+
   
   
 
@@ -1205,29 +1331,29 @@ function updateStartButtonState() {
     const startButton = document.getElementById("start-article-button");
     if (!startButton) return;
 
-    // Get the table and read its assembly status from the dataset
     const table = document.getElementById("table-body");
     const assemblyStatus = table.dataset.assemblyStatus || "no record";
     const articleStatus = table.dataset.articleStatus || "none";
+    const tableWorkArea = table.dataset.workArea || null;
 
-    // If the article is already complete, disable the Start button
-    if (articleStatus === "Complete") {
+    const workAreaSelect = document.getElementById("work-area");
+    const currentWorkArea = workAreaSelect ? workAreaSelect.value : null;
+
+    // Only lock Start if we're still in the same work area where it was marked complete
+    const isSameAreaAsComplete = tableWorkArea === currentWorkArea;
+
+    if (articleStatus === "Complete" && isSameAreaAsComplete) {
         setButtonState(startButton, false);
         return;
     }
 
-    // If the article is already running or stopped, we disable Start right away
-    if (assemblyStatus === "running") {
+    if (assemblyStatus === "running" && isSameAreaAsComplete) {
         setButtonState(startButton, false);
         return;
     }
 
-    // If the article is stopped, allow re-evaluating whether Start should be enabled
     const isStopped = assemblyStatus === "stopped";
-
-
-    // Note: If it's "stopped," we do NOT short-circuit here,
-    // so the local table logic below can re-enable Start if appropriate.
+    const isNoRecord = assemblyStatus === "no record";
 
     const rows = Array.from(document.getElementById("table-body").children);
     if (rows.length === 0) {
@@ -1238,63 +1364,52 @@ function updateStartButtonState() {
     let usedCount = 0;
     let newCount = 0;
     let usedArticles = new Set();
-
-    // For enforcing that all new (non-used) parts are checked
     let allNewChecked = true;
 
     rows.forEach(row => {
         const isUsed = row.dataset.isUsed === "true";
-
         if (isUsed) {
-        usedCount++;
-        const usedArticleId = row.dataset.usedArticleIdentifier || "UNKNOWN";
-        usedArticles.add(usedArticleId);
+            usedCount++;
+            const usedArticleId = row.dataset.usedArticleIdentifier || "UNKNOWN";
+            usedArticles.add(usedArticleId);
         } else {
-        newCount++;
-        // For each new part, see if there's a checkbox and if it's checked
-        const checkbox = row.querySelector('input[type="checkbox"]');
-        if (!checkbox || !checkbox.checked) {
-            allNewChecked = false;
-        }
+            newCount++;
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (!checkbox || !checkbox.checked) {
+                allNewChecked = false;
+            }
         }
     });
 
-    // Rule A: If there's a mix of new and used, only allow Start if the cabinet was stopped
+    // Rule A: Mix of new + used parts
     if (usedCount > 0 && newCount > 0) {
-        if (isStopped && allNewChecked) {
-            console.log("Cabinet was stopped, allowing Start even with mixed parts.");
+        if ((isStopped || isNoRecord) && allNewChecked) {
+            console.log("Allowing Start in mix mode (stopped or no record).");
             setButtonState(startButton, true);
         } else {
-            console.log("Mix of new and used parts detected. Preventing Start.");
             setButtonState(startButton, false);
         }
         return;
     }
 
-    // Rule B: If all parts are new, only enable if all checkboxes are checked
+    // Rule B: All new parts
     if (usedCount === 0) {
-        // Because usedCount === 0, everything is new
-        if (allNewChecked) {
-        setButtonState(startButton, true);
-        } else {
-        setButtonState(startButton, false);
-        }
+        setButtonState(startButton, allNewChecked);
         return;
     }
 
-    // Rule C: If all parts are used, check if they share the same usedArticleId
+    // Rule C: All used parts from same article
     if (usedCount === rows.length) {
         if (usedArticles.size > 1) {
-        setButtonState(startButton, false);
+            setButtonState(startButton, false);
         } else {
-        const [usedArticleId] = Array.from(usedArticles);
-        setButtonState(startButton, (usedArticleId !== "UNKNOWN"));
+            const [usedArticleId] = Array.from(usedArticles);
+            setButtonState(startButton, (usedArticleId !== "UNKNOWN"));
         }
         return;
     }
 
-// Fallback: disable
-setButtonState(startButton, false);
+    setButtonState(startButton, false);
 }
   
   

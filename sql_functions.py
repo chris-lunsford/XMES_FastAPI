@@ -1663,9 +1663,10 @@ def start_article_time(article:ArticleTimeData, timestamp: datetime):
             SELECT TOP 1 STATUS
             FROM dbo.Fact_Assembly_Time_Tracking
             WHERE ARTICLE_IDENTIFIER = %s
+            AND RESOURCE = %s
             ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
         """
-        cursor.execute(query_status, (article.ARTICLE_IDENTIFIER,)) # ✅ Ensure this is a tuple
+        cursor.execute(query_status, (article.ARTICLE_IDENTIFIER, article.RESOURCE)) # ✅ Ensure this is a tuple
         last_status_row = cursor.fetchone()
 
         if last_status_row:
@@ -1679,9 +1680,10 @@ def start_article_time(article:ArticleTimeData, timestamp: datetime):
             SELECT TOP 1 START_TIME, STOP_TIME 
             FROM dbo.Fact_Assembly_Time_Tracking 
             WHERE ARTICLE_IDENTIFIER = %s 
+            AND RESOURCE = %s
             ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
         """
-        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         last_entry = cursor.fetchone()
 
         if last_entry:
@@ -1737,9 +1739,10 @@ def stop_article_time(article: ArticleTimeData, timestamp: datetime):
             SELECT TOP 1 START_TIME, STOP_TIME 
             FROM dbo.Fact_Assembly_Time_Tracking 
             WHERE ARTICLE_IDENTIFIER = %s 
+            AND RESOURCE = %s
             ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
         """
-        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         last_entry = cursor.fetchone()
 
         if last_entry:
@@ -1754,10 +1757,11 @@ def stop_article_time(article: ArticleTimeData, timestamp: datetime):
             SELECT TOP 1 START_TIME 
             FROM dbo.Fact_Assembly_Time_Tracking 
             WHERE ARTICLE_IDENTIFIER = %s 
+            AND RESOURCE = %s
             AND START_TIME IS NOT NULL 
             ORDER BY START_TIME DESC
         """
-        cursor.execute(query_latest_start, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(query_latest_start, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         latest_start_row = cursor.fetchone()
 
         assembly_time = None  # Default if no start time found
@@ -1820,9 +1824,11 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
         check_completion_query = """
             SELECT COUNT(*) 
             FROM dbo.Fact_Article_Status 
-            WHERE ARTICLE_IDENTIFIER = %s AND STATUS = 'Complete'
+            WHERE ARTICLE_IDENTIFIER = %s 
+            AND RESOURCE = %s
+            AND STATUS = 'Complete'
         """
-        cursor.execute(check_completion_query, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(check_completion_query, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         existing_completion = cursor.fetchone()[0]
 
         if existing_completion > 0:
@@ -1833,9 +1839,10 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
             SELECT TOP 1 START_TIME, STOP_TIME 
             FROM dbo.Fact_Assembly_Time_Tracking 
             WHERE ARTICLE_IDENTIFIER = %s 
+            AND RESOURCE = %s
             ORDER BY COALESCE(STOP_TIME, START_TIME) DESC
         """
-        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(query_last_entry, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         last_entry = cursor.fetchone()
 
         if last_entry:
@@ -1850,19 +1857,22 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
             UPDATE dbo.Fact_Assembly_Time_Tracking
             SET STATUS = 'Complete'
             WHERE ARTICLE_IDENTIFIER = %s
+            AND RESOURCE = %s
             AND STOP_TIME = (SELECT MAX(STOP_TIME) 
                              FROM dbo.Fact_Assembly_Time_Tracking 
-                             WHERE ARTICLE_IDENTIFIER = %s)
+                             WHERE ARTICLE_IDENTIFIER = %s
+                             AND RESOURCE = %s)
         """
-        cursor.execute(update_last_stop_query, (article.ARTICLE_IDENTIFIER, article.ARTICLE_IDENTIFIER))
+        cursor.execute(update_last_stop_query, (article.ARTICLE_IDENTIFIER, article.RESOURCE, article.ARTICLE_IDENTIFIER, article.RESOURCE))
         
         # Step 4: Calculate total assembly time (sum of all assembly times for the article)
         sum_assembly_time_query = """
             SELECT SUM(ASSEMBLY_TIME) 
             FROM dbo.Fact_Assembly_Time_Tracking 
             WHERE ARTICLE_IDENTIFIER = %s
+            AND RESOURCE = %s
         """
-        cursor.execute(sum_assembly_time_query, (article.ARTICLE_IDENTIFIER,))
+        cursor.execute(sum_assembly_time_query, (article.ARTICLE_IDENTIFIER, article.RESOURCE))
         total_seconds = cursor.fetchone()[0]
 
         if total_seconds is None:
