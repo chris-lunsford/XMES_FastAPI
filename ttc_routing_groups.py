@@ -169,7 +169,11 @@ ttc_saw_routing_groups = {
         'HO Murphy Full Headboard',
         'HO Murphy Full Nailer Top',
         'HO Murphy Full Bottom Stretcher',
-
+        'Suspended Drawer Left Side',
+        'Suspended Drawer Right Side',
+        'Suspended Drawer Top Front Nailer',
+        'Suspended Drawer Rear Nailer',
+        'Suspended Drawer Top Rear Nailer',
    
     ],
 
