@@ -78,6 +78,10 @@ async def notification(request: Request):
 async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
 
+@app.get('/assembly-order-dashboard', tags=["Pages"])
+async def order_dashboard(request: Request):
+    return templates.TemplateResponse("assemblyorderdashboard.html", {"request": request})
+
 @app.get('/defect-dashboard', tags=["Pages"])
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})

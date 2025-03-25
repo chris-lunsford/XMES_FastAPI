@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="templates/css/order_dashboard.css">
+    
+    
+    <title>Document</title>
+</head>
+<body class="order-dashboard">
+    <section class="title-info">
+        <div class="page-name">
+            <span>Assembly Status</span>
+        </div>        
+    </section>
+    <section class="input-fields">
+        <div class="order-input" id="orderForm">            
+            <label for="order-id">Order ID:</label>
+            <input type="text" name="order-info" id="order-id">
+        </div>
+        <!-- <div class="packlist-button">
+            <button type="button" id="generate-packlist">Itemized Packing List</button>
+        </div>
+        <div class="packlist-button2">
+            <button type="button" id="generate-packlist2">Consolidated Packing List</button>
+        </div> -->
+    </section>
+    <section class="total-row">                  
+            <div class="machine-container" id="order-total">
+                <div class="total-name">
+                    <p>All parts for order</p>            
+                </div>
+                <div class="part-count">
+                    <p>Total count:</p>
+                    <p id="part-count-Total">0</p>
+                </div>
+                <div class="run-time-container all">
+                    <div class="run-time">
+                        <p>Assembly Time:</p>                               
+                    </div>
+                    <div class="times">
+                        <p id="up-time-TotalTime">0</p>
+                    </div>                            
+                </div>  
+            </div>
+    </section>
+    <section class="data-display">
+    <!-- Machines -->
+        <section class="machine-group">            
+            <section class="machine-row">
+                <div class="machine-container psz" id="machine-PSZ">
+                    <section class="psz-container">
+                        <div class="machine-name">
+                            <p>LB Assembly</p>
+                            <p>[AS1]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>                            
+                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>                            
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-PSZ" value="0" max="100"></progress>
+                            <span id="progress-text-PSZ">0%</span>
+                        </div> 
+                        <div class="run-time-container psz">
+                            <div class="run-time">
+                                <p>Assembly Time:</p>                               
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PSZ">0 hrs</p>
+                            </div>                            
+                        </div>                         
+                    </section>
+                </div>
+                <div class="machine-container trz" id="machine-TRZ">
+                    <section class="trz-container">
+                        <div class="machine-name">
+                            <p>Solid Surface</p>
+                            <p>[AS2]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-TRZ">0</span> of <span id="part-count-TRZ">0</span></p>
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-TRZ" value="0" max="100"></progress>
+                            <span id="progress-text-TRZ">0%</span>
+                        </div>
+                        <div class="run-time-container trz">
+                            <div class="run-time">
+                                <p>Assembly Time:</p>                               
+                            </div>
+                            <div class="times">
+                                <p id="up-time-TRZ">0 hrs</p>
+                            </div>                            
+                        </div>   
+                    </section>  
+                </div>
+                <div class="machine-container ebz" id="machine-EBZ">
+                    <section class="ebz-container">
+                        <div class="machine-name">
+                            <p>Additional</p>
+                            <p>[AS5]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-EBZ">0</span> of <span id="part-count-EBZ">0</span></p>
+                        </div> 
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-EBZ" value="0" max="100"></progress>
+                            <span id="progress-text-EBZ">0%</span>
+                        </div>
+                        <div class="run-time-container ebz">
+                            <div class="run-time">
+                                <p>Assembly Time:</p>                               
+                            </div>
+                            <div class="times">
+                                <p id="up-time-EBZ">0 hrs</p>
+                            </div>                            
+                        </div> 
+                    </section>
+                </div> 
+                <div class="machine-container prz" id="machine-PRZ">
+                    <section class="prz-container">
+                        <div class="machine-name">
+                            <p>SB Assembly</p>
+                            <p>[AS6]</p>            
+                        </div>
+                        <div class="part-count">
+                            <p>Progress:</p>
+                            <p><span id="current-count-PRZ">0</span> of <span id="part-count-PRZ">0</span></p>
+                        </div>
+                        <div class="progressbar-container">
+                            <progress id="progress-bar-PRZ" value="0" max="100"></progress>
+                            <span id="progress-text-PRZ">0%</span>
+                        </div>
+                        <div class="run-time-container prz">
+                            <div class="run-time">
+                                <p>Assembly Time:</p>                               
+                            </div>
+                            <div class="times">
+                                <p id="up-time-PRZ">0 hrs</p>
+                            </div>                            
+                        </div>  
+                    </section>
+                </div>                
+            </section>                       
+        </section>                
+    </section>
+    <section class="missing-part-display">
+        <div class="notification-display">
+            <p>Notifications:</p>
+            <div id="notification-list">
+                 <!-- <ul>Dynamically created by JS</ul>-->
+            </div>            
+        </div>
+        <div>
+            <span>Parts Not Scanned By Area</span>
+            <!-- <button type="button" id="not-scanned-parts">Parts Not Scanned By Group</button> -->
+        </div>
+        <div class="missing-parts-table">
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th class="part-barcode">Barcode</th>
+                        <th>Part Program</th>
+                        <th>Description</th>
+                        <th>Routing</th>
+                        <th>Last Scan</th>
+                        <th>Last Scan Time</th>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+<script src="templates/global.js"></script>    
+<script src="templates/orderDashboardEventHandlers.js"></script>
+
+</body>
+</html>
