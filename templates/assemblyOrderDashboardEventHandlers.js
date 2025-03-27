@@ -1,5 +1,10 @@
 /***** Assembly Order Dashboard *****/
 
+// After this script loads, set its callback in scriptMap if necessary.
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/assembly-order-dashboard'].callback = initializeAssemblyOrderDashboard;
+}
+
 
 function initializeAssemblyOrderDashboard() {
     if (window.assemblyOrderDashboardInitialized) return;

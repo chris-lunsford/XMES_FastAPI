@@ -19,6 +19,77 @@ function debounce(func, wait) {
     };
 }
 
+function initializeMachineDashboard() {
+    const contentDiv = document.getElementById("content");
+
+    if (!contentDiv) {
+        console.error("Cannot initialize Machine Dashboard — #content not found.");
+        return;
+    }
+
+    contentDiv.addEventListener("contentLoaded", (e) => {
+        if (e.detail.loadedUrl !== "/machine-dashboard") return;
+
+        if (window.machineDashboardInitialized) return;
+        window.machineDashboardInitialized = true;
+
+        console.log("Initializing Machine Dashboard");
+
+        listenerManager.removeListeners();
+        initializeDateInputs();
+        autoSubmitForm();
+        updateBatchDisplay();
+
+        // Add consistent event listeners via listenerManager
+        listenerManager.addListener(document.body, 'change', debouncedHandleInputChange);
+        listenerManager.addListener(document.body, 'submit', handleSubmit);
+        listenerManager.addListener(document.body, 'change', function (event) {
+            debouncedHandleInputChange(event);
+            if (event.target.name === 'batch-select') {
+                updateBatchDisplay();
+            }
+        });
+
+        // .machine-container click listeners
+        const machineContainers = document.getElementsByClassName('machine-container');
+        for (const container of machineContainers) {
+            if (container) {
+                listenerManager.addListener(container, 'click', handleMachineSummary);
+            }
+        }
+
+        // .close buttons
+        const closeButtons = document.getElementsByClassName('close');
+        for (const btn of closeButtons) {
+            if (btn) {
+                listenerManager.addListener(btn, 'click', () => {
+                    const modal = document.getElementById('machineModal');
+                    if (modal) modal.style.display = 'none';
+                });
+            }
+        }
+
+        // Modal background click
+        const modal = document.getElementById('machineModal');
+        if (modal) {
+            listenerManager.addListener(window, 'click', (event) => {
+                if (event.target === modal) modal.style.display = 'none';
+            });
+        }
+
+        // Auto-refresh every 60s
+        if (!window.autoSubmitIntervalSet) {
+            window.autoSubmitIntervalSet = true;
+            setInterval(autoSubmitForm, 60000);
+        }
+    }, { once: true }); // 🔁 Important: only run once per page load
+}
+
+
+
+
+
+
 // const debouncedHandleInputChange = debounce(handleInputChange, 300);
 
 
@@ -62,58 +133,58 @@ function handleSubmit(event) {
     }
 }
 
-// Initialize machine dashboard with checks to prevent multiple initializations
-function initializeMachineDashboard() {
-    // First, clear all managed listeners
-    listenerManager.removeListeners();
-    initializeDateInputs();
-    autoSubmitForm();
-    // Update display based on current batch selection
-    updateBatchDisplay();
+// // Initialize machine dashboard with checks to prevent multiple initializations
+// function initializeMachineDashboard() {
+//     // First, clear all managed listeners
+//     listenerManager.removeListeners();
+//     initializeDateInputs();
+//     autoSubmitForm();
+//     // Update display based on current batch selection
+//     updateBatchDisplay();
     
     
-    // Now add new listeners as needed
-    listenerManager.addListener(document.body, 'change', debouncedHandleInputChange);
-    listenerManager.addListener(document.body, 'submit', handleSubmit);
-    listenerManager.addListener(document.body, 'change', function(event) {
-        debouncedHandleInputChange(event);
-        if (event.target.name === 'batch-select') {
-            updateBatchDisplay();
-        }
-    });
+//     // Now add new listeners as needed
+//     listenerManager.addListener(document.body, 'change', debouncedHandleInputChange);
+//     listenerManager.addListener(document.body, 'submit', handleSubmit);
+//     listenerManager.addListener(document.body, 'change', function(event) {
+//         debouncedHandleInputChange(event);
+//         if (event.target.name === 'batch-select') {
+//             updateBatchDisplay();
+//         }
+//     });
 
-     // Add click event listener to all elements with class 'machine-container'
-     var machineContainers = document.getElementsByClassName('machine-container');
-     for (var i = 0; i < machineContainers.length; i++) {
-         listenerManager.addListener(machineContainers[i], 'click', handleMachineSummary);
-     }
+//      // Add click event listener to all elements with class 'machine-container'
+//      var machineContainers = document.getElementsByClassName('machine-container');
+//      for (var i = 0; i < machineContainers.length; i++) {
+//          listenerManager.addListener(machineContainers[i], 'click', handleMachineSummary);
+//      }
  
-     // Close the modal with the close button
-     var closeButtons = document.getElementsByClassName('close');
-     for (var i = 0; i < closeButtons.length; i++) {
-         listenerManager.addListener(closeButtons[i], 'click', function() {
-             var modal = document.getElementById('machineModal');
-             modal.style.display = 'none';
-         });
-     }
+//      // Close the modal with the close button
+//      var closeButtons = document.getElementsByClassName('close');
+//      for (var i = 0; i < closeButtons.length; i++) {
+//          listenerManager.addListener(closeButtons[i], 'click', function() {
+//              var modal = document.getElementById('machineModal');
+//              modal.style.display = 'none';
+//          });
+//      }
  
-     // Close the modal by clicking outside of it
-     listenerManager.addListener(window, 'click', function(event) {
-         var modal = document.getElementById('machineModal');
-         if (event.target === modal) {
-             modal.style.display = 'none';
-         }
-     });
+//      // Close the modal by clicking outside of it
+//      listenerManager.addListener(window, 'click', function(event) {
+//          var modal = document.getElementById('machineModal');
+//          if (event.target === modal) {
+//              modal.style.display = 'none';
+//          }
+//      });
 
-    if (window.machineDashboardInitialized) return;
-    window.machineDashboardInitialized = true;
+//     if (window.machineDashboardInitialized) return;
+//     window.machineDashboardInitialized = true;
 
-    // Set interval if it has not been set before
-    if (!window.autoSubmitIntervalSet) {
-        window.autoSubmitIntervalSet = true;
-        setInterval(autoSubmitForm, 60000); // Auto submit form every minute
-    }
-}
+//     // Set interval if it has not been set before
+//     if (!window.autoSubmitIntervalSet) {
+//         window.autoSubmitIntervalSet = true;
+//         setInterval(autoSubmitForm, 60000); // Auto submit form every minute
+//     }
+// }
 
 
 
