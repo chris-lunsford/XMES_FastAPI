@@ -7,12 +7,7 @@ function initializeAssemblyProductionDashboard() {
     if (window.assemblyProductionDashboardInitialized) return;
     window.assemblyProductionDashboardInitialized = true;
 
-    // Initialize dashboard functionalities
-    populateCustomerIDs(); // Populate customer IDs
-    populateAssemblyWorkAreas(); // Populate work areas
-    populateDefectTypes();
-    populateDefectActions();
-
+    
     console.log("Initializing Assembly Production Dashboard");
     setupEventHandlers();
 }

@@ -7,24 +7,24 @@ if (typeof scriptMap !== 'undefined') {
 }
 
 
-// Initialize machine dashboard with checks to prevent multiple initializations
-function initializeNotificationDashboard() {
-    console.log("Initializing Notification Dashboard");
+// // Initialize machine dashboard with checks to prevent multiple initializations
+// function initializeNotificationDashboard() {
+//     console.log("Initializing Notification Dashboard");
 
-    if (!window.notificationDashboardInitialized) {
-        window.notificationDashboardInitialized = true;
-        setupEventHandlers();
-    } else {
-        console.log("Notification Dashboard already initialized.");
-        listenerManager.removeListeners(); // Clean up first
-        setupEventHandlers(); // Re-setup handlers
-    }
+//     if (!window.notificationDashboardInitialized) {
+//         window.notificationDashboardInitialized = true;
+//         setupEventHandlers();
+//     } else {
+//         console.log("Notification Dashboard already initialized.");
+//         listenerManager.removeListeners(); // Clean up first
+//         setupEventHandlers(); // Re-setup handlers
+//     }
 
-    // Initialize dashboard functionalities
-    populateNotificationTypes(); // Populate notification types
-    // Setup event handlers at initialization
-    // setupEventHandlers();   
-}
+//     // Initialize dashboard functionalities
+//     populateNotificationTypes(); // Populate notification types
+//     // Setup event handlers at initialization
+//     // setupEventHandlers();   
+// }
 
 function initializeNotificationDashboard() {
     if (window.notificationDashboardInitialized) return;
