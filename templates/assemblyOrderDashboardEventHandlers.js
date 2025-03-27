@@ -1,24 +1,23 @@
-/***** Order Dashboard *****/
+/***** Assembly Order Dashboard *****/
 
 
+function initializeAssemblyOrderDashboard() {
+    if (window.assemblyOrderDashboardInitialized) return;
+    window.assemblyOrderDashboardInitialized = true;
 
-function initializeOrderDashboard() {
-    if (window.OrderDashboardInitialized) return;
-    window.OrderDashboardInitialized = true;
-
-    console.log("Initializing Order Dashboard");
+    console.log("Initializing Assembly Order Dashboard");
     setupEventHandlers();
 }
 
-function teardownOrderDashboard() {
-    console.log("Tearing down Order Dashboard");
+function teardownAssemblyOrderDashboard() {
+    console.log("Tearing down Assembly Order Dashboard");
     listenerManager.removeListeners();
-    window.OrderDashboardInitialized = false;
+    window.assemblyOrderDashboardInitialized = false;
 }
 
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/order-dashboard'].callback = initializeOrderDashboard;
-    scriptMap['/order-dashboard'].teardown = teardownOrderDashboard;
+    scriptMap['/assembly-order-dashboard'].callback = initializeAssemblyOrderDashboard;
+    scriptMap['/assembly-order-dashboard'].teardown = teardownAssemblyOrderDashboard;
 }
 
 
@@ -27,13 +26,11 @@ function setupEventHandlers() {
     console.log("Setting up event handlers");
     // listenerManager.addListener(document.getElementById('not-scanned-parts'), 'click', handleFetchPartsNotScanned);
     listenerManager.addListener(document.body, 'input', handleDynamicInputs);
-    listenerManager.addListener(document.getElementById('generate-packlist'), 'click', generatePackList);
-    listenerManager.addListener(document.getElementById('generate-packlist2'), 'click', generatePackList2);
-
+    
     // Adding a listener to handle clicks on any machine container
-    const machineRow = document.querySelector('.machine-row'); // Assuming all containers are within this element
-    if (machineRow) {
-        listenerManager.addListener(machineRow, 'click', handleMachineContainerClick);
+    const workareaRow = document.querySelector('.workarea-row'); // Assuming all containers are within this element
+    if (workareaRow) {
+        listenerManager.addListener(workareaRow, 'click', handleWorkAreaContainerClick);
     }
 }
 
@@ -49,7 +46,7 @@ function handleDynamicInputs(event) {
     if (event.target.id === 'order-id') {
         if (orderID.length === 8) {
             fetchJobNotifications(orderID);
-            fetchDataAndUpdateUI(orderID);
+            fetchOrderStatus(orderID);
         } else if (orderID.length === 0) {
             resetPartCounts();
         }
@@ -61,8 +58,96 @@ function handleDynamicInputs(event) {
 }
 
 
+let workStations = [];
+
+async function loadWorkStations() {
+    try {
+        const response = await fetch("/api/assembly-work-stations");
+        workStations = (await response.json()).filter(ws => ws); // remove blank entries
+    } catch (error) {
+        console.error("Failed to load work stations", error);
+    }
+}
+
+async function fetchOrderStatus(orderId) {
+    try {
+        const response = await fetch("/api/fetch-assembly-order-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ORDERID: orderId })
+        });
+
+        const data = await response.json();
+
+        if (data.result) {
+            updateUI(data.result);
+        }
+    } catch (error) {
+        console.error("Error fetching order status:", error);
+    }
+}
+
+function updateUI(articles) {
+    const areaStatus = {};
+
+    // Initialize counters
+    workStations.forEach(area => {
+        areaStatus[area] = { total: 0, complete: 0 };
+    });
+
+    let totalParts = 0;
+    let totalCompleted = 0;
+
+    for (const article of articles) {
+        const { INFO2, Completed_Steps, Total_Operations } = article;
+        totalParts += Total_Operations;
+        totalCompleted += Completed_Steps;
+
+        for (const area of workStations) {
+            if (INFO2.includes(area)) {
+                areaStatus[area].total += 1;
+                if (Completed_Steps === Total_Operations) {
+                    areaStatus[area].complete += 1;
+                }
+            }
+        }
+    }
+
+    // Update total summary section
+    document.getElementById("part-count-Total").textContent = totalParts;
+    document.getElementById("up-time-TotalTime").textContent = totalCompleted;
+
+    // Update each work area block
+    workStations.forEach(area => {
+        const current = areaStatus[area].complete;
+        const total = areaStatus[area].total;
+        const percentage = total ? Math.round((current / total) * 100) : 0;
+
+        const countEl = document.getElementById(`current-count-${area}`);
+        const totalEl = document.getElementById(`article-count-${area}`);
+        const barEl = document.getElementById(`progress-bar-${area}`);
+        const textEl = document.getElementById(`progress-text-${area}`);
+        const timeEl = document.getElementById(`assembly-time-${area}`);
+
+        // Only update if elements exist in DOM
+        if (countEl && totalEl && barEl && textEl && timeEl) {
+            countEl.textContent = current;
+            totalEl.textContent = total;
+            barEl.value = percentage;
+            textEl.textContent = `${percentage}%`;
+            timeEl.textContent = `${current} hrs`;
+        }
+    });
+}
+
+
+
+
+
+
+
 // Function to handle clicks on machine containers
-function handleMachineContainerClick(event) {
+function handleWorkAreaContainerClick(event) {
     // Check if the clicked element or its parent is a machine container
     const machineContainer = event.target.closest('.machine-container');
     if (!machineContainer) return;
@@ -78,7 +163,7 @@ function handleMachineContainerClick(event) {
     console.log(`Machine container clicked for: ${workAreaCode}`);
 
     // Optionally fetch workstation groups to use for further logic
-    fetchWorkStationGroups().then(groups => {
+    fetchWorkAreas().then(groups => {
         if (groups[workAreaCode]) {
             console.log(`Fetching parts not scanned for group: ${groups[workAreaCode]}`);
             // Assuming groups[workAreaCode] gives you the group and you have different behavior/logic based on the group
@@ -100,7 +185,7 @@ function resetPartCounts() {
     console.log("Resetting part counts, border styles, progress bars, and missing parts table");
 
     // Fetch work station groups dynamically
-    fetchWorkStationGroups().then(groups => {
+    fetchWorkAreas().then(groups => {
         const uniqueGroups = new Set(Object.values(groups));
 
         uniqueGroups.forEach(code => {
@@ -194,8 +279,8 @@ function updateProgressBar(machineGroupCode) {
 
 
 
-function fetchDataAndUpdateUI(orderID) {
-    fetchWorkStationGroups().then(groups => {
+function fetchAssemblyDataAndUpdateUI(orderID) {
+    fetchWorkAreas().then(groups => {
         const uniqueGroups = new Set(Object.values(groups));
 
         // Clear previous data

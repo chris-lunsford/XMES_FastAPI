@@ -2060,7 +2060,7 @@ def check_part_status_resource(BARCODE, RESOURCE):
    
 
 
-def fetch_assembly_job_status(ORDERID: str):
+def fetch_assembly_order_status(ORDERID: str):
     """
     Fetch the assembly job status from the database.
     """

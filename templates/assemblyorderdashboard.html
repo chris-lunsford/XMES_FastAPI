@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/order_dashboard.css">
+    <link rel="stylesheet" type="text/css" href="templates/css/assembly_order_dashboard.css">
     
     
     <title>Document</title>
@@ -11,7 +11,7 @@
 <body class="order-dashboard">
     <section class="title-info">
         <div class="page-name">
-            <span>Assembly Status</span>
+            <span>Assembly Order Status</span>
         </div>        
     </section>
     <section class="input-fields">
@@ -31,7 +31,7 @@
                 <div class="total-name">
                     <p>All parts for order</p>            
                 </div>
-                <div class="part-count">
+                <div class="article-count">
                     <p>Total count:</p>
                     <p id="part-count-Total">0</p>
                 </div>
@@ -46,105 +46,105 @@
             </div>
     </section>
     <section class="data-display">
-    <!-- Machines -->
-        <section class="machine-group">            
-            <section class="machine-row">
-                <div class="machine-container psz" id="machine-PSZ">
-                    <section class="psz-container">
-                        <div class="machine-name">
+    <!-- Work Areas -->
+        <section class="workarea-group">            
+            <section class="workarea-row">
+                <div class="workarea-container as1" id="workarea-AS1">
+                    <section class="as1-container">
+                        <div class="workarea-name">
                             <p>LB Assembly</p>
                             <p>[AS1]</p>            
                         </div>
-                        <div class="part-count">
+                        <div class="article-count">
                             <p>Progress:</p>                            
-                            <p><span id="current-count-PSZ">0</span> of <span id="part-count-PSZ">0</span></p>                            
+                            <p><span id="current-count-AS1">0</span> of <span id="article-count-AS1">0</span></p>                            
                         </div>
                         <div class="progressbar-container">
-                            <progress id="progress-bar-PSZ" value="0" max="100"></progress>
-                            <span id="progress-text-PSZ">0%</span>
+                            <progress id="progress-bar-AS1" value="0" max="100"></progress>
+                            <span id="progress-text-AS1">0%</span>
                         </div> 
-                        <div class="run-time-container psz">
-                            <div class="run-time">
+                        <div class="run-time-container as1">
+                            <div class="assembly-time">
                                 <p>Assembly Time:</p>                               
                             </div>
                             <div class="times">
-                                <p id="up-time-PSZ">0 hrs</p>
+                                <p id="assembly-time-AS1">0 hrs</p>
                             </div>                            
                         </div>                         
                     </section>
                 </div>
-                <div class="machine-container trz" id="machine-TRZ">
-                    <section class="trz-container">
-                        <div class="machine-name">
+                <div class="workarea-container as2" id="workarea-AS2">
+                    <section class="as2-container">
+                        <div class="workarea-name">
                             <p>Solid Surface</p>
                             <p>[AS2]</p>            
                         </div>
-                        <div class="part-count">
+                        <div class="article-count">
                             <p>Progress:</p>
-                            <p><span id="current-count-TRZ">0</span> of <span id="part-count-TRZ">0</span></p>
+                            <p><span id="current-count-AS2">0</span> of <span id="article-count-AS2">0</span></p>
                         </div>
                         <div class="progressbar-container">
-                            <progress id="progress-bar-TRZ" value="0" max="100"></progress>
-                            <span id="progress-text-TRZ">0%</span>
+                            <progress id="progress-bar-AS2" value="0" max="100"></progress>
+                            <span id="progress-text-AS2">0%</span>
                         </div>
-                        <div class="run-time-container trz">
-                            <div class="run-time">
+                        <div class="run-time-container as2">
+                            <div class="assembly-time">
                                 <p>Assembly Time:</p>                               
                             </div>
                             <div class="times">
-                                <p id="up-time-TRZ">0 hrs</p>
+                                <p id="assembly-time-AS2">0 hrs</p>
                             </div>                            
                         </div>   
                     </section>  
                 </div>
-                <div class="machine-container ebz" id="machine-EBZ">
-                    <section class="ebz-container">
-                        <div class="machine-name">
+                <div class="workarea-container as5" id="workarea-AS5">
+                    <section class="as5-container">
+                        <div class="workarea-name">
                             <p>Additional</p>
                             <p>[AS5]</p>            
                         </div>
-                        <div class="part-count">
+                        <div class="article-count">
                             <p>Progress:</p>
-                            <p><span id="current-count-EBZ">0</span> of <span id="part-count-EBZ">0</span></p>
+                            <p><span id="current-count-AS5">0</span> of <span id="article-count-AS5">0</span></p>
                         </div> 
                         <div class="progressbar-container">
-                            <progress id="progress-bar-EBZ" value="0" max="100"></progress>
-                            <span id="progress-text-EBZ">0%</span>
+                            <progress id="progress-bar-AS5" value="0" max="100"></progress>
+                            <span id="progress-text-AS5">0%</span>
                         </div>
-                        <div class="run-time-container ebz">
-                            <div class="run-time">
+                        <div class="run-time-container as5">
+                            <div class="assembly-time">
                                 <p>Assembly Time:</p>                               
                             </div>
                             <div class="times">
-                                <p id="up-time-EBZ">0 hrs</p>
+                                <p id="assembly-time-AS5">0 hrs</p>
                             </div>                            
                         </div> 
                     </section>
                 </div> 
-                <div class="machine-container prz" id="machine-PRZ">
-                    <section class="prz-container">
-                        <div class="machine-name">
+                <div class="workarea-container as6" id="workarea-AS6">
+                    <section class="as6-container">
+                        <div class="workarea-name">
                             <p>SB Assembly</p>
                             <p>[AS6]</p>            
                         </div>
-                        <div class="part-count">
+                        <div class="article-count">
                             <p>Progress:</p>
-                            <p><span id="current-count-PRZ">0</span> of <span id="part-count-PRZ">0</span></p>
-                        </div>
+                            <p><span id="current-count-AS6">0</span> of <span id="article-count-AS6">0</span></p>
+                        </div> 
                         <div class="progressbar-container">
-                            <progress id="progress-bar-PRZ" value="0" max="100"></progress>
-                            <span id="progress-text-PRZ">0%</span>
+                            <progress id="progress-bar-AS6" value="0" max="100"></progress>
+                            <span id="progress-text-AS6">0%</span>
                         </div>
-                        <div class="run-time-container prz">
-                            <div class="run-time">
+                        <div class="run-time-container as6">
+                            <div class="assembly-time">
                                 <p>Assembly Time:</p>                               
                             </div>
                             <div class="times">
-                                <p id="up-time-PRZ">0 hrs</p>
+                                <p id="assembly-time-AS6">0 hrs</p>
                             </div>                            
-                        </div>  
+                        </div> 
                     </section>
-                </div>                
+                </div>                 
             </section>                       
         </section>                
     </section>
@@ -156,7 +156,7 @@
             </div>            
         </div>
         <div>
-            <span>Parts Not Scanned By Area</span>
+            <span>Article Not Scanned By Area</span>
             <!-- <button type="button" id="not-scanned-parts">Parts Not Scanned By Group</button> -->
         </div>
         <div class="missing-parts-table">
@@ -177,7 +177,7 @@
         </div>
     </section>
 <script src="templates/global.js"></script>    
-<script src="templates/orderDashboardEventHandlers.js"></script>
+<script src="templates/assemblyOrderDashboardEventHandlers.js"></script>
 
 </body>
 </html>

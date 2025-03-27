@@ -1,31 +1,28 @@
 /***** Assembly Production Dashboard *****/
 
 
-// After this script loads, set its callback in scriptMap if necessary.
-if (typeof scriptMap !== 'undefined') {
-    scriptMap['/assembly-production'].callback = initializeAssemblyProductionDashboard;
-}
-
 
 
 function initializeAssemblyProductionDashboard() {
-    console.log("Initializing Assembly Production Dashboard");
-    // First, clear all managed listeners
-    listenerManager.removeListeners();
-
-    // Initialize dashboard functionalities
-    populateCustomerIDs(); // Populate customer IDs
-    populateAssemblyWorkAreas(); // Populate work areas
-    populateDefectTypes();
-    populateDefectActions();
-
-    // Setup event handlers at initialization
-    setupEventHandlers();
-
-    // Prevent multiple initializations
     if (window.assemblyProductionDashboardInitialized) return;
-    window.assemblyProductionDashboardInitialized = true;   
+    window.assemblyProductionDashboardInitialized = true;
+
+    console.log("Initializing Assembly Production Dashboard");
+    setupEventHandlers();
 }
+
+function teardownAssemblyProductionDashboard() {
+    console.log("Tearing down Assembly Production Dashboard");
+    listenerManager.removeListeners();
+    window.assemblyProductionDashboardInitialized = false;
+}
+
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/assembly-production'].callback = initializeAssemblyProductionDashboard;
+    scriptMap['/assembly-production'].teardown = teardownAssemblyProductionDashboard;
+}
+
+
 
 
 function setupEventHandlers() {

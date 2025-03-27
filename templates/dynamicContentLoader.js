@@ -1,31 +1,43 @@
 const scriptMap = {
     '/machine-dashboard': {
         path: 'templates/machineDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
     '/production': {
         path: 'templates/productionDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
     '/machine-production': {
         path: 'templates/machineProductionDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
     '/assembly-production': {
         path: 'templates/assemblyProductionDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
     '/notification': {
         path: 'templates/notificationDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
     '/order-dashboard': {
         path: 'templates/orderDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
+    },
+    '/assembly-order-dashboard': {
+        path: 'templates/assemblyOrderDashboardEventHandlers.js',
+        callback: null,  // Set to null initially    
+        teardown: null
     },
     '/defect-dashboard': {
         path: 'templates/defectDashboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        teardown: null
     },
 };
 
@@ -71,16 +83,46 @@ function loadContent(url, highlight = true) {
             }
 
             console.log("Attempting to load content for URL:", url);
-            Object.keys(scriptMap).forEach(key => {
-                if (url.includes(key)) {
-                    console.log(`Loading script from: ${scriptMap[key].path}`);
-                    loadScript(scriptMap[key].path, () => {
-                        if (scriptMap[key].callback) {
-                            scriptMap[key].callback();
-                        }
-                    });
+            // Track the currently active dashboard
+        if (!window.currentDashboardRoute) window.currentDashboardRoute = null;
+
+        const matchedRoute = Object.keys(scriptMap).find(key => url.includes(key));
+
+        if (matchedRoute) {
+            // Teardown previous dashboard if needed
+            if (window.currentDashboardRoute && scriptMap[window.currentDashboardRoute]?.teardown) {
+                console.log(`Tearing down previous dashboard: ${window.currentDashboardRoute}`);
+                scriptMap[window.currentDashboardRoute].teardown();
+            }
+
+            window.currentDashboardRoute = matchedRoute;
+            console.log(`Loading script from: ${scriptMap[matchedRoute].path}`);
+
+            const runDashboardInit = () => {
+                if (scriptMap[matchedRoute].callback) {
+                    scriptMap[matchedRoute].callback();
                 }
-            });
+            };
+            
+            if (!scriptMap[matchedRoute].callback) {
+                loadScript(scriptMap[matchedRoute].path, () => {
+                    // Wait for content to be fully swapped before running init
+                    contentDiv.addEventListener("contentLoaded", (e) => {
+                        if (e.detail.loadedUrl === url) {
+                            runDashboardInit();
+                        }
+                    }, { once: true });
+                });
+            } else {
+                // If already loaded, still wait for content swap
+                contentDiv.addEventListener("contentLoaded", (e) => {
+                    if (e.detail.loadedUrl === url) {
+                        runDashboardInit();
+                    }
+                }, { once: true });
+            }
+            
+        }
 
             contentDiv.style.display = 'block';
         })

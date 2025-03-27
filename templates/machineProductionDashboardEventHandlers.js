@@ -1,31 +1,25 @@
 /***** Machine Production Dashboard *****/
 
 
-// After this script loads, set its callback in scriptMap if necessary.
+function initializeMachineProductionDashboard() {
+    if (window.machineProductionDashboardInitialized) return;
+    window.machineProductionDashboardInitialized = true;
+
+    console.log("Initializing machine Production Dashboard");
+    setupEventHandlers();
+}
+
+function teardownMachineProductionDashboard() {
+    console.log("Tearing down machine Production Dashboard");
+    listenerManager.removeListeners();
+    window.machineProductionDashboardInitialized = false;
+}
+
 if (typeof scriptMap !== 'undefined') {
     scriptMap['/machine-production'].callback = initializeMachineProductionDashboard;
+    scriptMap['/machine-production'].teardown = teardownMachineProductionDashboard;
 }
 
-
-
-function initializeMachineProductionDashboard() {
-    console.log("Initializing MAchine Production Dashboard");
-    // First, clear all managed listeners
-    listenerManager.removeListeners();
-
-    // Initialize dashboard functionalities
-    populateCustomerIDs(); // Populate customer IDs
-    populateWorkAreas(); // Populate work areas
-    populateDefectTypes();
-    populateDefectActions();
-
-    // Setup event handlers at initialization
-    setupEventHandlers();
-
-    // Prevent multiple initializations
-    if (window.machineProductionDashboardInitialized) return;
-    window.machineProductionDashboardInitialized = true;   
-}
 
 
 // Setup or re-setup event handlers

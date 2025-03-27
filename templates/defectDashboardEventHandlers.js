@@ -1,30 +1,23 @@
 /***** Production Dashboard *****/
 
 
-// After this script loads, set its callback in scriptMap if necessary.
-if (typeof scriptMap !== 'undefined') {
-    scriptMap['/defect-dashboard'].callback = initializeDefectDashboard;
-}
-
-
 function initializeDefectDashboard() {
-    console.log("Initializing Defect Dashboard");
-    // First, clear all managed listeners
-    listenerManager.removeListeners();
-
-    // handleFetchDefectList();
-    populateWorkAreas(); 
-    populateDefectTypes();
-    populateDefectActions();
-    
-    // Setup event handlers at initialization
-    setupEventHandlers();
-
-    // Prevent multiple initializations
     if (window.defectDashboardInitialized) return;
     window.defectDashboardInitialized = true;
 
-    
+    console.log("Initializing Defect Dashboard");
+    setupEventHandlers();
+}
+
+function teardownDefectDashboard() {
+    console.log("Tearing down Defect Dashboard");
+    listenerManager.removeListeners();
+    window.defectDashboardInitialized = false;
+}
+
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/defect-dashboard'].callback = initializeDefectDashboard;
+    scriptMap['/defect-dashboard'].teardown = teardownDefectDashboard;
 }
 
 

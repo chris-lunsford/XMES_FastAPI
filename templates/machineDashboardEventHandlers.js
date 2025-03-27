@@ -358,3 +358,17 @@ function calculateEndOfMonth() {
     const today = new Date();
     return new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0]; // Last day of the month
 }
+
+
+
+
+function teardownMachineDashboard() {
+    console.log("Tearing down Machine Dashboard");
+    listenerManager.removeListeners();
+    window.machineDashboardInitialized = false;
+}
+
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/machine-dashboard'].callback = initializeMachineDashboard;
+    scriptMap['/machine-dashboard'].teardown = teardownMachineDashboard;
+}

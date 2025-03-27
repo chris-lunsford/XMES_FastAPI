@@ -1,3 +1,54 @@
+let currentDashboardRoute = null;
+
+async function initDashboard(route) {
+    // If we’re already on this route, do nothing
+    if (currentDashboardRoute === route) return;
+
+    // Tear down previous dashboard (if exists)
+    if (currentDashboardRoute && scriptMap[currentDashboardRoute]?.teardown) {
+        scriptMap[currentDashboardRoute].teardown();
+    }
+
+    currentDashboardRoute = route;
+    window.activePageRoute = route; // Optional: for deeper components
+
+    const scriptEntry = scriptMap[route];
+    if (!scriptEntry) {
+        console.warn("No script found for route:", route);
+        return;
+    }
+
+    // Load script only if not already loaded
+    if (!scriptEntry.callback) {
+        const script = document.createElement('script');
+        script.src = scriptEntry.path;
+        script.onload = () => {
+            console.log("Script loaded for route:", route);
+            scriptEntry.callback?.(); // Only call if route still matches
+        };
+        document.body.appendChild(script);
+    } else {
+        scriptEntry.callback?.(); // Already loaded
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Attach navigation click listeners
+    document.querySelectorAll("[data-nav]").forEach(link => {
+        link.addEventListener("click", e => {
+            e.preventDefault();
+            const route = link.getAttribute("data-nav");
+            initDashboard(route);
+        });
+    });
+
+    // Optional: initialize a default dashboard route on page load
+    // initDashboard("/assembly-order-dashboard");
+});
+
+
+
 async function updateMachineBorders() {
     try {
         console.log('Making API call to update machine borders');
@@ -1043,6 +1094,19 @@ function fetchScannedOrderPartCounts(orderID, callback) {
 
 function fetchWorkStationGroups() {
     return fetch('/api/work-station-groups')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load workstation groups.');
+            return response.json();
+        })
+        .then(data => data.groups)
+        .catch(error => {
+            console.error('Error fetching workstation groups:', error);
+            return {}; // Return empty object to handle gracefully
+        });
+}
+
+function fetchWorkAreas() {
+    return fetch('/api/assembly-work-stations')
         .then(response => {
             if (!response.ok) throw new Error('Failed to load workstation groups.');
             return response.json();
