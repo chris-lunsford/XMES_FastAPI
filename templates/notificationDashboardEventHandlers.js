@@ -26,6 +26,29 @@ function initializeNotificationDashboard() {
     // setupEventHandlers();   
 }
 
+function initializeNotificationDashboard() {
+    if (window.notificationDashboardInitialized) return;
+    window.notificationDashboardInitialized = true;
+
+    populateNotificationTypes();
+
+    console.log("Initializing Notification Dashboard");
+    setupEventHandlers();
+}
+
+function teardownNotificationDashboard() {
+    console.log("Tearing down Notification Dashboard");
+    listenerManager.removeListeners();
+    window.notificationDashboardInitialized = false;
+}
+
+if (typeof scriptMap !== 'undefined') {
+    scriptMap['/notification'].callback = initializeNotificationDashboard;
+    scriptMap['/notification'].teardown = teardownNotificationDashboard;
+}
+
+
+
 // Setup event handlers using the singleton pattern
 function setupEventHandlers() {  
     console.log("Setting up event handlers");
