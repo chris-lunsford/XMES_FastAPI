@@ -2060,9 +2060,9 @@ def check_part_status_resource(BARCODE, RESOURCE):
    
 
 
-def fetch_assembly_job_status(ORDERID: str):
+def fetch_assembly_order_status(ORDERID: str):
     """
-    Fetch the assembly job status from the database.
+    Fetch the assembly order status from the database.
     """
     conn = connect_to_db()
     if conn is None:
@@ -2124,6 +2124,7 @@ def fetch_assembly_job_status(ORDERID: str):
                 "Total_Operations": total_operations,
                 "Completion_Percentage": completion_percentage
             })
+
 
         return result
 

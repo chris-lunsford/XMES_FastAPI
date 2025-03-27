@@ -78,6 +78,10 @@ async def notification(request: Request):
 async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
 
+@app.get('/assembly-order-dashboard', tags=["Pages"])
+async def order_dashboard(request: Request):
+    return templates.TemplateResponse("assemblyorderdashboard.html", {"request": request})
+
 @app.get('/defect-dashboard', tags=["Pages"])
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
@@ -634,12 +638,15 @@ async def handle_complete_article_time(article: ArticleTimeData):
     
 
 
-@app.post('/api/fetch-assembly-job-status', tags=["Assembly Order Status"])
-async def handle_fetch_assembly_job_status(ORDERID):
+class OrderRequest(BaseModel):
+    ORDERID: str
+
+@app.post('/api/fetch-assembly-order-status', tags=["Assembly Order Status"])
+async def handle_fetch_assembly_order_status(req: OrderRequest):
     try:
-        result = fetch_assembly_job_status(ORDERID)
+        result = fetch_assembly_order_status(req.ORDERID)
         return {"result": result}
-    except ValueError as e:  # Specific handling for known exceptions
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:  # Generic exception handling
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

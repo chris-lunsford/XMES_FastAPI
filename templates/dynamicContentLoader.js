@@ -23,6 +23,10 @@ const scriptMap = {
         path: 'templates/orderDashboardEventHandlers.js',
         callback: null  // Set to null initially
     },
+    '/assembly-order-dashboard': {
+        path: 'templates/assemblyOrderDashboardEventHandlers.js',
+        callback: null  // Set to null initially
+    },
     '/defect-dashboard': {
         path: 'templates/defectDashboardEventHandlers.js',
         callback: null  // Set to null initially
