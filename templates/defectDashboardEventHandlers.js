@@ -9,6 +9,11 @@ function initializeDefectDashboard() {
     if (window.defectDashboardInitialized) return;
     window.defectDashboardInitialized = true;
 
+    // handleFetchDefectList();
+    populateWorkAreas(); 
+    populateDefectTypes();
+    populateDefectActions();
+
     console.log("Initializing Defect Dashboard");
     setupEventHandlers();
 }
