@@ -86,6 +86,10 @@ async def order_dashboard(request: Request):
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
 
+@app.get('/job-board', tags=["Pages"])
+async def defect_dashboard(request: Request):
+    return templates.TemplateResponse("jobboard.html", {"request": request})
+
 @app.get('/ttc-plugin', tags=["Pages"], response_class=HTMLResponse)
 async def ttc_plugin(request: Request, response: Response):
     # Set the cookie if it's not already set
@@ -663,3 +667,9 @@ async def handle_fetch_assembly_order_times(request: OrderRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get('/api/fetch-job-board-data', tags=["Job Board"])
+async def handle_fetch_job_board_data():
+    pass
