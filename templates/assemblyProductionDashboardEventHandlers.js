@@ -70,11 +70,7 @@ async function clearPartTable() {
     
     const tableBody = document.getElementById('table-body');
 
-    // const assemblyStatus = table.dataset.assemblyStatus || "no record";
-    // const articleStatus = table.dataset.articleStatus || "none";
-
-    // table.dataset.articleStatus = data.article_status || "none";
-
+    
     try {
         // Confirm with the user before clearing the table
         const confirmation = confirm("Are you sure you want to clear the table?");
@@ -86,6 +82,9 @@ async function clearPartTable() {
             // Clear the assembly and article status from dataset
             tableBody.dataset.articleStatus = "";
             tableBody.dataset.assemblyStatus = "";
+
+            // Clear the barcode variable
+            lastScannedBarcode = null; 
 
             console.log("Table cleared successfully.");
             // alert("The table has been cleared.");

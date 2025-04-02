@@ -2134,3 +2134,50 @@ def fetch_assembly_order_status(ORDERID: str):
     finally:
         cursor.close()
         conn.close()
+
+
+
+####################################################
+   
+
+
+def fetch_assembly_order_times(ORDERID):
+    conn = connect_to_db()
+    if conn is None:
+        raise ValueError("Failed to connect to the database.")
+    
+    cursor = conn.cursor()
+    try:
+        # Fetch articles with routing info
+        query = """
+        SELECT 
+            ORDERID, 
+            RESOURCE, 
+            SUM(ASSEMBLY_TIME) AS TOTAL_ASSEMBLY_TIME_SECONDS, 
+            CAST(DATEADD(SECOND, SUM(ASSEMBLY_TIME), 0) AS TIME) AS TOTAL_ASSEMBLY_TIME
+        FROM dbo.Fact_Assembly_Time_Tracking
+        WHERE ORDERID = %s
+        GROUP BY ORDERID, RESOURCE
+        ORDER BY ORDERID, RESOURCE
+        """
+        cursor.execute(query, (ORDERID,))
+
+        # Get column names from cursor description
+        columns = [desc[0] for desc in cursor.description]
+        
+        # Convert each row to a dictionary
+        result = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+        
+        return result
+
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
+
+        

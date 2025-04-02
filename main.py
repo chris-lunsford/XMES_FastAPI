@@ -650,3 +650,16 @@ async def handle_fetch_assembly_order_status(req: OrderRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+@app.post('/api/fetch-assembly-order-times', tags=["Assembly Order Status"])
+async def handle_fetch_assembly_order_times(request: OrderRequest):
+    try:
+        result = fetch_assembly_order_times(request.ORDERID)
+        return {"result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

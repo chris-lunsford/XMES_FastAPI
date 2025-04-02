@@ -10,9 +10,11 @@ function initializeAssemblyOrderDashboard() {
     // First, clear all managed listeners
     listenerManager.removeListeners();
 
+    loadWorkStations();
     // Setup event handlers at initialization
     setupEventHandlers();
 
+    
     // Prevent multiple initializations
     if (window.assemblyOrderDashboardInitialized) return;
     window.assemblyOrderDashboardInitialized = true;   
@@ -45,12 +47,13 @@ function handleDynamicInputs(event) {
         if (orderID.length === 8) {
             fetchJobNotifications(orderID);
             fetchOrderStatus(orderID);
+            updateAssemblyTimes(orderID)
         } else if (orderID.length === 0) {
-            resetPartCounts();
+            resetArticleCounts();
         }
-        if (orderID.length !== 8) {
-            clearPartsTable();
-        }
+        // if (orderID.length !== 8) {
+        //     clearPartsTable();
+        // }
     }
 
 }
@@ -121,8 +124,8 @@ function updateUI(articles) {
     }
 
     // Update total summary section
-    document.getElementById("part-count-Total").textContent = totalParts;
-    document.getElementById("up-time-TotalTime").textContent = totalCompleted;
+    document.getElementById("article-count-Total").textContent = totalParts;
+    // document.getElementById("up-time-TotalTime").textContent = totalCompleted;
 
     // Update each work area block
     workStations.forEach(area => {
@@ -142,7 +145,7 @@ function updateUI(articles) {
             totalEl.textContent = total;
             barEl.value = percentage;
             textEl.textContent = `${percentage}%`;
-            timeEl.textContent = `${current} hrs`;
+            // timeEl.textContent = `${current} hrs`;
         }
     });
 }
@@ -187,18 +190,21 @@ function handleWorkAreaContainerClick(event) {
 }
 
 
-// Function to reset all part counts to zero, remove 'has-parts' class, and clear missing parts table
-function resetPartCounts() {
+
+
+async function resetArticleCounts() {
     console.log("Resetting part counts, border styles, progress bars, and missing parts table");
 
-    // Fetch work station groups dynamically
-    fetchWorkAreas().then(groups => {
-        const uniqueGroups = new Set(Object.values(groups));
+    try {
+        // Ensure areas are loaded
+        await loadWorkStations();  // this populates window.workAreaGroups
+
+        const uniqueGroups = new Set(Object.values(window.workStations || {}));
 
         uniqueGroups.forEach(code => {
-            // Resetting progress bars specifically
-            let progressBar = document.getElementById(`progress-bar-${code}`);
-            let progressText = document.getElementById(`progress-text-${code}`);
+            // Reset progress bars
+            const progressBar = document.getElementById(`progress-bar-${code}`);
+            const progressText = document.getElementById(`progress-text-${code}`);
 
             if (progressBar && progressText) {
                 progressBar.value = 0;
@@ -206,192 +212,74 @@ function resetPartCounts() {
                 progressText.textContent = '0%';
             }
 
-            // Resetting count texts and classes on containers
-            const totalCountElement = document.getElementById(`part-count-Total`);
-            let currentCountElement = document.getElementById(`current-count-${code}`);
-            let partCountElement = document.getElementById(`part-count-${code}`);
-            let machineContainer = currentCountElement ? currentCountElement.closest('.machine-container') : null;
+            // Reset counts and container styles
+            const totalCountElement = document.getElementById(`article-count-Total`);
+            const currentCountElement = document.getElementById(`current-count-${code}`);
+            const partCountElement = document.getElementById(`article-count-${code}`);
+            const workareaContainer = currentCountElement ? currentCountElement.closest('.workarea-container') : null;
 
-            if (currentCountElement && partCountElement && machineContainer) {
+            if (currentCountElement && partCountElement && workareaContainer) {
                 totalCountElement.textContent = '0';
                 currentCountElement.textContent = '0';
                 partCountElement.textContent = '0';
-                machineContainer.classList.remove('has-parts');
-                machineContainer.classList.remove('hidden');  // Assuming you want to hide the container when parts count is reset
+                workareaContainer.classList.remove('has-parts');
+                workareaContainer.classList.remove('hidden');
             }
         });
 
-        // Clear the missing parts table
+        // Clear missing parts table
         const tableBody = document.getElementById('table-body');
         if (tableBody) {
             tableBody.innerHTML = '';
         }
 
-        // Clear Notifications
+        // Clear notification list
         const notificationListElement = document.getElementById('notification-list');
         console.log("Clearing notifications");
         if (notificationListElement) {
-            notificationListElement.innerHTML = ''; // Clear existing notifications
-    }
-
-    }).catch(error => {
-        console.error("Failed to fetch work station groups:", error);
-    });
-}
-
-
-
-
-// Function to update progress bar
-function updateProgressBar(machineGroupCode) {
-    console.log("Updating progress bar");
-    var currentCountElement = document.getElementById(`current-count-${machineGroupCode}`);
-    var partCountElement = document.getElementById(`part-count-${machineGroupCode}`);
-    var progressBar = document.getElementById(`progress-bar-${machineGroupCode}`);
-    var progressText = document.getElementById(`progress-text-${machineGroupCode}`);
-
-    // Check if elements exist and are visible in the document flow
-    if (!currentCountElement || !partCountElement || !progressBar || !progressText) {
-        console.error(`Elements not found for ${machineGroupCode}, or are currently hidden.`);
-        return; // Skip this group as it is not visible
-    }
-
-    var currentCount = parseInt(currentCountElement.textContent, 10);
-    var partCount = parseInt(partCountElement.textContent, 10);
-
-    // Handle case where part count is zero or current count is not a valid number
-    if (isNaN(currentCount) || currentCount < 0) {
-        currentCount = 0;
-    }
-    if (isNaN(partCount) || partCount <= 0) {
-        partCount = 0;
-    }
-
-    if (partCount > 0) {
-        var percentComplete = (currentCount / partCount) * 100;
-        progressBar.value = percentComplete;
-        progressText.textContent = `${Math.round(percentComplete)}%`;
-
-        if (Math.round(percentComplete) === 100) {
-            progressBar.classList.add('complete');
-        } else {
-            progressBar.classList.remove('complete');
+            notificationListElement.innerHTML = '';
         }
-    } else {
-        progressBar.value = 0;
-        progressText.textContent = "0%";
-        progressBar.classList.remove('complete');
+
+    } catch (error) {
+        console.error("Failed to load work area groups:", error);
     }
 }
 
 
 
-function fetchAssemblyDataAndUpdateUI(orderID) {
-    fetchWorkAreas().then(groups => {
-        const uniqueGroups = new Set(Object.values(groups));
+async function updateAssemblyTimes(orderID) {
+    try {
+      const response = await fetch('/api/fetch-assembly-order-times', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ORDERID: orderID })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+  
+      data.result.forEach(entry => {
+        const resource = entry.RESOURCE;
+        const seconds = entry.TOTAL_ASSEMBLY_TIME_SECONDS;
 
-        // Clear previous data
-        uniqueGroups.forEach(code => {
-            const currentCountElement = document.getElementById(`current-count-${code}`);
-            if (currentCountElement) {
-                currentCountElement.textContent = "0";
-            }
-            const progressBar = document.getElementById(`progress-bar-${code}`);
-            if (progressBar) {
-                progressBar.value = 0;
-            }
-            const progressText = document.getElementById(`progress-text-${code}`);
-            if (progressText) {
-                progressText.textContent = "0%";
-            }
+        const hours = (seconds / 3600).toFixed(2); // Keep 2 decimal places
+
+        const timeElement = document.getElementById(`assembly-time-${resource}`);
+        if (timeElement) {
+            timeElement.textContent = `${hours} hrs`;
+        }
         });
-
-        fetchOrderPartCounts(orderID, () => {
-            uniqueGroups.forEach(code => {
-                updateProgressBar(code);
-            });
-        });
-        fetchScannedOrderPartCounts(orderID, () => {
-            uniqueGroups.forEach(code => {
-                updateProgressBar(code);
-            });
-        });
-
-        // Fetch machine runtimes and update the UI
-        fetchMachineRuntimes(orderID);
-    });
-}
-
-
-// Event handler for fetching parts not scanned by shipping
-function handleFetchPartsNotScanned() {
-    const orderID = document.getElementById('order-id').value.trim();
-    const workAreaField = document.getElementById('work-area').value; 
-    if (orderID) {
-        fetchPartsNotScanned(orderID, workAreaField);  // This function will be defined in global.js
+    } catch (error) {
+      console.error('Failed to fetch assembly times:', error);
     }
-}
+  }
 
 
-function generatePackList() {
-    var OrderID = document.getElementById('order-id').value;
-    if (OrderID) {
-        fetch(`/api/generate-packlist?OrderID=${OrderID}`)
-            .then(response => response.text())  // Assuming the server sends back HTML
-            .then(html => {
-                var newWindow = window.open();
-                newWindow.document.open();
-                newWindow.document.write(html);
-                newWindow.document.close();
-            })
-            .catch(error => console.error('Error fetching the packlist:', error));
-    } else {
-        alert('Please enter a valid Order ID.');
-    }
-}
 
 
-function generatePackList2() {
-    var OrderID = document.getElementById('order-id').value;
-    if (OrderID) {
-        fetch(`/api/generate-packlist2?OrderID=${OrderID}`)
-            .then(response => response.text())  // Assuming the server sends back HTML
-            .then(html => {
-                var newWindow = window.open();
-                newWindow.document.open();
-                newWindow.document.write(html);
-                newWindow.document.close();
-            })
-            .catch(error => console.error('Error fetching the packlist:', error));
-    } else {
-        alert('Please enter a valid Order ID.');
-    }
-}
 
-
-function fetchMachineRuntimes(orderID) {
-    fetch(`/api/fetch-runtime-machines?orderid=${orderID}`)
-        .then(response => response.json())
-        .then(data => {
-            // Update total runtime
-            const totalRuntimeElement = document.getElementById('up-time-TotalTime');
-            if (totalRuntimeElement && data['Total']) {
-                const totalTime = Number(data['Total'] || 0);
-                totalRuntimeElement.textContent = (totalTime / 60).toFixed(2) + ' hrs';
-            }
-
-            // Update work group runtimes
-            for (const [workGroupCode, runtime] of Object.entries(data)) {
-                if (workGroupCode !== 'Total') {
-                    const runtimeElement = document.getElementById(`up-time-${workGroupCode}`);
-                    if (runtimeElement) {
-                        const workGroupTime = Number(runtime || 0);
-                        runtimeElement.textContent = (workGroupTime / 60).toFixed(2) + ' hrs';
-                    }
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching machine runtimes:', error);
-        });
-}
