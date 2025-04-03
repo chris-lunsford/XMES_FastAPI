@@ -3,6 +3,7 @@ import datetime
 import pytz
 import asyncio
 import traceback
+import os
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException, Query, Response
 from fastapi.templating import Jinja2Templates
@@ -20,6 +21,7 @@ from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
 from defect_types import DEFECT_TYPES
 from defect_actions import DEFECT_ACTIONS
+from job_list import JOB_LIST
 from sql_functions import *
 from models import *
 from ttc_plugin import router as ttc_router
@@ -671,5 +673,40 @@ async def handle_fetch_assembly_order_times(request: OrderRequest):
 
 
 @app.get('/api/fetch-job-board-data', tags=["Job Board"])
-async def handle_fetch_job_board_data():
-    pass
+async def handle_fetch_job_board_data(
+    orders: Optional[List[str]] = Query(None)
+):
+    try:
+        # Use provided orders if present, otherwise load from file
+        if not orders:
+            orders = read_job_list()
+            
+        if not orders:  # still empty after reading the file
+            return {"detail": "No orders found in job list."}
+        
+        result = fetch_job_board_data(orders)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+def read_job_list(filepath="job_list.txt") -> List[str]:
+    base_dir = os.path.dirname(__file__)
+    filepath = os.path.join(base_dir, "job_list.txt")
+    print(f"[DEBUG] Reading job list from: {filepath}")
+    
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"{filepath} not found.")
+    
+    with open(filepath, "r") as file:
+        orders = [line.strip() for line in file if line.strip()]
+        print(f"[DEBUG] Orders loaded: {orders}")
+        return orders 
+        
+
+
+
+
+
+
+    

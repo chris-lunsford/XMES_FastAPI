@@ -16,32 +16,14 @@ h1.centered {
     text-align: center;
 }
 
-.defect-container {
+.job-board-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
 }
 
-.defect-filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    border: 1px solid black;
-    width: 80%;
-    gap: 20px;
-    padding: 10px;
-    margin-top: 15px;
-}
-
-.defect-filters input, select {
-    border: 1px solid black;
-    border-radius: 3px;
-    appearance: auto;
-    padding: 5px;
-}
-
-.defect-list-display {
+.job-board-display {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -51,26 +33,7 @@ h1.centered {
     /* border: 1px solid black; */
 }
 
-
-.defect-list-display  button {
-    background-color: #969191; 
-    color: black;
-    border: none;
-    cursor: pointer;
-    padding: 8px 16px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px; 
-    border-radius: 10px;
-}
-
-.defect-list-display  button:hover {
-    background-color: #1a3d80; /* Darker blue on hover */
-    color: white;
-}
-
-.defect-table {
+.job-board-table {
     width: 100%;
     max-height: 600px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
@@ -79,29 +42,25 @@ h1.centered {
     font-size: 1rem;
 }
 
-#parts-table th {
+#order-table th {
     cursor: pointer;
 }
 
-#parts-table td {
+#order-table td {
     white-space: pre-wrap; /* CSS property to preserve whitespace */
 }
 
-.defect-list-display  table {
+.job-board-display  table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.defect-list-display  th, .defect-list-display  td {
+.job-board-display  th, .job-board-display  td {
     border: 1px solid black;
     padding: 8px;
     text-align: left;
 }
 
-.defect-list-display  th {
+.job-board-display  th {
     background-color: #f2f2f2;
-}
-
-.part-barcode {
-    width: 25%;
 }

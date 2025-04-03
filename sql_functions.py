@@ -2180,4 +2180,77 @@ def fetch_assembly_order_times(ORDERID):
         cursor.close()
         conn.close()
 
-        
+
+####################################################
+   
+def fetch_job_board_data(order_ids):
+    expected_counts = fetch_expected_counts(order_ids)
+    scanned_counts = fetch_scanned_counts(order_ids)
+
+    results = {}
+    for order_id in order_ids:
+        results[order_id] = {
+            "expected": expected_counts.get(order_id, {}),
+            "scanned": scanned_counts.get(order_id, {})
+        }
+    return results
+
+
+def fetch_expected_counts(order_ids):
+    conn = connect_to_db()
+    results = {}
+    try:
+        with conn.cursor() as cursor:
+            for order_id in order_ids:
+                query = """
+                SELECT
+                    COUNT(CASE WHEN INFO2 LIKE '%PSZ%' THEN BARCODE END) AS PSZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%TRZ%' THEN BARCODE END) AS TRZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%EBZ%' THEN BARCODE END) AS EBZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%PRZ%' THEN BARCODE END) AS PRZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%HRZ%' THEN BARCODE END) AS HRZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%HDZ%' THEN BARCODE END) AS HDZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%GMZ%' THEN BARCODE END) AS GMZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%PBZ%' THEN BARCODE END) AS PBZ,
+                    COUNT(CASE WHEN INFO2 LIKE '%SCZ%' THEN BARCODE END) AS SCZ,
+                    COUNT(DISTINCT BARCODE) AS Total
+                FROM dbo.View_Part_Data
+                WHERE ORDERID = %s AND (CNC_BARCODE1 IS NULL OR CNC_BARCODE1 <> '')
+                """
+                cursor.execute(query, (order_id,))
+                row = cursor.fetchone()
+                keys = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ','PBZ', 'SCZ', "Total"]
+                results[order_id] = {key: row[i] for i, key in enumerate(keys)}
+    finally:
+        conn.close()
+    return results
+
+
+def fetch_scanned_counts(order_ids):
+    conn = connect_to_db()
+    results = {}
+    try:
+        with conn.cursor(as_dict=True) as cursor:
+            format_strings = ','.join(['%s'] * len(order_ids))
+            query = f"""
+                SELECT ORDERID, BARCODE, RESOURCE
+                FROM dbo.Fact_Machining_Scans
+                WHERE ORDERID IN ({format_strings})
+            """
+            cursor.execute(query, tuple(order_ids))
+            rows = cursor.fetchall()
+
+            grouped = {}
+            for row in rows:
+                order = row['ORDERID']
+                barcode = row['BARCODE']
+                resource = row['RESOURCE']
+                group = WORK_STATION_GROUPS.get(resource, "Unknown")
+                grouped.setdefault(order, {}).setdefault(group, set()).add(barcode)
+
+            for order, group_data in grouped.items():
+                results[order] = {group: len(bcs) for group, bcs in group_data.items()}
+    finally:
+        conn.close()
+    return results
+
