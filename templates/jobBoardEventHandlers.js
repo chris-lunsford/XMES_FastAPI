@@ -118,7 +118,7 @@ async function loadJobBoardData() {
 
             let totalBarColor = '#4caf50';
             if (totalPercent < 50) totalBarColor = '#f44336';
-            else if (totalPercent < 80) totalBarColor = '#ff9800';
+            else if (totalPercent < 100) totalBarColor = '#ff9800';
 
             totalCell.innerHTML = `
                 <div class="progress-wrapper">
