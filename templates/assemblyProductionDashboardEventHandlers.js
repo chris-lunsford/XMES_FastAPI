@@ -747,23 +747,6 @@ function handleSubmitButton(event) {
 
 
 
-function showLoadingSpinner() {
-    const spinner = document.getElementById('loading-spinner');
-    if (spinner) {
-        spinner.style.display = 'block';
-    }
-}
-
-function hideLoadingSpinner() {
-    const spinner = document.getElementById('loading-spinner');
-    if (spinner) {
-        spinner.style.display = 'none';
-    }
-}
-
-
-
-
 function collectTableData() {
     const tableBody = document.getElementById('table-body');
     const rows = Array.from(tableBody.children);

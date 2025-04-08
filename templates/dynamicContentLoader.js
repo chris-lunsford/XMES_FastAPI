@@ -31,6 +31,10 @@ const scriptMap = {
         path: 'templates/defectDashboardEventHandlers.js',
         callback: null  // Set to null initially
     },
+    '/job-board': {
+        path: 'templates/jobboardEventHandlers.js',
+        callback: null  // Set to null initially
+    },
 };
 
 

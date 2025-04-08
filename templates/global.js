@@ -1,3 +1,18 @@
+function showLoadingSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'block';
+    }
+}
+
+function hideLoadingSpinner() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+}
+
+
 async function updateMachineBorders() {
     try {
         console.log('Making API call to update machine borders');

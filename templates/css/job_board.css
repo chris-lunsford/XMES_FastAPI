@@ -35,7 +35,7 @@ h1.centered {
 
 .job-board-table {
     width: 100%;
-    max-height: 600px;  /* Set the maximum height to whatever suits your design */
+    /* max-height: 600px;  Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
     border: 1px solid #ccc;  /* Optional: adds a border around the table container */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -47,7 +47,7 @@ h1.centered {
 }
 
 #order-table td {
-    white-space: pre-wrap; /* CSS property to preserve whitespace */
+    white-space: normal; /* CSS property to preserve whitespace */
 }
 
 .job-board-display  table {
@@ -63,4 +63,100 @@ h1.centered {
 
 .job-board-display  th {
     background-color: #f2f2f2;
+}
+
+#order-table td {
+    height: 40px;      /* sets exact row height */
+    vertical-align: middle;
+}
+
+#order-table td:first-child {
+    vertical-align: middle;
+}
+
+.progress-wrapper {
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 0.85em;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 2px;
+    min-height: 45px; /* Add enough height for both lines */
+}
+
+.progress-bar {
+    height: 10px;
+    background-color: #4caf50;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    margin-bottom: 4px;
+}
+
+.progress-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.progress-label {
+    font-weight: bold;
+    color: #000;
+    line-height: 1.2em;
+}
+
+.progress-percent {
+    color: #555;
+    font-size: 1.2em;
+}
+
+.order-id {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.store-type {
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.ship-date {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+
+.highlight {
+    background-color: #0063cc !important;
+    font-weight: bold;
+}
+
+td.row-label,
+th.col-header {
+    transition: background-color 0.2s ease;
+}
+
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    z-index: 1000;
+    color: white;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
 }

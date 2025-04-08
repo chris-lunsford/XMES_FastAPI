@@ -4,6 +4,7 @@ import pytz
 import asyncio
 import traceback
 import os
+import csv
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException, Query, Response
 from fastapi.templating import Jinja2Templates
@@ -677,14 +678,26 @@ async def handle_fetch_job_board_data(
     orders: Optional[List[str]] = Query(None)
 ):
     try:
-        # Use provided orders if present, otherwise load from file
+        # Load jobs from file or use provided orders
         if not orders:
-            orders = read_job_list()
-            
-        if not orders:  # still empty after reading the file
+            jobs = read_job_list()  # List of dicts with order_id, store_type, ship_date
+            order_ids = [job['order_id'] for job in jobs]
+        else:
+            jobs = [{"order_id": oid, "store_type": "", "ship_date": ""} for oid in orders]
+            order_ids = orders
+
+        if not order_ids:
             return {"detail": "No orders found in job list."}
-        
-        result = fetch_job_board_data(orders)
+
+        # Fetch expected + scanned data
+        result = fetch_job_board_data(order_ids)
+
+        # Inject store_type and ship_date into each result row
+        for job in jobs:
+            oid = job['order_id']
+            if oid in result:
+                result[oid]['store_type'] = job.get('store_type', '')
+                result[oid]['ship_date'] = job.get('ship_date', '')
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -699,9 +712,16 @@ def read_job_list(filepath="job_list.txt") -> List[str]:
         raise FileNotFoundError(f"{filepath} not found.")
     
     with open(filepath, "r") as file:
-        orders = [line.strip() for line in file if line.strip()]
-        print(f"[DEBUG] Orders loaded: {orders}")
-        return orders 
+        reader = csv.reader(file)
+        job_list = []
+        for row in reader:
+            if len(row) >= 3:
+                job_list.append({
+                    "order_id": row[0].strip(),
+                    "store_type": row[1].strip(),
+                    "ship_date": row[2].strip()
+                })
+        return job_list
         
 
 
