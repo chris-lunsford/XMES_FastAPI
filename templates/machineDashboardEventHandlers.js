@@ -4,6 +4,7 @@
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
     scriptMap['/machine-dashboard'].callback = initializeMachineDashboard;
+    scriptMap['/machine-dashboard'].cleanup = cleanupMachineDashboard;
 }
 
 // Check if debouncedHandleInputChange has been defined
@@ -109,16 +110,26 @@ function initializeMachineDashboard() {
     window.machineDashboardInitialized = true;
 
     // Set interval if it has not been set before
-    if (!window.autoSubmitIntervalSet) {
-        window.autoSubmitIntervalSet = true;
-        setInterval(autoSubmitForm, 60000); // Auto submit form every minute
+    if (!window.machineDashboardIntervalId) {
+        console.log("Setting Machine Dashboard refresh interval");
+        window.machineDashboardIntervalId = setInterval(autoSubmitForm, 60000);
     }
 }
 
 
+function cleanupMachineDashboard() {
+    if (window.machineDashboardIntervalId) {
+        clearInterval(window.machineDashboardIntervalId);
+        window.machineDashboardIntervalId = null;
+        console.log("✅ Cleared Machine Dashboard interval");
+    }
+    window.machineDashboardInitialized = false;
+    window.autoSubmitIntervalSet = false; // Optional: reset if you want reinitialization logic
+}
+
 
 // Update the autoSubmitForm and other relevant calls to pass startDate and endDate
-function autoSubmitForm() {
+function autoSubmitForm() { 
     const form = document.getElementById('dateForm');
     if (form) {
         const formData = new FormData(form); 
@@ -135,6 +146,7 @@ function autoSubmitForm() {
 
 
 async function updateUpTimes(startDate, endDate) {
+    // showLoadingSpinner()
     resetUpTimes();
     console.log('Fetching data for:', { startDate, endDate }); 
     const resourceQuery = new URLSearchParams();
@@ -196,6 +208,7 @@ function updateUIDownTimes(data) {
         console.log(`Updating ${machineId}:`, downTime);
         element.textContent = (downTime / 60).toFixed(2) + ' hrs';
     });
+    // hideLoadingSpinner()
 }
 
 

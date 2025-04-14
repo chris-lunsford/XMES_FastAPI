@@ -4,6 +4,17 @@
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
     scriptMap['/job-board'].callback = initializeJobBoard;
+    scriptMap['/job-board'].cleanup = cleanupJobBoard;
+}
+
+function cleanupJobBoard() {
+    if (window.jobBoardIntervalId) {
+        clearInterval(window.jobBoardIntervalId);
+        window.jobBoardIntervalId = null;
+        console.log('✅ Cleared job board interval');
+    }
+    window.jobBoardInitialized = false;
+    window.autoSubmitIntervalSet = false; // reset flag if needed
 }
 
 
@@ -21,7 +32,12 @@ function initializeJobBoard() {
     if (window.jobBboardInitialized) return;
     window.jobBoardInitialized = true;
 
-    
+    // Set interval if it has not been set before
+    if (!window.autoSubmitIntervalSet) {
+        window.autoSubmitIntervalSet = true;
+        console.log("Setting refresh interval");
+        window.jobBoardIntervalId = setInterval(loadJobBoardData, 60000); // every 10s
+    }   
     
 }
 
@@ -66,6 +82,7 @@ async function loadJobBoardData() {
             const orderCell = document.createElement('td');
             orderCell.textContent = orderId;
             orderCell.classList.add('row-label');
+            orderCell.dataset.col = 'orderid';
 
             const shipDate = orderData.ship_date || '';
             const storeType = orderData.store_type || '';
@@ -104,8 +121,10 @@ async function loadJobBoardData() {
                 cell.innerHTML = `
                     <div class="progress-wrapper">
                         <div class="progress-bar" style="width: ${percentage}%; background-color: ${barColor};"></div>
-                        <span class="progress-label">${scanned} / ${expected}</span>
-                        <span class="progress-percent">${percentage}%</span>
+                        <div class="progress-info">
+                            <span class="progress-label">${scanned} / ${expected}</span>
+                            <span class="progress-percent">${percentage}%</span>
+                        </div>
                     </div>
                 `;
 
@@ -163,7 +182,9 @@ function updateTableHeaders(stations) {
     });
 
     const totalHeader = document.createElement('th');
-    totalHeader.textContent = "Routing Steps";
+    totalHeader.textContent = "Total";
+    // totalHeader.classList.add('col-header');
+    // totalHeader.dataset.col = "Total";
     headerRow.appendChild(totalHeader);
 
     thead.appendChild(headerRow);
@@ -171,36 +192,111 @@ function updateTableHeaders(stations) {
 
 
 
+// function setupCellHoverHighlighting() {
+//     const table = document.getElementById('order-table');
+
+//     table.addEventListener('mouseover', (e) => {
+//         const td = e.target.closest('td');
+//         if (!td || !td.dataset.col) return;
+
+//         const col = td.dataset.col;
+//         const row = td.parentElement;
+
+//         // Highlight column header
+//         const header = document.querySelector(`th[data-col="${col}"]`);
+//         header?.classList.add('highlight');
+
+//         // Highlight order ID cell
+//         const rowLabel = row.querySelector('td.row-label');
+//         rowLabel?.classList.add('highlight');
+
+//         // Highlight all cells in the same column
+//         const colCells = table.querySelectorAll(`td[data-col="${col}"]`);
+//         colCells.forEach(cell => cell.classList.add('highlight'));
+
+//         // Highlight all cells in the same row
+//         row.querySelectorAll('td').forEach(cell => cell.classList.add('highlight'));
+//     });
+
+//     table.addEventListener('mouseout', () => {
+//         document.querySelectorAll('.highlight').forEach(el => {
+//             el.classList.remove('highlight');
+//         });
+//     });
+// }
+
 function setupCellHoverHighlighting() {
     const table = document.getElementById('order-table');
+    let lockedTarget = null;
 
     table.addEventListener('mouseover', (e) => {
-        const td = e.target.closest('td');
-        if (!td || !td.dataset.col) return;
-
-        const col = td.dataset.col;
-        const row = td.parentElement;
-
-        // Highlight column header
-        const header = document.querySelector(`th[data-col="${col}"]`);
-        header?.classList.add('highlight');
-
-        // Highlight order ID cell
-        const rowLabel = row.querySelector('td.row-label');
-        rowLabel?.classList.add('highlight');
-
-        // Highlight all cells in the same column
-        const colCells = table.querySelectorAll(`td[data-col="${col}"]`);
-        colCells.forEach(cell => cell.classList.add('highlight'));
-
-        // Highlight all cells in the same row
-        row.querySelectorAll('td').forEach(cell => cell.classList.add('highlight'));
+        if (lockedTarget) return;
+    
+        const header = e.target.closest('th[data-col]');
+        const rowLabel = e.target.closest('td.row-label[data-col]');
+        const cell = e.target.closest('td.data-cell[data-col]');
+    
+        if (header) {
+            highlightColumn(header.dataset.col);
+        } else if (rowLabel) {
+            highlightRow(rowLabel.parentElement);
+        } else if (cell) {
+            highlightBoth(cell);
+        }
     });
 
     table.addEventListener('mouseout', () => {
-        document.querySelectorAll('.highlight').forEach(el => {
-            el.classList.remove('highlight');
-        });
+        if (!lockedTarget) clearHighlights();
     });
-}
 
+    table.addEventListener('click', (e) => {
+        const header = e.target.closest('th[data-col]');
+        const rowLabel = e.target.closest('td.row-label[data-col]');
+        const cell = e.target.closest('td.data-cell[data-col]');
+
+        clearHighlights();
+
+        if (header) {
+            lockedTarget = header;
+            highlightColumn(header.dataset.col);
+        } else if (rowLabel) {
+            lockedTarget = rowLabel;
+            highlightRow(rowLabel.parentElement);
+        } else if (cell) {
+            lockedTarget = cell;
+            highlightBoth(cell);
+        } else {
+            lockedTarget = null;
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const insideTable = e.target.closest('#order-table');
+        if (!insideTable) {
+            lockedTarget = null;
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+        }
+    });
+
+    function highlightColumn(col) {
+        document.querySelectorAll(`th[data-col="${col}"], td[data-col="${col}"]`)
+            .forEach(el => el.classList.add('highlight'));
+    }
+
+    function highlightRow(row) {
+        row.querySelectorAll('td').forEach(td => td.classList.add('highlight'));
+    }
+
+    function highlightBoth(td) {
+        const col = td.dataset.col;
+        const row = td.parentElement;
+        highlightColumn(col);
+        highlightRow(row);
+    }
+
+    function clearHighlights() {
+        document.querySelectorAll('.highlight').forEach(el =>
+            el.classList.remove('highlight')
+        );
+    }
+}

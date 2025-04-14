@@ -127,7 +127,7 @@ h1.centered {
 }
 
 
-.highlight {
+/* .highlight {
     background-color: #0063cc !important;
     font-weight: bold;
 }
@@ -135,7 +135,23 @@ h1.centered {
 td.row-label,
 th.col-header {
     transition: background-color 0.2s ease;
+} */
+
+.highlight {
+    background-color: #0063cc !important;
+    font-weight: bold;
 }
+
+.highlight-focus {
+    background-color: #0f4f94 !important; /* darker version */
+}
+
+td.row-label,
+th.col-header,
+td.data-cell {
+    transition: background-color 0.2s ease;
+}
+
 
 .loading-spinner {
     position: fixed;

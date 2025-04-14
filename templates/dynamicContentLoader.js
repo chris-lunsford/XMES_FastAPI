@@ -33,9 +33,25 @@ const scriptMap = {
     },
     '/job-board': {
         path: 'templates/jobboardEventHandlers.js',
-        callback: null  // Set to null initially
+        callback: null,  // Set to null initially
+        cleanup: () => {
+            if (window.jobBoardIntervalId) {
+                clearInterval(window.jobBoardIntervalId);
+                window.jobBoardIntervalId = null;
+                console.log('Cleared job board interval');
+            }
+        }
     },
 };
+
+
+let lastLoadedScript = null;
+
+function cleanupScriptForPreviousPage() {
+    if (lastLoadedScript && scriptMap[lastLoadedScript]?.cleanup) {
+        scriptMap[lastLoadedScript].cleanup();
+    }
+}
 
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -58,6 +74,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Function to load and initialize scripts
 function loadContent(url, highlight = true) {
+    cleanupScriptForPreviousPage();
+
     fetch(url)
         .then(response => response.text())
         .then(html => {
@@ -81,6 +99,7 @@ function loadContent(url, highlight = true) {
             console.log("Attempting to load content for URL:", url);
             Object.keys(scriptMap).forEach(key => {
                 if (url.includes(key)) {
+                    lastLoadedScript = key; // 💾 Track current script
                     console.log(`Loading script from: ${scriptMap[key].path}`);
                     loadScript(scriptMap[key].path, () => {
                         if (scriptMap[key].callback) {

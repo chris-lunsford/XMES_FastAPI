@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from fastapi import HTTPException
 from assembly_work_stations import ASSEMBLY_WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
@@ -2170,6 +2170,18 @@ def fetch_assembly_order_times(ORDERID):
             dict(zip(columns, row))
             for row in cursor.fetchall()
         ]
+
+        # Calculate total for the entire order
+        total_seconds = sum(row["TOTAL_ASSEMBLY_TIME_SECONDS"] for row in result)
+        total_time = str(timedelta(seconds=total_seconds))
+
+        # Append total summary at the end
+        result.append({
+            "ORDERID": ORDERID,
+            "RESOURCE": "TOTAL",
+            "TOTAL_ASSEMBLY_TIME_SECONDS": total_seconds,
+            "TOTAL_ASSEMBLY_TIME": total_time
+        })
         
         return result
 
