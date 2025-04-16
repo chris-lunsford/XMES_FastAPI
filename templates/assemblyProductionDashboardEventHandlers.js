@@ -82,6 +82,7 @@ async function clearPartTable() {
             // Clear the assembly and article status from dataset
             tableBody.dataset.articleStatus = "";
             tableBody.dataset.assemblyStatus = "";
+            tableBody.dataset.workArea = "";
 
             // Clear the barcode variable
             lastScannedBarcode = null; 

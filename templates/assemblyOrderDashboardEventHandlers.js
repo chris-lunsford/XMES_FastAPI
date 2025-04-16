@@ -72,7 +72,7 @@ async function loadWorkStations() {
 
 async function fetchOrderStatus(orderId) {
     try {
-        const response = await fetch("/api/fetch-assembly-order-status", {
+        const response = await fetch("/api/fetch-assembly-routing-counts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ORDERID: orderId })
@@ -80,86 +80,93 @@ async function fetchOrderStatus(orderId) {
 
         const data = await response.json();
 
-        if (data.result) {
-            updateUI(data.result);
+        if (data && data.result) {
+            updateRoutingUI(data.result);  // ✅ Make sure this is what you're passing
+        } else {
+            console.warn("No result in response:", data);
         }
     } catch (error) {
-        console.error("Error fetching order status:", error);
+        console.error("Error fetching routing counts:", error);
     }
 }
 
-function updateUI(articles) {
-    window.debugArticles = articles;
-    console.log("INFO2 values:", articles.map(a => a.INFO2));
-    console.log("workStations:", workStations);
-    console.log("Expected matches:", articles.map(a => {
-        return {
-            INFO2: a.INFO2,
-            matches: workStations.filter(ws => a.INFO2.includes(ws))
-        };
-    }));
-    const areaStatus = {};
 
-    // Initialize counters
-    workStations.forEach(area => {
-        areaStatus[area] = { total: 0, complete: 0 };
-    });
-
-    let totalParts = 0;
-    let totalCompleted = 0;
-
-    for (const article of articles) {
-        const { INFO2, Completed_Steps, Total_Operations } = article;
-        totalParts += Total_Operations;
-        totalCompleted += Completed_Steps;
-
-        for (const area of workStations) {
-            if (INFO2.includes(area)) {
-                areaStatus[area].total += 1;
-                if (Completed_Steps === Total_Operations) {
-                    areaStatus[area].complete += 1;
-                }
-            }
-        }
+function updateRoutingUI(counts) {
+    if (!counts || typeof counts !== 'object') {
+        console.warn("Invalid or missing routing count data", counts);
+        return;
     }
 
-    // Update total summary section
-    document.getElementById("article-count-Total").textContent = totalParts;
-    // document.getElementById("up-time-TotalTime").textContent = totalCompleted;
+    let totalExpected = 0;
+    let totalCompleted = 0;
 
-    // Update each work area block
-    workStations.forEach(area => {
-        const current = areaStatus[area].complete;
-        const total = areaStatus[area].total;
-        const percentage = total ? Math.round((current / total) * 100) : 0;
+    Object.entries(counts).forEach(([area, { expected, completed }]) => {
+        if (area === "TOTAL") {
+            totalExpected = expected;
+            totalCompleted = completed;
+            return;
+        }
 
         const countEl = document.getElementById(`current-count-${area}`);
         const totalEl = document.getElementById(`article-count-${area}`);
         const barEl = document.getElementById(`progress-bar-${area}`);
         const textEl = document.getElementById(`progress-text-${area}`);
-        const timeEl = document.getElementById(`assembly-time-${area}`);
 
-        // Only update if elements exist in DOM
-        if (countEl && totalEl && barEl && textEl && timeEl) {
-            countEl.textContent = current;
-            totalEl.textContent = total;
+        const percentage = expected ? Math.round((completed / expected) * 100) : 0;
+
+        if (countEl && totalEl && barEl && textEl) {
+            countEl.textContent = completed;
+            totalEl.textContent = expected;
             barEl.value = percentage;
             textEl.textContent = `${percentage}%`;
-            // timeEl.textContent = `${current} hrs`;
         }
     });
+
+    const totalEl = document.getElementById("article-count-Total");
+    if (totalEl) totalEl.textContent = totalExpected;
 }
 
 
+// function updateUI(articles) {
+//     let totalExpected = 0;
+//     let totalCompleted = 0;
+
+//     Object.entries(counts).forEach(([area, { expected, completed }]) => {
+//         if (area === "TOTAL") {
+//             totalExpected = expected;
+//             totalCompleted = completed;
+//             return;
+//         }
+
+//         const countEl = document.getElementById(`current-count-${area}`);
+//         const totalEl = document.getElementById(`article-count-${area}`);
+//         const barEl = document.getElementById(`progress-bar-${area}`);
+//         const textEl = document.getElementById(`progress-text-${area}`);
+
+//         const percentage = expected ? Math.round((completed / expected) * 100) : 0;
+
+//         if (countEl && totalEl && barEl && textEl) {
+//             countEl.textContent = completed;
+//             totalEl.textContent = expected;
+//             barEl.value = percentage;
+//             textEl.textContent = `${percentage}%`;
+//         }
+//     });
+
+//     // Update the total across all stations
+//     const totalEl = document.getElementById("article-count-Total");
+//     if (totalEl) totalEl.textContent = totalExpected;
+// }
 
 
 
 
 
-// Function to handle clicks on machine containers
+
+
 function handleWorkAreaContainerClick(event) {
-    // Check if the clicked element or its parent is a machine container
-    const machineContainer = event.target.closest('.machine-container');
+    // Check if the clicked element or its parent is a workarea container
+    const machineContainer = event.target.closest('.workarea-container');
     if (!machineContainer) return;
 
     const orderID = document.getElementById('order-id').value.trim();
@@ -168,25 +175,19 @@ function handleWorkAreaContainerClick(event) {
         return;
     }
 
-    // Extract the work area from the container's ID attribute
-    const workAreaCode = machineContainer.id.replace('machine-', '').toUpperCase(); // Adjust according to your actual IDs
-    console.log(`Machine container clicked for: ${workAreaCode}`);
+    // Extract work area code from ID like "workarea-AS6"
+    const id = machineContainer.id;
+    const match = id.match(/workarea-([A-Z0-9]+)/i);
+    if (!match) {
+        console.warn("Could not extract work area code from:", id);
+        return;
+    }
 
-    // Optionally fetch workstation groups to use for further logic
-    fetchWorkAreas().then(groups => {
-        if (groups[workAreaCode]) {
-            console.log(`Fetching parts not scanned for group: ${groups[workAreaCode]}`);
-            // Assuming groups[workAreaCode] gives you the group and you have different behavior/logic based on the group
-            fetchPartsNotScanned(orderID, groups[workAreaCode]);
-        } else {
-            console.log(`No group found for ${workAreaCode}, using default work area code.`);
-            fetchPartsNotScanned(orderID, workAreaCode);
-        }
-    }).catch(error => {
-        console.error('Failed to fetch workstation groups:', error);
-        // Proceed with default action if fetching groups fails
-        fetchPartsNotScanned(orderID, workAreaCode);
-    });
+    const workAreaCode = match[1].toUpperCase();
+    console.log(`Clicked on work area: ${workAreaCode}`);
+
+    // Fetch and display missing articles
+    fetchMissingArticles(orderID, workAreaCode);
 }
 
 
@@ -281,5 +282,48 @@ async function updateAssemblyTimes(orderID) {
 
 
 
+  function displayMissingArticles(workAreaCode, missingList) {
+    const tableBody = document.getElementById("table-body");
+    if (!tableBody) return;
+
+    // Clear existing table rows
+    tableBody.innerHTML = "";
+
+    if (missingList.length === 0) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="4">✅ All parts for ${workAreaCode} have been scanned.</td>`;
+        tableBody.appendChild(row);
+        return;
+    }
+
+    // Populate table with missing articles
+    missingList.forEach(article => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td class="article-info3">${article.INFO3 || "No description"}</td>
+            <td>${article.INFO2 || "?"}</td>
+            <td>—</td>
+            <td>—</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
 
 
+
+async function fetchMissingArticles(orderID, workAreaCode) {
+    try {
+        const response = await fetch("/api/fetch-missing-articles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ORDERID: orderID, work_area: workAreaCode })
+        });
+
+        const data = await response.json();
+        if (data && data.missing_articles) {
+            displayMissingArticles(workAreaCode, data.missing_articles);
+        }
+    } catch (error) {
+        console.error("Error fetching missing articles:", error);
+    }
+}

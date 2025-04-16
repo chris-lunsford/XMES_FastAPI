@@ -211,7 +211,7 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.missing-part-display {
+.missing-article-display {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -222,7 +222,7 @@ progress.complete::-moz-progress-bar {
 }
 
 
-.missing-part-display button {
+.missing-article-display button {
     background-color: #969191; 
     color: black;
     border: none;
@@ -235,12 +235,12 @@ progress.complete::-moz-progress-bar {
     border-radius: 10px;
 }
 
-.missing-part-display button:hover {
+.missing-article-display button:hover {
     background-color: #1a3d80; /* Darker blue on hover */
     color: white;
 }
 
-.missing-parts-table {
+.missing-article-table {
     width: 65%;
     max-height: 400px;  /* Set the maximum height to whatever suits your design */
     overflow-y: auto;   /* Enables vertical scrolling */
@@ -249,22 +249,22 @@ progress.complete::-moz-progress-bar {
     font-size: .8rem;
 }
 
-.missing-parts-table table {
+.missing-article-table table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.missing-parts-table th, .missing-parts-table td {
+.missing-article-table th, .missing-article-table td {
     border: 1px solid black;
     padding: 8px;
     text-align: left;
 }
 
-.missing-parts-table th {
+.missing-article-table th {
     background-color: #f2f2f2;
 }
 
-.part-barcode {
+.article-info3 {
     width: 25%;
 }
 
@@ -301,21 +301,3 @@ progress.complete::-moz-progress-bar {
     border-bottom: none; /**Removes border from the last item**/
 }
 
-
-.packlist-button button, .packlist-button2 button{
-    background-color: #969191; 
-    color: black;
-    border: none;
-    cursor: pointer;
-    padding: 5px 12px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px; 
-    border-radius: 10px;
-}
-
-.packlist-button button:hover, .packlist-button2 :hover{
-    background-color: #1a3d80; /* Darker blue on hover */
-    color: white;
-}

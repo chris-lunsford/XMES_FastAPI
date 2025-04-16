@@ -673,6 +673,31 @@ async def handle_fetch_assembly_order_times(request: OrderRequest):
     
 
 
+@app.post('/api/fetch-assembly-routing-counts', tags=["Assembly Order Status"])
+async def handle_assembly_routing_counts(req: OrderRequest):
+    try:
+        result = fetch_assembly_routing_counts(req.ORDERID)
+        return{"result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+class WorkAreaRequest(BaseModel):
+    ORDERID: str
+    work_area: str
+
+@app.post("/api/fetch-missing-articles", tags=["Assembly Order Status"])
+async def fetch_missing_articles(req: WorkAreaRequest):
+    try:
+        result = get_missing_articles(req.ORDERID, req.work_area)
+        return {"missing_articles": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
 @app.get('/api/fetch-job-board-data', tags=["Job Board"])
 async def handle_fetch_job_board_data(
     orders: Optional[List[str]] = Query(None)

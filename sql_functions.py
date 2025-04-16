@@ -1,5 +1,6 @@
 from datetime import datetime, date, timedelta
 from fastapi import HTTPException
+from collections import Counter
 from assembly_work_stations import ASSEMBLY_WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
 from models import *
@@ -2194,7 +2195,113 @@ def fetch_assembly_order_times(ORDERID):
 
 
 ####################################################
-   
+
+
+def fetch_assembly_routing_counts(ORDERID):
+    conn = connect_to_db()
+    if conn is None:
+        raise ValueError("Failed to connect to the database.")
+    
+    cursor = conn.cursor()
+    try:
+        # Step 1: Fetch all INFO2 strings for expected routing steps
+        cursor.execute("""
+            SELECT INFO2
+            FROM dbo.Article
+            WHERE ORDERID = %s
+        """, (ORDERID,))
+        info2_rows = cursor.fetchall()
+
+        # Count expected steps
+        expected_counts = Counter()
+        for row in info2_rows:
+            info2 = row[0] or ""
+            for step in ASSEMBLY_WORK_STATIONS:
+                if step:
+                    expected_counts[step] += info2.count(step)
+
+        # Step 2: Fetch all completed RESOURCE entries
+        cursor.execute("""
+            SELECT RESOURCE
+            FROM dbo.Fact_Article_Status
+            WHERE ORDERID = %s
+        """, (ORDERID,))
+        resource_rows = cursor.fetchall()
+
+        # Count completed steps
+        completed_counts = Counter()
+        for row in resource_rows:
+            resource = row[0]
+            if resource in ASSEMBLY_WORK_STATIONS:
+                completed_counts[resource] += 1
+
+        # Step 3: Build summary dictionary
+        expected_counts = dict(expected_counts)
+        completed_counts = dict(completed_counts)
+        
+        summary = {
+            step: {
+                "expected": expected_counts.get(step, 0),
+                "completed": completed_counts.get(step, 0)
+            }
+            for step in ASSEMBLY_WORK_STATIONS if step
+        }
+
+        # Add total summary
+        summary["TOTAL"] = {
+            "expected": sum(expected_counts.values()),
+            "completed": sum(completed_counts.values())
+        }
+
+        return summary
+
+    except Exception as e:
+        print("Error:", e)
+        return {}
+
+    finally:
+        conn.close()
+
+
+####################################################
+
+
+
+def get_missing_articles(order_id, work_area):
+    conn = connect_to_db()
+    cursor = conn.cursor()
+    try:
+        # 1. Get articles that should go through this step
+        cursor.execute("""
+            SELECT ARTICLE_ID, INFO3, INFO2
+            FROM dbo.Article
+            WHERE ORDERID = %s AND INFO2 LIKE %s
+        """, (order_id, f"%{work_area}%"))
+        expected = cursor.fetchall()  # [(ARTICLE_ID, INFO3), ...]
+
+        # 2. Get already scanned articles for that step
+        cursor.execute("""
+            SELECT ARTICLE_ID
+            FROM dbo.Fact_Article_Status
+            WHERE ORDERID = %s AND RESOURCE = %s
+        """, (order_id, work_area))
+        scanned = {row[0] for row in cursor.fetchall()}
+
+        # 3. Filter down to missing ones with descriptions
+        missing = [
+            {"ARTICLE_ID": row[0], "INFO3": row[1], "INFO2": row[2]}
+            for row in expected if row[0] not in scanned
+        ]
+
+        return missing
+
+    finally:
+        conn.close()
+
+
+####################################################
+
+
 def fetch_job_board_data(order_ids):
     expected_counts = fetch_expected_counts(order_ids)
     scanned_counts = fetch_scanned_counts(order_ids)
