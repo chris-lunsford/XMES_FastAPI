@@ -174,7 +174,6 @@ ttc_saw_routing_groups = {
         'Suspended Drawer Top Front Nailer',
         'Suspended Drawer Rear Nailer',
         'Suspended Drawer Top Rear Nailer',
-   
     ],
 
 
