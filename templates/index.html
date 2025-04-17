@@ -104,13 +104,23 @@
 </div>
     <script src="templates/global.js"></script>
     <script src="templates/dynamicContentLoader.js"></script>
+    <script>
+        // Default page load content
+        window.addEventListener('DOMContentLoaded', () => {
+            // Only load default content if no hash or route indicator is in the URL
+            if (!window.location.hash && !window.loadedContentOnce) {
+                loadContent('/machine-dashboard');
+                window.loadedContentOnce = true; // Avoid multiple loads
+            }
+        });
+    </script>
+    <script>
+        let btn = document.querySelector('#btn')
+        let sidebar = document.querySelector('.sidebar')
+        
+        btn.onclick = function () {
+            sidebar.classList.toggle('active')
+        };
+    </script>
 </body>
-<script>
-    let btn = document.querySelector('#btn')
-    let sidebar = document.querySelector('.sidebar')
-    
-    btn.onclick = function () {
-        sidebar.classList.toggle('active')
-    };
-</script>
 </html>
