@@ -1888,7 +1888,7 @@ def complete_article_time(article: ArticleTimeData, timestamp: datetime):
         # Step 3: Insert data into `dbo.Fact_Article_Status`
         insert_complete_status_query = """
             INSERT INTO dbo.Fact_Article_Status (
-                ARTICLE_IDENTIFIER, ORDERID, CAB_INFO3, ARITICLE_ID,
+                ARTICLE_IDENTIFIER, ORDERID, CAB_INFO3, ARTICLE_ID,
                 EMPLOYEEID, RESOURCE, CUSTOMERID,
                 STATUS, TIMESTAMP, ASSEMBLY_TIME
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -2271,27 +2271,41 @@ def get_missing_articles(order_id, work_area):
     conn = connect_to_db()
     cursor = conn.cursor()
     try:
-        # 1. Get articles that should go through this step
         cursor.execute("""
-            SELECT ARTICLE_ID, INFO3, INFO2
-            FROM dbo.Article
-            WHERE ORDERID = %s AND INFO2 LIKE %s
-        """, (order_id, f"%{work_area}%"))
-        expected = cursor.fetchall()  # [(ARTICLE_ID, INFO3), ...]
+            SELECT 
+                a.ARTICLE_ID,
+                a.INFO3,
+                a.INFO2,
+                s.RESOURCE,
+                s.TIMESTAMP
+            FROM dbo.Article a
+            LEFT OUTER JOIN (
+                SELECT f1.ARTICLE_ID, f1.RESOURCE, f1.TIMESTAMP
+                FROM dbo.Fact_Article_Status f1
+                JOIN (
+                    SELECT ARTICLE_ID, MAX(TIMESTAMP) AS MaxTime
+                    FROM dbo.Fact_Article_Status
+                    GROUP BY ARTICLE_ID
+                ) f2 ON f1.ARTICLE_ID = f2.ARTICLE_ID AND f1.TIMESTAMP = f2.MaxTime
+            ) s ON a.ARTICLE_ID = s.ARTICLE_ID
+            WHERE a.ORDERID = %s AND a.INFO2 LIKE %s
+                AND a.ARTICLE_ID NOT IN (
+                    SELECT ARTICLE_ID
+                    FROM dbo.Fact_Article_Status
+                    WHERE ORDERID = %s AND RESOURCE = %s
+                )
+        """, (order_id, f"%{work_area}%", order_id, work_area))
 
-        # 2. Get already scanned articles for that step
-        cursor.execute("""
-            SELECT ARTICLE_ID
-            FROM dbo.Fact_Article_Status
-            WHERE ORDERID = %s AND RESOURCE = %s
-        """, (order_id, work_area))
-        scanned = {row[0] for row in cursor.fetchall()}
-
-        # 3. Filter down to missing ones with descriptions
-        missing = [
-            {"ARTICLE_ID": row[0], "INFO3": row[1], "INFO2": row[2]}
-            for row in expected if row[0] not in scanned
-        ]
+        rows = cursor.fetchall()
+        missing = []
+        for row in rows:
+            missing.append({
+                "ARTICLE_ID": row[0],
+                "INFO3": row[1],
+                "INFO2": row[2],
+                "LAST_SCAN_RESOURCE": row[3],
+                "LAST_SCAN_TIME": row[4].isoformat() if row[4] else None
+            })
 
         return missing
 

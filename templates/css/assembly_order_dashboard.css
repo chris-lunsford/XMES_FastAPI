@@ -183,6 +183,13 @@ progress.complete::-moz-progress-bar {
     background-color: limegreen;
 }
 
+progress.over-complete::-webkit-progress-value {
+    background-color: crimson; /* or firebrick, red, etc. */
+}
+progress.over-complete::-moz-progress-bar {
+    background-color: crimson;
+}
+
 .article-count {
     width: 100%;
 }
@@ -266,6 +273,12 @@ progress.complete::-moz-progress-bar {
 
 .article-info3 {
     width: 25%;
+}
+
+.workarea-container.active {
+    border: 3px solid #1a3d80;
+    box-shadow: 0 0 10px rgba(62, 133, 247, 0.6);
+    
 }
 
 .notification-display {

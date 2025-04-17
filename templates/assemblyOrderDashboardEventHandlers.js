@@ -119,48 +119,22 @@ function updateRoutingUI(counts) {
             totalEl.textContent = expected;
             barEl.value = percentage;
             textEl.textContent = `${percentage}%`;
+
+            // Reset all classes first
+            barEl.classList.remove('complete', 'over-complete');
+
+            // Apply class based on % complete
+            if (percentage === 100) {
+                barEl.classList.add('complete');
+            } else if (percentage > 100) {
+                barEl.classList.add('over-complete');
+            }
         }
     });
 
     const totalEl = document.getElementById("article-count-Total");
     if (totalEl) totalEl.textContent = totalExpected;
 }
-
-
-// function updateUI(articles) {
-//     let totalExpected = 0;
-//     let totalCompleted = 0;
-
-//     Object.entries(counts).forEach(([area, { expected, completed }]) => {
-//         if (area === "TOTAL") {
-//             totalExpected = expected;
-//             totalCompleted = completed;
-//             return;
-//         }
-
-//         const countEl = document.getElementById(`current-count-${area}`);
-//         const totalEl = document.getElementById(`article-count-${area}`);
-//         const barEl = document.getElementById(`progress-bar-${area}`);
-//         const textEl = document.getElementById(`progress-text-${area}`);
-
-//         const percentage = expected ? Math.round((completed / expected) * 100) : 0;
-
-//         if (countEl && totalEl && barEl && textEl) {
-//             countEl.textContent = completed;
-//             totalEl.textContent = expected;
-//             barEl.value = percentage;
-//             textEl.textContent = `${percentage}%`;
-//         }
-//     });
-
-//     // Update the total across all stations
-//     const totalEl = document.getElementById("article-count-Total");
-//     if (totalEl) totalEl.textContent = totalExpected;
-// }
-
-
-
-
 
 
 
@@ -185,6 +159,14 @@ function handleWorkAreaContainerClick(event) {
 
     const workAreaCode = match[1].toUpperCase();
     console.log(`Clicked on work area: ${workAreaCode}`);
+
+    // Remove .active from all other containers
+    document.querySelectorAll('.workarea-container.active').forEach(el => {
+        el.classList.remove('active');
+    });
+
+    // Add .active to the clicked one
+    machineContainer.classList.add('active');
 
     // Fetch and display missing articles
     fetchMissingArticles(orderID, workAreaCode);
@@ -286,24 +268,27 @@ async function updateAssemblyTimes(orderID) {
     const tableBody = document.getElementById("table-body");
     if (!tableBody) return;
 
-    // Clear existing table rows
     tableBody.innerHTML = "";
 
     if (missingList.length === 0) {
         const row = document.createElement("tr");
-        row.innerHTML = `<td colspan="4">✅ All parts for ${workAreaCode} have been scanned.</td>`;
+        row.innerHTML = `<td colspan="4">✅ All articles for ${workAreaCode} have been scanned.</td>`;
         tableBody.appendChild(row);
         return;
     }
 
-    // Populate table with missing articles
     missingList.forEach(article => {
+        const lastScan = article.LAST_SCAN_RESOURCE || "—";
+        const scanTime = article.LAST_SCAN_TIME
+            ? new Date(article.LAST_SCAN_TIME).toLocaleString()
+            : "—";
+
         const row = document.createElement("tr");
         row.innerHTML = `
             <td class="article-info3">${article.INFO3 || "No description"}</td>
-            <td>${article.INFO2 || "?"}</td>
-            <td>—</td>
-            <td>—</td>
+            <td>${article.INFO2 || "—"}</td>
+            <td>${lastScan}</td>
+            <td>${scanTime}</td>
         `;
         tableBody.appendChild(row);
     });
