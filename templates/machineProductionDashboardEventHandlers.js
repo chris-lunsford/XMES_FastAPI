@@ -1,15 +1,15 @@
-/***** Production Dashboard *****/
+/***** Machine Production Dashboard *****/
 
 
 // After this script loads, set its callback in scriptMap if necessary.
 if (typeof scriptMap !== 'undefined') {
-    scriptMap['/production'].callback = initializeProductionDashboard;
+    scriptMap['/machine-production'].callback = initializeMachineProductionDashboard;
 }
 
 
 
-function initializeProductionDashboard() {
-    console.log("Initializing Production Dashboard");
+function initializeMachineProductionDashboard() {
+    console.log("Initializing MAchine Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
 
@@ -23,8 +23,8 @@ function initializeProductionDashboard() {
     setupEventHandlers();
 
     // Prevent multiple initializations
-    if (window.productionDashboardInitialized) return;
-    window.productionDashboardInitialized = true;   
+    if (window.machineProductionDashboardInitialized) return;
+    window.machineProductionDashboardInitialized = true;   
 }
 
 
@@ -43,8 +43,14 @@ function setupEventHandlers() {
 }
 
 
-let lastBarcodeSubmissionTime = 0; // Track the last barcode submission timestamp
-const BARCODE_SUBMISSION_COOLDOWN_MS = 2000; // Set a 2-second cooldown
+// let lastBarcodeSubmissionTime = 0; // Track the last barcode submission timestamp
+if (typeof window.lastBarcodeSubmissionTime === 'undefined') {
+    window.lastBarcodeSubmissionTime = 0;
+  }
+// const BARCODE_SUBMISSION_COOLDOWN_MS = 2000; // Set a 2-second cooldown
+if (typeof window.BARCODE_SUBMISSION_COOLDOWN_MS === 'undefined') {
+    window.BARCODE_SUBMISSION_COOLDOWN_MS = 2000;
+}
 
 
 async function handleBarcodeKeyPress(event) {

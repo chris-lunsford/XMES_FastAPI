@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/production.css">    
+    <link rel="stylesheet" type="text/css" href="templates/css/assembly_production.css">    
     <title>Production</title>
 </head>
 <body class="production-dashboard"> 
+    <div id="loading-spinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
     <section class="title-info">
         <div class="page-name">
-            <span>Machining Production</span>
+            <span>Assembly Production</span>
         </div>        
     </section>   
     <section class="input-fields">
@@ -38,29 +42,70 @@
             </div>
         </form>
         <div class="message-display">
-            <p>Messages:&nbsp</p>
-            <p id="status-message">Enter required fields and scan barcode.</p>
+            <!-- <p>Messages:&nbsp</p> -->
+            <!-- <p id="status-message">Enter required fields and scan barcodes.</p> -->
+        </div>
+    </section>
+    <section class="part-list-display">
+        <div class="article-info">
+            <div>
+                <label>Cabinet: 
+                    <span id="cab-info"></span>
+                    <span id="article-identifier"></span>
+                    <span id="orderid"></span>
+                    <span id="article-id"></span>
+                </label>
+            </div>
+            <div>
+                <label>Status:
+                    <span id="cab-status"></span>
+                </label>
+            </div>          
+        </div>
+        <div class="part-list-table">
+            <table id="part-table">
+                <thead>
+                    <tr>
+                        <th class="part-barcode">Barcode</th>
+                        <th>Description</th>
+                        <th>Scanned</th> <!-- Add header for checkbox -->                        
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <div class="parts-buttons">
+            <button type="button" id="clear-table-button">Clear All Parts</button>
+            <div>
+            <button type="button" id="start-article-button">Start Assembly</button>
+            <button type="button" id="stop-article-button">Stop Assembly</button>
+            </div>
+            <button type="button" id="complete-article-button">Complete Assembly</button>
+        </div>
+    </section>
+    <section class="report-defect-display">
+        <div>
+            <button type="button" id="report-defect">Report Defective Part</button>
         </div>
     </section>
     <section class="display-container">
+        
         <div class="notification-display">
             <p>Notifications:</p>
             <div id="notification-list">
                  <!-- <ul>Dynamically created by JS</ul>-->
             </div>            
         </div>
-        <div class="order-data-display">
+        <!-- <div class="order-data-display">
             <div class="order-data-container">
                 <p>Scans for current order:</p>
                 <div class="order-data-types">
                     <div class="ordercount-area">
                         <p id="ordercount-area-label">This Area:</p>
                         <p id="ordercount-area">0</p>
-                    </div>            
-                    <!-- <div class="ordercount-total-area">
-                        <p>Parts for work area:</p>
-                        <p id="ordercount-total-area">N/A</p>
-                    </div> -->
+                    </div> 
                     <div class="part-count">
                         <p>Total Progress:</p>                            
                         <p><span id="ordercount-scanned-area">0</span> of <span id="ordercount-total-area">0</span></p>                            
@@ -69,10 +114,6 @@
                         <progress id="progress-bar" value="0" max="100"></progress>
                         <span id="progress-text">0%</span>
                     </div>
-                    <!-- <div class="ordercount-total-order">
-                        <p>Total for order:</p>
-                        <p id="ordercount-total-order">N/A</p>
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -90,41 +131,20 @@
                     </div>
                     <div class="past-scans">
                         <div>Jobs:</div>
-                        <div class="job-list">
+                        <div class="job-list"> -->
                             <!-- <ul>Dynamically created by JS</ul>-->
-                        </div>
+                        <!-- </div>
                     </div>
                 </div>
             </div>
-        </div>    
+        </div>     -->
     </section>
-    <section class="report-defect-display">
+    <!-- <section class="report-defect-display">
         <div>
             <button type="button" id="report-defect">Report Defective Part</button>
         </div>
-    </section>
-    <section class="missing-part-display">
-        <div>
-            <button type="button" id="not-scanned-parts">Parts Not Scanned by Area</button>
-        </div>
-        <div class="missing-parts-table">
-            <table id="parts-table">
-                <thead>
-                    <tr>
-                        <th class="part-barcode">Barcode</th>
-                        <th>Part Program</th>
-                        <th>Description</th>
-                        <th>Routing</th>
-                        <th>Last Scan</th>
-                        <th>Last Scan Time</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <!-- Data rows will be added here dynamically -->
-                </tbody>
-            </table>
-        </div>
-    </section>
+    </section> -->
+    
     <div id="scan-result-overlay" class="scan-result-overlay">
         <div id="scan-result-icon"></div>
     </div>

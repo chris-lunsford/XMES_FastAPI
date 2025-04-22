@@ -3,6 +3,8 @@ import datetime
 import pytz
 import asyncio
 import traceback
+import os
+import csv
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI, Request, HTTPException, Query, Response
 from fastapi.templating import Jinja2Templates
@@ -15,11 +17,14 @@ from typing import Optional, Dict, List
 
 from work_stations import WORK_STATIONS
 from work_station_groups import WORK_STATION_GROUPS
+from assembly_work_stations import ASSEMBLY_WORK_STATIONS
 from customer_ids import CUSTOMER_IDS
 from notification_types import NOTIFICATION_TYPES
 from defect_types import DEFECT_TYPES
 from defect_actions import DEFECT_ACTIONS
+from job_list import JOB_LIST
 from sql_functions import *
+from models import *
 from ttc_plugin import router as ttc_router
 
 
@@ -42,6 +47,7 @@ app.mount("/templates", StaticFiles(directory="templates"), name="templates")
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     return PlainTextResponse(str(exc), status_code=400)
@@ -55,9 +61,13 @@ async def index(request: Request):
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get('/production', tags=["Pages"])
+@app.get('/machine-production', tags=["Pages"])
 async def production(request: Request):
-    return templates.TemplateResponse("production.html", {"request": request})
+    return templates.TemplateResponse("machine_production.html", {"request": request})
+
+@app.get('/assembly-production', tags=["Pages"])
+async def production(request: Request):
+    return templates.TemplateResponse("assembly_production.html", {"request": request})
 
 @app.get('/machine-dashboard', tags=["Pages"])
 async def machine_dashboard(request: Request):
@@ -71,9 +81,17 @@ async def notification(request: Request):
 async def order_dashboard(request: Request):
     return templates.TemplateResponse("orderdashboard.html", {"request": request})
 
+@app.get('/assembly-order-dashboard', tags=["Pages"])
+async def order_dashboard(request: Request):
+    return templates.TemplateResponse("assemblyorderdashboard.html", {"request": request})
+
 @app.get('/defect-dashboard', tags=["Pages"])
 async def defect_dashboard(request: Request):
     return templates.TemplateResponse("defectdashboard.html", {"request": request})
+
+@app.get('/job-board', tags=["Pages"])
+async def defect_dashboard(request: Request):
+    return templates.TemplateResponse("jobboard.html", {"request": request})
 
 @app.get('/ttc-plugin', tags=["Pages"], response_class=HTMLResponse)
 async def ttc_plugin(request: Request, response: Response):
@@ -89,6 +107,10 @@ async def ttc_plugin(request: Request, response: Response):
 @app.get('/api/work-stations', tags=["Lists"])
 async def get_work_stations():
     return WORK_STATIONS
+
+@app.get('/api/assembly-work-stations', tags=["Lists"])
+async def get_work_stations():
+    return ASSEMBLY_WORK_STATIONS
 
 
 class WorkStationGroups(BaseModel):
@@ -501,3 +523,235 @@ async def handle_fetch_runtime_machines(orderid: str):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/fetch-parts-in-article', tags=["Assembly Production"])
+async def handle_fetch_parts_in_article(barcode: str, loadAll: bool = True):
+    try:
+        result = fetch_parts_in_article(barcode, loadAll)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=(e))   
+    
+ 
+@app.get('/api/fetch-used-article', tags=["Assembly Production"])
+def handle_fetch_used_cabinet(identifier: str):  
+    try:
+        result = fetch_used_article(identifier)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detial=(e))
+
+
+@app.get('/api/check_part_status/', tags=["Assembly Production"])
+async def handle_check_part_status(barcode: str):
+    try:
+        status = check_part_status(barcode)
+        return(status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get('/api/check_part_status_resource/', tags=["Assembly Production"])
+async def handle_check_part_status_resource(barcode: str, resource: str):
+    try:
+        status = check_part_status_resource(barcode, resource)
+        return(status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post('/api/check-parts-exist', tags=["Assembly Production"])
+async def check_parts_exist(data: dict):
+    try:
+        barcodes = data.get("barcodes", [])
+        if not barcodes:
+            raise HTTPException(status_code=400, detail="No barcodes provided")
+
+        existing_barcodes = check_parts_exist_in_db(barcodes)
+        return {"existingBarcodes": existing_barcodes}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/submit-parts-usage', tags=["Assembly Production"])
+async def handle_submit_parts_usage(data: dict):
+    try:
+        eastern = pytz.timezone('America/New_York')
+        now_eastern = datetime.now(pytz.utc).astimezone(eastern)
+
+        parts = data.get("parts", [])
+        if not parts:
+            raise HTTPException(status_code=400, detail="No parts provided")
+
+        result = submit_parts_usage(parts, now_eastern)
+        return {"message": "Entries added successfully", "result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))  
+
+
+@app.post('/api/start-article-time', tags=["Assembly Production"])
+async def handle_start_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = start_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/stop-article-time', tags=["Assembly Production"])
+async def handle_stop_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = stop_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post('/api/complete-article-time', tags=["Assembly Production"])
+async def handle_complete_article_time(article: ArticleTimeData):
+    try:
+        # Create a timezone object for Eastern Time
+        eastern = pytz.timezone('America/New_York')
+        # Get the current time in UTC and convert to Eastern Time
+        now_utc = datetime.now(pytz.utc)
+        timestamp = now_utc.astimezone(eastern)
+
+        result = complete_article_time(article, timestamp)
+        return {"message": "Entry added successfully", "result": result}
+    except ValueError as e:  # Specific handling for known exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:  # Generic exception handling
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+class OrderRequest(BaseModel):
+    ORDERID: str
+
+@app.post('/api/fetch-assembly-order-status', tags=["Assembly Order Status"])
+async def handle_fetch_assembly_order_status(req: OrderRequest):
+    try:
+        result = fetch_assembly_order_status(req.ORDERID)
+        return {"result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+
+@app.post('/api/fetch-assembly-order-times', tags=["Assembly Order Status"])
+async def handle_fetch_assembly_order_times(request: OrderRequest):
+    try:
+        result = fetch_assembly_order_times(request.ORDERID)
+        return {"result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.post('/api/fetch-assembly-routing-counts', tags=["Assembly Order Status"])
+async def handle_assembly_routing_counts(req: OrderRequest):
+    try:
+        result = fetch_assembly_routing_counts(req.ORDERID)
+        return{"result": result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+class WorkAreaRequest(BaseModel):
+    ORDERID: str
+    work_area: str
+
+@app.post("/api/fetch-missing-articles", tags=["Assembly Order Status"])
+async def fetch_missing_articles(req: WorkAreaRequest):
+    try:
+        result = get_missing_articles(req.ORDERID, req.work_area)
+        return {"missing_articles": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get('/api/fetch-job-board-data', tags=["Job Board"])
+async def handle_fetch_job_board_data(
+    orders: Optional[List[str]] = Query(None)
+):
+    try:
+        # Load jobs from file or use provided orders
+        if not orders:
+            jobs = read_job_list()  # List of dicts with order_id, store_type, ship_date
+            order_ids = [job['order_id'] for job in jobs]
+        else:
+            jobs = [{"order_id": oid, "store_type": "", "ship_date": ""} for oid in orders]
+            order_ids = orders
+
+        if not order_ids:
+            return {"detail": "No orders found in job list."}
+
+        # Fetch expected + scanned data
+        result = fetch_job_board_data(order_ids)
+
+        # Inject store_type and ship_date into each result row
+        for job in jobs:
+            oid = job['order_id']
+            if oid in result:
+                result[oid]['store_type'] = job.get('store_type', '')
+                result[oid]['ship_date'] = job.get('ship_date', '')
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+def read_job_list(filepath="job_list.txt") -> List[str]:
+    base_dir = os.path.dirname(__file__)
+    filepath = os.path.join(base_dir, "job_list.txt")
+    print(f"[DEBUG] Reading job list from: {filepath}")
+    
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"{filepath} not found.")
+    
+    with open(filepath, "r") as file:
+        reader = csv.reader(file)
+        job_list = []
+        for row in reader:
+            if len(row) >= 3:
+                job_list.append({
+                    "order_id": row[0].strip(),
+                    "store_type": row[1].strip(),
+                    "ship_date": row[2].strip()
+                })
+        return job_list
+        
+
+
+
+
+
+
+    

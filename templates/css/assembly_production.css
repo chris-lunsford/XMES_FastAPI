@@ -1,0 +1,724 @@
+html, body {
+    height: 100%; /* Make sure it's not set to 100vh which might cut off if content is taller */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    margin: 0; /* Reset default margin */
+    padding: 0; /* Reset default padding */
+}
+
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    z-index: 1000;
+    color: white;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.title-info {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 30px;
+}
+
+.page-name {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 2rem;
+    text-align: center;
+    /* border: 1px dotted black; */
+}
+
+.production-dashboard {
+    display: flex;
+    flex-direction: column;
+    /* border: 2px dotted purple; */
+    padding: 10px;
+}
+
+
+.input-fields {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    /* border: 1px solid red; */
+    min-height: 70px;
+}
+
+.data-submition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; 
+    margin-bottom: 15px;
+    gap: 10px 30px;
+    padding-bottom: 10px;
+}
+
+.data-submition input {
+    width: 100px;
+}
+
+#barcode {
+    width: 125px;
+}
+
+.data-submition input, select{
+    border: 1px solid black;
+    border-radius: 3px;
+    appearance: auto;
+}
+
+.data-submition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 50px;
+    /* border: 2px solid lime; */
+    padding: 10px;
+}
+
+.data-submition div {
+    display: flex;
+    flex-direction: column; 
+    /* border: 2px dotted purple; */
+    padding: 10px;
+}
+
+.message-display {
+    display: flex;
+}
+
+.display-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    /* border: 2px dotted orange; */
+    padding: 10px;
+    min-height: 300px;
+}
+
+.partlist-display {
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width: 40ch;
+    row-gap: 10px;
+}
+
+#article-id, #orderid, #article-identifier {
+    display: none;
+}
+
+#partlist-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f9f9f9;
+}
+
+
+
+#partlist-list button {
+    /*background-color: red; */
+    color: red;
+    border: none;
+    border-radius: 3px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+#partlist-list button:hover {
+    /*background-color: darkred;*/
+    color: black;
+}
+
+.parts-buttons button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px; 
+    border-radius: 10px;
+}
+
+.parts-buttons button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
+}
+
+
+
+.notification-display {
+    display: flex;
+    overflow: auto;
+    flex-direction: column;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width: 30ch;
+    row-gap: 10px;
+}
+
+#notification-list ul {
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+    padding: 1px; /** Provides padding around the list **/      
+}
+
+#notification-list li {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0px; /** Space between rows**/
+    padding: 4px; /** Padding inside each list item**/
+    /* border-bottom: 1px solid red;*/ /* Divider between items* */
+    border-radius: 5px; /** Rounded corners**/
+    margin-bottom:0px; /**Margin at the bottom of each item**/
+    background: #f4f4f4; /** Light grey background**/
+}
+
+#notification-list li:last-child {
+    border-bottom: none; /**Removes border from the last item**/
+}
+
+
+
+/* .data-display {
+    display: flex;
+    flex-direction: column;
+    /* border: 1px dotted black; */
+    /* padding: 10px;
+    width:  30ch;
+    row-gap: 30px;
+}  */
+
+.data-type-container {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width:  30ch;
+    row-gap: 30px;
+}
+
+.data-types {
+    display: flex;
+    flex-direction: column;
+    flex-basis: auto;
+    row-gap: 20px;
+}
+
+.partcount-workarea, .partcount-employee, .past-scans {
+    display: flex;
+    justify-content: space-between;
+    gap: 35px;
+}
+
+.job-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-data-container {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    border: 1px dotted black;
+    padding: 10px;
+    margin-bottom: 30px;
+    width:  30ch;
+    row-gap: 30px;
+}
+
+.order-data-types {
+    display: flex;
+    flex-direction: column;
+    flex-basis: auto;
+    row-gap: 20px;
+}
+
+.ordercount-area, .ordercount-total-area, .ordercount-total-order{
+    display: flex;
+    justify-content: space-between;
+    gap: 35px;
+}
+
+.part-count {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.part-count > div {
+    position: relative; /* Required for positioning the percentage text absolutely */
+    width: 100%; /* Full width to contain the progress bar */
+}
+
+progress {
+    width: 100%; /* Full width of its container */
+    height: 20px; /* Adequate height for visibility */
+    appearance: none; /* Add this line */
+    background-color: #eee; /* Light grey background */
+    border-radius: 10px;
+    padding: 0px;
+}
+
+/* Optional: Style for different browser engines */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #0063cc;
+    border-radius: 10px;
+}
+
+progress.complete {
+    background-color: limegreen; /* Green background for complete progress */
+}
+
+/* For browsers using pseudo-elements for progress bars */
+progress.complete::-webkit-progress-value {
+    background-color: limegreen;
+}
+
+progress.complete::-moz-progress-bar {
+    background-color: limegreen;
+}
+
+.progressbar-container {
+    position: relative;
+    width: 100%;
+}
+
+.progressbar-container span {
+    position: absolute;
+    left: 50%;
+    top: 35%;
+    transform: translate(-50%, -50%); /* Center the text both horizontally and vertically */
+    color: black; /* Color for visibility, change as necessary */
+}
+
+
+.report-defect-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    gap: 20px;
+    /* border: 1px solid black; */
+}
+
+.report-defect-display button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px; 
+    border-radius: 10px;
+}
+
+.report-defect-display button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
+}
+
+
+.part-list-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 70px;
+    gap: 20px;
+    /* border: 1px solid black; */
+}
+
+.article-info {
+    display: flex;
+    align-items: left;
+    justify-content: center;
+    width: 100%;
+    gap: 40px;
+    /* border: 1px solid orange; */
+}
+
+/* .article-info div {
+    border: 1px dotted red;
+} */
+
+.article-info input {
+    border: 1px solid black;
+    border-radius: 3px;    
+    width: 130px;
+}
+
+.part-list-table {
+    width: 65%;
+    max-height: 400px; /* Set the maximum height */
+    overflow-y: auto; /* Enables vertical scrolling */
+    border: 1px solid #ccc; /* Adds a border around the table */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
+}
+
+.part-list-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.part-list-table th, .part-list-table td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center; /* Centers text horizontally */
+    vertical-align: middle; /* Centers content vertically */
+}
+
+.part-list-table th {
+    background-color: #f2f2f2;
+}
+
+/* Hide the default checkbox */
+.part-list-table td input[type="checkbox"] {
+    appearance: none; /* Remove default appearance */
+    -webkit-appearance: none; /* For Safari */
+    width: 24px;
+    height: 24px;
+    border: 2px solid black;
+    border-radius: 3px; /* Optional: Rounded corners */
+    margin: 0; /* Remove default margin */
+    display: inline-block;
+    vertical-align: middle; /* Align with text and button */
+    position: relative;
+    cursor: pointer;
+    background-color: white; /* Default background */
+}
+
+.part-list-table span {
+    display: inline;
+    margin-right: 10px; /* Adjust as needed */
+}
+
+/* Style for checked state */
+.part-list-table td input[type="checkbox"]:checked {
+    background-color: green;
+    border-color: black;
+}
+
+/* Add a checkmark for checked state */
+.part-list-table td input[type="checkbox"]:checked::after {
+    content: '✔'; /* Checkmark */
+    color: white;
+    font-size: 18px;
+    position: absolute;
+    top: -2px;
+    left: 3px;
+}
+
+.part-list-table td div {
+    display: flex; /* Enable flexbox layout */
+    align-items: center; /* Vertically center items */
+    justify-content: flex-start; /* Align items to the left of the cell */
+    gap: 20px; /* Add spacing between barcode and remove button */
+    width: 100%; /* Ensure the container spans the cell */
+}
+
+.part-list-table td button {
+    width: 24px;
+    height: 24px;
+    background-color: white; 
+    color: red;
+    border: 2px solid black;
+    cursor: pointer;
+    padding: 0; /* No padding */
+    margin: 0; /* Ensure no extra space around the button */
+    text-align: center; /* Center text horizontally */
+    line-height: 18px; /* Match the height to vertically align the text */
+    font-size: 18px; /* Adjust font size for better appearance */
+    border-radius: 3px;
+}
+
+.part-list-table td button:hover {
+    background-color: red; /* Change to red on hover */
+    color: white;
+}
+
+.part-barcode {
+    width: 25%;
+}
+
+
+.parts-buttons {
+    display: flex;
+    gap: 75px;
+}
+
+/* Default disabled button (greyed out) */
+.button-disabled {
+    background-color: #cccccc !important;
+    color: #666 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+    /* visibility: hidden; */
+}
+
+/* Enabled buttons (normal appearance) */
+.button-enabled {
+    background-color: green !important; /* Green */
+    color: white !important;
+    cursor: pointer;
+    opacity: 1;
+}
+
+/* Stop button - Red when enabled */
+.button-stop-enabled {
+    background-color: red !important; /* Red */
+    color: white !important;
+    cursor: pointer;
+    opacity: 1;
+}
+
+/* Optional: Hover effect for enabled buttons */
+.button-enabled:hover {
+    background-color: darkgreen !important; /* Darker green */
+}
+
+.button-stop-enabled:hover {
+    background-color: darkred !important; /* Darker red */
+}
+
+
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+  
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    background-color: #f4f4f4;
+    width: 60%;
+    height: auto;
+    margin: 15% auto;
+    padding: 0px;
+    border: 2px solid black;
+    border-radius: 5px;
+    
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    /* border: 2px solid blue; */
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 25px;
+    flex-grow: 1;
+    text-align: center;
+  } 
+  
+  .close {    
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+    float: right;
+    font-size: 25px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  #defect-submission {
+    display: flex;
+    flex-direction: row;  /* Align children (sections) in a row */
+    justify-content: space-between; /* This will put space between the sections */
+    align-items: flex-start; /* Align items at the start of the flex container */
+    width: 100%; /* Use the full width of the modal content */
+    height: auto;
+  }
+
+  .defect-header,
+  .defect-description {
+    flex: 1; /* Take equal space in the horizontal layout */
+    display: flex;
+    flex-direction: column; /* Organize content vertically */
+    padding: 10px; /* Inner spacing */
+    box-sizing: border-box; /* Include padding and border in the element's size */
+  }
+
+  .defect-description {
+    align-items: center; /* Center items horizontally */
+    justify-content: flex-start; /* Align content to the start vertically */
+    height: 100%; /* Take full height of the parent */
+    /* border: 1px solid green; */
+  }
+
+  .defect-input-fields {
+    width: 100%;
+    height: 100%;
+    /* border: 2px solid orange; */
+    margin: 0;
+    padding: 0px;
+  }
+
+  .defect-input-fields div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* border: 2px solid red; */
+    margin: 0px;
+    padding: 0px;
+  }
+
+  .defect-input-fields label {
+    width: 200px;
+  }
+
+  .detail-body {
+    width: 100%; /* Full width */
+    flex-grow: 1; /* Allow this part to grow and fill space */
+    overflow: auto; /* Add scroll if content is too long */
+}
+
+ 
+
+  .detail-body textarea {
+    border: 2px solid #ccc;
+    box-sizing: border-box;
+    width: calc(100% - 20px);
+  }
+
+  .defect-input-fields input,
+  .defect-input-fields select {
+    border: 2px solid #ccc; /* Change color as needed */
+    padding: 8px; /* Adds space inside the border */
+    margin-top: 5px; /* Optional: adds space above the input */
+    margin-bottom: 5px; /* Optional: adds space below the input */
+    width: calc(100% - 20px); /* Adjust width as necessary, subtracting padding */
+    box-sizing: border-box; /* Includes padding and border in the element's total width */
+
+  }
+
+  .detail-body textarea:focus,
+  .defect-input-fields input:focus,
+  .defect-input-fields select:focus {
+    border-color: #0056b3; /* Highlight color when element is focused */
+    outline: none; /* Removes the default focus outline */
+  }
+
+  /* .defect-detail div{
+    border: 2px solid red;
+  } */
+
+  .defect-description button {
+    background-color: #969191; 
+    color: black;
+    border: none;
+    cursor: pointer;
+    width: auto;
+    padding: 8px 16px;
+    margin-top: 20px;
+    font-size: 16px; 
+    border-radius: 10px;
+}
+
+.defect-description button:hover {
+    background-color: #1a3d80; /* Darker blue on hover */
+    color: white;
+}
+
+
+ 
+
+.scan-result-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    visibility: hidden; /* Initially hidden */
+    z-index: 1000; /* Ensure it's on top of other elements */
+}
+
+#scan-result-icon {
+    font-size: 25rem; /* Large size for visibility */
+    color: white;
+}
+
+.scan-result-overlay #scan-result-icon.scan-success {
+    color: limegreen !important; /* Force green color for success */
+}
+
+.scan-result-overlay #scan-result-icon.scan-failure {
+    color: red !important; /* Force red color for failure */
+}
