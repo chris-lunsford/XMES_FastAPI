@@ -105,6 +105,39 @@
     margin-right: 5px;
 }
 
+
+
+.sidebar-section {
+    margin-bottom: 1rem;
+}
+
+/* Default style when sidebar is expanded */
+.section-title {
+    padding: 10px 10px;
+    font-size: 1rem;
+    color: black;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #c0c0c0; /* 👈 Light grey background */
+    border-radius: 4px;
+    margin: 0 10px 8px 10px;   /* Some spacing left/right */
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* When collapsed, shrink the font */
+.sidebar:not(.active) .section-title {
+    font-size: 0;
+    padding: 0;
+    margin: 10px 0;
+    position: relative;
+    height: 4px;
+    background-color: #c0c0c0;
+}
+
+
+
+
 .sidebar ul li {
     position: relative;
     list-style-type: none;
@@ -177,36 +210,6 @@
     display: none;
 }
 
-/* .index-page .sidebar ul {
-    list-style: none;
-    margin: 0; 
-    padding: 0;        
-}
-
-
-.index-page .sidebar li {
-    cursor: pointer;
-}
-
-
-.index-page .sidebar a {
-    display: block;
-    color: black;
-    padding: 16px 20px;
-    text-decoration: none;
-    text-align: center;
-}
-
-.index-page .sidebar a:hover:not(.active) {
-    background-color: #1a3d80;
-    color: white;
-}
-
-.index-page .sidebar a.active {
-    background-color: #e2e2e2;
-    color: #1a3d80;
-    font-weight: bold;
-}   */
 
 .index-page .main-content {
     width: calc(100% - 170px);
