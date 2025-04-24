@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/assembly_production.css">    
+    <link rel="stylesheet" type="text/css" href="templates/css/assembly_production.css?v={{ assembly_production_css_version }}">    
     <title>Production</title>
 </head>
 <body class="production-dashboard"> 
@@ -193,6 +193,11 @@
                 </section>                                
             </form>                        
         </div>
-    <script src="templates/global.js"></script>    
+    <script src="templates/global.js?v= {{ global_js_version}}"></script>    
+    <script id="dynamic-version-block" type="application/json">
+        {
+          "assemblyProductionDashboardEventHandlers.js": "{{ assemblyProductionDashboardEventHandlers_js_version }}"
+        }
+    </script>
 </body>
 </html>

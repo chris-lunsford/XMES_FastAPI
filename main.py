@@ -52,46 +52,126 @@ app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 async def validation_exception_handler(request, exc):
     return PlainTextResponse(str(exc), status_code=400)
 
+def get_file_version(path: str) -> int:
+    full_path = os.path.join("templates", path)
+    return int(os.path.getmtime(full_path)) if os.path.exists(full_path) else int(datetime.now().timestamp())
+
+
+
 
 @app.get('/', tags=["Pages"], response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    version_data = {
+        "request": request,
+        "global_js_version": get_file_version("global.js"),
+        "dynamic_js_version": get_file_version("dynamicContentLoader.js"),
+        "event_listener_version": get_file_version("EventListenerManager.js"),
+        "reset_css_version": get_file_version("css/reset.css"),
+        "main_css_version": get_file_version("css/main.css"),
+    }
+    return templates.TemplateResponse("index.html", version_data)
 
-@app.get('/home', tags=["Pages"], response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+
+# @app.get('/home', tags=["Pages"], response_class=HTMLResponse)
+# async def home(request: Request):
+#     return templates.TemplateResponse("home.html", {"request": request})
+
 
 @app.get('/machine-production', tags=["Pages"])
 async def production(request: Request):
-    return templates.TemplateResponse("machine_production.html", {"request": request})
+    version_data = {
+        "request": request,
+        "machine_production_css_version": get_file_version("css/machine_production.css"),
+        "global_js_version": get_file_version("global.js"),
+        "machineProductionDashboardEventHandlers_js_version": get_file_version("machineProductionDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("machine_production.html", version_data)
+
 
 @app.get('/assembly-production', tags=["Pages"])
 async def production(request: Request):
-    return templates.TemplateResponse("assembly_production.html", {"request": request})
+    version_data = {
+        "request": request,
+        "assembly_production_css_version": get_file_version("css/assembly_production.css"),
+        "global_js_version": get_file_version("global.js"),
+        "assemblyProductionDashboardEventHandlers_js_version": get_file_version("assemblyProductionDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("assembly_production.html", version_data)
+
 
 @app.get('/machine-dashboard', tags=["Pages"])
 async def machine_dashboard(request: Request):
-    return templates.TemplateResponse("machinedashboard.html", {"request": request})
+    version_data = {
+        "request": request,
+        "machine_dashboard_css_version": get_file_version("css/machine_dashboard.css"),
+        "global_js_version": get_file_version("global.js"),
+        "machineDashboardEventHandlers_js_version": get_file_version("machineDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("machinedashboard.html", version_data)
 
-@app.get('/notification', tags=["Pages"])
-async def notification(request: Request):
-    return templates.TemplateResponse("submitnotification.html", {"request": request})
 
 @app.get('/order-dashboard', tags=["Pages"])
 async def order_dashboard(request: Request):
-    return templates.TemplateResponse("orderdashboard.html", {"request": request})
+    version_data = {
+        "request": request,
+        "order_dashboard_css_version": get_file_version("css/order_dashboard.css"),
+        "global_js_version": get_file_version("global.js"),
+        "orderDashboardEventHandlers_js_version": get_file_version("orderDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("orderdashboard.html", version_data)
+
 
 @app.get('/assembly-order-dashboard', tags=["Pages"])
 async def order_dashboard(request: Request):
-    return templates.TemplateResponse("assemblyorderdashboard.html", {"request": request})
+    version_data = {
+        "request": request,
+        "assembly_order_dashboard_css_version": get_file_version("css/assembly_order_dashboard.css"),
+        "global_js_version": get_file_version("global.js"),
+        "assemblyOrderDashboardEventHandlers_js_version": get_file_version("assemblyOrderDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("assemblyorderdashboard.html", version_data)
+
 
 @app.get('/defect-dashboard', tags=["Pages"])
 async def defect_dashboard(request: Request):
-    return templates.TemplateResponse("defectdashboard.html", {"request": request})
+    version_data = {
+        "request": request,
+        "defect_dashboard_css_version": get_file_version("css/defect_dashboard.css"),
+        "global_js_version": get_file_version("global.js"),
+        "defectDashboardEventHandlers_js_version": get_file_version("defectDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("defectdashboard.html", version_data)
+
 
 @app.get('/job-board', tags=["Pages"])
 async def defect_dashboard(request: Request):
-    return templates.TemplateResponse("jobboard.html", {"request": request})
+    version_data = {
+        "request": request,
+        "job_board_css_version": get_file_version("css/job_board.css"),
+        "global_js_version": get_file_version("global.js"),
+        "jobboardEventHandlers_js_version": get_file_version("jobboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("jobboard.html", version_data)
+
+
+@app.get('/notification', tags=["Pages"])
+async def notification(request: Request):
+    version_data = {
+        "request": request,
+        "submitnotification_css_version": get_file_version("css/submitnotification.css"),
+        "global_js_version": get_file_version("global.js"),
+        "notificationDashboardEventHandlers_js_version": get_file_version("notificationDashboardEventHandlers.js"),        
+    }
+    # print("Template context data:", version_data)
+    return templates.TemplateResponse("submitnotification.html", version_data)
+
 
 @app.get('/ttc-plugin', tags=["Pages"], response_class=HTMLResponse)
 async def ttc_plugin(request: Request, response: Response):

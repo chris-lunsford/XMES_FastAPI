@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/assembly_order_dashboard.css">
+    <link rel="stylesheet" type="text/css" href="templates/css/assembly_order_dashboard.css?v={{ assembly_order_dashboard_css_version }}">
     
     
     <title>Document</title>
@@ -173,8 +173,12 @@
             </table>
         </div>
     </section>
-<script src="templates/global.js"></script>    
-<script src="templates/assemblyOrderDashboardEventHandlers.js"></script>
+<script src="templates/global.js?v={{ global_js_version }}"></script>    
+<script id="dynamic-version-block" type="application/json">
+    {
+      "assemblyOrderDashboardEventHandlers.js": "{{ assemblyOrderDashboardEventHandlers_js_version }}"
+    }
+</script>
 
 </body>
 </html>
