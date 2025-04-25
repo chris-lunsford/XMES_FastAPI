@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css">
+    <link rel="stylesheet" type="text/css" href="templates/css/machine_dashboard.css?v={{ machine_dashboard_css_version }}">
     
     
     
@@ -611,8 +611,12 @@
             </section>                           
     </div>
     
-<script src="templates/global.js"></script>    
-<script src="templates/machineDashboardEventHandlers.js"></script>
-
+<script src="templates/global.js?v={{ global_js_version }}"></script>    
+<script id="dynamic-version-block" type="application/json">
+    {
+      "machineDashboardEventHandlers.js": "{{ machineDashboardEventHandlers_js_version }}"
+    }
+    </script>
+<!-- DEBUG: {{ machineDashboardEventHandlers_js_version }} -->
 </body>
 </html>

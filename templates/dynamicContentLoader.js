@@ -82,6 +82,21 @@ function loadContent(url, highlight = true) {
             const contentDiv = document.getElementById('content');
             contentDiv.innerHTML = html;
 
+            // ✅ Parse and apply script version info
+            const versionTag = contentDiv.querySelector('#dynamic-version-block');
+            if (versionTag) {
+                try {
+                    const parsed = JSON.parse(versionTag.textContent);
+                    window.scriptVersions = {
+                        ...(window.scriptVersions || {}),
+                        ...parsed
+                    };
+                    console.log("Loaded script versions:", window.scriptVersions);
+                } catch (e) {
+                    console.warn("Failed to parse scriptVersions block", e);
+                }
+            }
+
             // Dispatch a custom event after loading content
             const contentLoadedEvent = new CustomEvent('contentLoaded', { detail: { loadedUrl: url } });
             contentDiv.dispatchEvent(contentLoadedEvent);
@@ -119,15 +134,20 @@ function loadContent(url, highlight = true) {
 
 
 function loadScript(url, callback) {
-    console.log("Attempting to append script to head:", url);
+    const fileName = url.split('/').pop();
+    const version = window.scriptVersions?.[fileName];
+    const versionedUrl = version ? `${url}?v=${version}` : url;
+
+    console.log("Preparing to load:", { fileName, version, versionedUrl });
+
     const script = document.createElement('script');
-    script.src = url;
+    script.src = versionedUrl;
     script.onload = () => {
-        console.log("Script loaded successfully:", url);
-        callback();        
+        console.log("Script loaded successfully:", versionedUrl);
+        callback();
     };
     script.onerror = () => {
-        console.error("Error loading script:", url);
+        console.error("Error loading script:", versionedUrl);
     };
     script.async = true;
     document.head.appendChild(script);

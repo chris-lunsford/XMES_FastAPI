@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="templates/css/submitnotification.css">    
+    <link rel="stylesheet" type="text/css" href="templates/css/submitnotification.css?v={{ submitnotification_css_version }}">    
     <title>Notification</title>
 </head>
 <body class="notification-dashboard">
@@ -52,6 +52,11 @@
             </div>            
         </div>
     </section>
-    <script src="templates/global.js"></script>   
+    <script src="templates/global.js?v={{ global_js_version }}"></script>
+    <script id="dynamic-version-block" type="application/json">
+        {
+          "notificationDashboardEventHandlers.js": "{{ notificationDashboardEventHandlers_js_version }}"
+        }
+    </script>  
 </body>
 </html>

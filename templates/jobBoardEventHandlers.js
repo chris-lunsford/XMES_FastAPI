@@ -20,6 +20,8 @@ function cleanupJobBoard() {
 
 function initializeJobBoard() {
     console.log("Initializing Job Board");
+    window.jobBoardActive = true;
+
     // First, clear all managed listeners
     listenerManager.removeListeners();
 
@@ -29,7 +31,7 @@ function initializeJobBoard() {
     setupEventHandlers();
 
     // Prevent multiple initializations
-    if (window.jobBboardInitialized) return;
+    if (window.jobBoardInitialized) return;
     window.jobBoardInitialized = true;
 
     // Set interval if it has not been set before
@@ -52,6 +54,10 @@ function setupEventHandlers() {
 var stationOrder = ['PSZ', 'TRZ', 'EBZ', 'PRZ', 'HRZ', 'HDZ', 'GMZ', 'PBZ', 'SCZ'];
 
 async function loadJobBoardData() {
+    if (window.jobBoardActive === false) {
+        console.warn("⏹️ Job Board is inactive — skipping data load.");
+        return;
+    }
     showLoadingSpinner()
     try {
         // Fetch station groups and job board data
@@ -164,6 +170,10 @@ async function loadJobBoardData() {
 
 function updateTableHeaders(stations) {
     const thead = document.getElementById("table-head");
+    if (!thead) {
+        console.warn("⚠️ Cannot update headers — #table-head not found (maybe navigated away?)");
+        return;
+    }
     thead.innerHTML = ''; // Clear existing header
 
     const headerRow = document.createElement('tr');
@@ -191,39 +201,6 @@ function updateTableHeaders(stations) {
 }
 
 
-
-// function setupCellHoverHighlighting() {
-//     const table = document.getElementById('order-table');
-
-//     table.addEventListener('mouseover', (e) => {
-//         const td = e.target.closest('td');
-//         if (!td || !td.dataset.col) return;
-
-//         const col = td.dataset.col;
-//         const row = td.parentElement;
-
-//         // Highlight column header
-//         const header = document.querySelector(`th[data-col="${col}"]`);
-//         header?.classList.add('highlight');
-
-//         // Highlight order ID cell
-//         const rowLabel = row.querySelector('td.row-label');
-//         rowLabel?.classList.add('highlight');
-
-//         // Highlight all cells in the same column
-//         const colCells = table.querySelectorAll(`td[data-col="${col}"]`);
-//         colCells.forEach(cell => cell.classList.add('highlight'));
-
-//         // Highlight all cells in the same row
-//         row.querySelectorAll('td').forEach(cell => cell.classList.add('highlight'));
-//     });
-
-//     table.addEventListener('mouseout', () => {
-//         document.querySelectorAll('.highlight').forEach(el => {
-//             el.classList.remove('highlight');
-//         });
-//     });
-// }
 
 function setupCellHoverHighlighting() {
     const table = document.getElementById('order-table');

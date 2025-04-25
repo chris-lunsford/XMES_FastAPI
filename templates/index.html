@@ -7,11 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XMES</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  <script src="templates/EventListenerManager.js"></script> <!-- Load this first -->
+  <script src="templates/EventListenerManager.js?v={{ event_listener_version }}"></script> <!-- Load this first -->
   <!-- Favicon link -->
   <link rel="icon" type="image/png" href="/assets/favicon.ico">
-  <link rel="stylesheet" type="text/css" href="templates/css/reset.css">
-  <link rel="stylesheet" type="text/css" href="templates/css/main.css">
+  <link rel="stylesheet" type="text/css" href="templates/css/reset.css?v={{ reset_css_version }}">
+  <link rel="stylesheet" type="text/css" href="templates/css/main.css?v={{ main_css_version }}">
  
 </head>
 <body class ="index-page">
@@ -111,8 +111,8 @@
         </div>
     </div>
 </div>
-    <script src="templates/global.js"></script>
-    <script src="templates/dynamicContentLoader.js"></script>
+    <script src="templates/global.js?v={{ global_js_version }}"></script>
+    <script src="templates/dynamicContentLoader.js?v={{ dynamic_js_version }}"></script>
     <script>
         // Default page load content
         window.addEventListener('DOMContentLoaded', () => {
