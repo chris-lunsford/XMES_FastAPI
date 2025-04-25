@@ -32,7 +32,7 @@ const scriptMap = {
         callback: null  // Set to null initially
     },
     '/job-board': {
-        path: 'templates/jobboardEventHandlers.js',
+        path: 'templates/jobBoardEventHandlers.js',
         callback: null,  // Set to null initially
         cleanup: () => {
             if (window.jobBoardIntervalId) {
