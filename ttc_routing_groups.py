@@ -175,6 +175,8 @@ ttc_saw_routing_groups = {
         'Suspended Drawer Rear Nailer',
         'Suspended Drawer Top Rear Nailer',
         'HO Adjustable Shelf Safety',
+        'Closet Upright Basenotch Right',
+        'Closet Upright Basenotch Left',
     ],
 
 
