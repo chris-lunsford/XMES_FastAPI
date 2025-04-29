@@ -9,7 +9,7 @@ if (typeof scriptMap !== 'undefined') {
 
 
 function initializeMachineProductionDashboard() {
-    console.log("Initializing MAchine Production Dashboard");
+    console.log("Initializing Machine Production Dashboard");
     // First, clear all managed listeners
     listenerManager.removeListeners();
 

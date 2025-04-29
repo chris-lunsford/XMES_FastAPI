@@ -54,19 +54,26 @@ function cleanupScriptForPreviousPage() {
 }
 
 
-document.addEventListener("DOMContentLoaded", function() {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.addEventListener('click', function(event) {
-        const link = event.target.closest('a');
-        if (link) {
-            event.preventDefault();
-            const href = link.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', '');
-            loadContent(href);
-            localStorage.setItem('lastLoadedContent', href);
-            sessionStorage.setItem('lastSessionTime', Date.now().toString());
-        }
-    });
+document.addEventListener("DOMContentLoaded", () => {
+    // First check app version
+    checkAppVersion();
 
+    // Then set up sidebar behavior
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.addEventListener('click', function(event) {
+            const link = event.target.closest('a');
+            if (link) {
+                event.preventDefault();
+                const href = link.getAttribute('href').replace('javascript:loadContent(\'', '').replace('\')', '');
+                loadContent(href);
+                localStorage.setItem('lastLoadedContent', href);
+                sessionStorage.setItem('lastSessionTime', Date.now().toString());
+            }
+        });
+    }
+
+    // Finally load last content if any
     loadLastContent(false);
 });
 
@@ -186,3 +193,51 @@ function checkSession() {
     }
     sessionStorage.setItem('lastSessionTime', currentTime.toString());
 }
+
+
+function checkAppVersion() {
+    const storedVersion = sessionStorage.getItem('appVersion');
+    const currentVersion = window.appVersion;
+
+    console.log("Checking app version:", { storedVersion, currentVersion });
+
+    if (storedVersion && storedVersion !== currentVersion) {
+        alert("🔄 A new version of the app is available. Please reload the page to get the latest updates.");
+    }
+
+    sessionStorage.setItem('appVersion', currentVersion);
+}
+
+function startAppVersionChecker(intervalMinutes = 1) {
+    // Check immediately when page loads
+    checkAppVersion();
+
+    // Then keep checking every interval
+    setInterval(() => {
+        fetch(window.location.href, { cache: "no-store" })
+            .then(response => response.text())
+            .then(html => {
+                // Extract new appVersion from the page
+                const match = html.match(/window\.appVersion\s*=\s*["'](\d+)["']/);
+                if (match && match[1]) {
+                    const latestVersion = match[1];
+                    const currentStoredVersion = sessionStorage.getItem('appVersion');
+
+                    console.log("Background app version check:", { latestVersion, currentStoredVersion });
+
+                    if (latestVersion !== currentStoredVersion) {
+                        alert("🔄 A new version of the app is available. Please reload the page to get the latest updates.");
+                        sessionStorage.setItem('appVersion', latestVersion);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Error checking app version in background:", err);
+            });
+    }, intervalMinutes * 60 * 1000); // Convert minutes to milliseconds
+}
+
+// Start background checker
+document.addEventListener("DOMContentLoaded", () => {
+    startAppVersionChecker(1);  // Check every 5 minutes (you can change this!)
+});
