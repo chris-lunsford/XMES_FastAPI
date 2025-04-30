@@ -208,7 +208,7 @@ function checkAppVersion() {
     sessionStorage.setItem('appVersion', currentVersion);
 }
 
-function startAppVersionChecker(intervalMinutes = 1) {
+function startAppVersionChecker(intervalMinutes = 5) {
     // Check immediately when page loads
     checkAppVersion();
 
@@ -239,5 +239,5 @@ function startAppVersionChecker(intervalMinutes = 1) {
 
 // Start background checker
 document.addEventListener("DOMContentLoaded", () => {
-    startAppVersionChecker(1);  // Check every 5 minutes (you can change this!)
+    startAppVersionChecker(5);  // Check every 5 minutes (you can change this!)
 });
