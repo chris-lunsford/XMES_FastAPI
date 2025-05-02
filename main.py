@@ -74,7 +74,6 @@ async def index(request: Request):
         "templates/machine_production.html",
         "templates/machinedashboard.html",
         "templates/orderdashboard.html",
-        "templates/production.html",
         "templates/submitnotification.html",
         ]
     
