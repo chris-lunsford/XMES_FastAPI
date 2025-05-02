@@ -53,21 +53,42 @@ async def validation_exception_handler(request, exc):
     return PlainTextResponse(str(exc), status_code=400)
 
 def get_file_version(path: str) -> int:
-    full_path = os.path.join("templates", path)
-    return int(os.path.getmtime(full_path)) if os.path.exists(full_path) else int(datetime.now().timestamp())
-
+    if not path.startswith("templates/") and not path.startswith("assets/"):
+        path = os.path.join("templates", path)
+    full_path = os.path.join(os.getcwd(), path)
+    if os.path.exists(full_path):
+        return int(os.path.getmtime(full_path))
+    else:
+        print(f"⚠️ Warning: File not found: {full_path}")
+        return int(datetime.now().timestamp())
 
 
 
 @app.get('/', tags=["Pages"], response_class=HTMLResponse)
 async def index(request: Request):
+    important_files = [
+        "templates/assembly_production.html",
+        "templates/assemblyorderdashboard.html",
+        "templates/defectdashboard.html",
+        "templates/jobboard.html",
+        "templates/machine_production.html",
+        "templates/machinedashboard.html",
+        "templates/orderdashboard.html",
+        "templates/production.html",
+        "templates/submitnotification.html",
+        ]
+    
+    # Find the newest "last modified" timestamp among important files
+    latest_update = max(get_file_version(file) for file in important_files)
+
     version_data = {
         "request": request,
-        "global_js_version": get_file_version("global.js"),
-        "dynamic_js_version": get_file_version("dynamicContentLoader.js"),
-        "event_listener_version": get_file_version("EventListenerManager.js"),
-        "reset_css_version": get_file_version("css/reset.css"),
-        "main_css_version": get_file_version("css/main.css"),
+        "global_js_version": get_file_version("templates/global.js"),
+        "dynamic_js_version": get_file_version("templates/dynamicContentLoader.js"),
+        "event_listener_version": get_file_version("templates/EventListenerManager.js"),
+        "reset_css_version": get_file_version("templates/css/reset.css"),
+        "main_css_version": get_file_version("templates/css/main.css"),
+        "app_version": str(latest_update)  # 🆕 app_version = stable version
     }
     return templates.TemplateResponse("index.html", version_data)
 

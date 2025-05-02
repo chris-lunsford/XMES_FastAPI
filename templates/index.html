@@ -12,7 +12,9 @@
   <link rel="icon" type="image/png" href="/assets/favicon.ico">
   <link rel="stylesheet" type="text/css" href="templates/css/reset.css?v={{ reset_css_version }}">
   <link rel="stylesheet" type="text/css" href="templates/css/main.css?v={{ main_css_version }}">
- 
+  <script>
+    window.appVersion = "{{ app_version }}"; 
+</script> 
 </head>
 <body class ="index-page">
 <div class="header">
@@ -130,6 +132,6 @@
         btn.onclick = function () {
             sidebar.classList.toggle('active')
         };
-    </script>
+    </script>    
 </body>
 </html>
