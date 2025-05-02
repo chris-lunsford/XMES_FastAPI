@@ -263,77 +263,58 @@ function handleDynamicInputs(event) {
     const workArea = workAreaSelect ? workAreaSelect.value : null;
     const employeeID = employeeIDField ? employeeIDField.value : null;
 
-    // Handle barcode input
+    // 🔹 Barcode input triggers order ID extraction and progress fetch
     if (event.target.id === 'barcode' && event.target.value.length === 12) {
-        orderIDField.value = event.target.value.substring(0, 8);
-        fetchJobNotifications(orderIDField.value);
-        // fetchOrderTotalCount(orderIDField.value);        
+        const extractedOrderID = event.target.value.substring(0, 8);
+        orderIDField.value = extractedOrderID;
 
-        if (workArea && workArea !== '') {
-            fetchOrderTotalAreaCount(orderIDField.value, workAreaSelect.value);                        
+        fetchJobNotifications(extractedOrderID);
+
+        if (workArea) {
+            updateAreaProgressBar();
         } else {
             console.log("Work Area not selected");
         }
     }
 
-    // Listen for changes in 'employee-id' or 'work-area' elements
-    if (event.target.id === 'employee-id' && employeeID.length === 4|| event.target.id === 'work-area') {
-        updatePartCountsOnInputs(employeeID, workArea);
-
-        if (orderID && orderID.length === 8 && workArea && workArea !== "" && employeeID) {
-            fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-            // fetchOrderTotalAreaCount(orderID, workArea);
-        }else if (orderID && orderID.length === 8 && workArea && workArea !== "") {
-            // fetchOrderTotalAreaCount(orderID, workArea);
-        }
-    } else if (event.target.id === 'employee-id' && employeeID.length != 0) {
+    // 🔹 Changes in employee or work area
+    if ((event.target.id === 'employee-id' && employeeID.length === 4) || event.target.id === 'work-area') {
+        updatePartCountsOnInputs(employeeID, workArea, orderID);
+    } else if (event.target.id === 'employee-id' && employeeID.length !== 0) {
         resetEmployeeData();
     }
 
-    // Handle OrderID input and Resource & Order input together for proper validation
+    // 🔹 Order ID entered
     if (event.target.id === 'order-id' && orderID.length === 8) {
         fetchJobNotifications(orderID);
-        // fetchOrderTotalCount(orderID);
 
-        // Verify that the work area has a valid selection
-        if (workArea && workArea !== "") {
-            // fetchOrderTotalAreaCount(orderID, workArea);
+        if (workArea) {
             updateAreaProgressBar();
-        } else {
-            console.log("Order ID or Work Area is not properly selected.");
-            // Optionally, alert the user or handle the error in the UI
         }
 
         if (employeeID) {
-            fetchOrderAreaScannedCount(orderID, workArea, employeeID);
+            fetchCombinedCounts(orderID, workArea, employeeID);
         }
-    } else if (event.target.id === 'order-id' && orderID.length != 0) {
-        resetNotifications()
-        resetMissingPartsTable()
+    } else if (event.target.id === 'order-id' && orderID.length !== 0) {
+        resetNotifications();
+        resetMissingPartsTable();
     }
 
-    if (event.target.id === 'work-area' && workArea !== '') {
+    // 🔹 Work area changed with valid order ID
+    if (event.target.id === 'work-area' && workArea) {
         if (orderID && orderID.length === 8) {
-            // fetchOrderTotalAreaCount(orderID, workArea);
-            updateAreaProgressBar()
+            updateAreaProgressBar();
         } else {
             console.log("Order ID or Work Area is not properly selected.");
-            // Optionally, alert the user or handle the error in the UI
         }
     }
 }
 
 
-function updatePartCountsOnInputs(employeeID, workArea) {
+function updatePartCountsOnInputs(employeeID, workArea, orderID = null) {
     if (employeeID.length === 4) {
-        if (workArea) {
-            fetchAreaPartsCount(employeeID, workArea);
-            fetchEETotalPartsCount(employeeID);
-            fetchEEJobListDay(employeeID);
-        } else {
-            fetchEETotalPartsCount(employeeID);
-            fetchEEJobListDay(employeeID);
-        }
+        fetchCombinedCounts(orderID, workArea, employeeID);
+        fetchEEJobListDay(employeeID);
         if (!workArea) {
             document.getElementById('partcount-area').textContent = 0;
         }
@@ -344,13 +325,9 @@ function updatePartCountsOnInputs(employeeID, workArea) {
 
 function updatePartCountsOnScan() {
     const employeeID = document.getElementById('employee-id').value;
-    const workAreaSelect = document.getElementById('work-area');
-    const workArea = workAreaSelect.value;
+    const workArea = document.getElementById('work-area').value;
     const orderID = document.getElementById('order-id').value.trim();
-    fetchAreaPartsCount(employeeID, workArea);
-    fetchEETotalPartsCount(employeeID);
-    fetchOrderAreaScannedCount(orderID, workArea, employeeID);
-
+    fetchCombinedCounts(orderID, workArea, employeeID);
 }
 
 function updateEEJobListDay() {
@@ -559,3 +536,17 @@ async function updateAreaProgressBar() {
     }
 }
 
+
+async function fetchCombinedCounts(orderID, resource, employeeID) {
+    const url = `/api/combined-part-counts?OrderID=${orderID}&Resource=${resource}&EmployeeID=${employeeID}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        document.getElementById('partcount-area').textContent = data.area_count;
+        document.getElementById('partcount-emp').textContent = data.total_count;
+        document.getElementById('ordercount-area').textContent = data.scanned_count;
+    } catch (err) {
+        console.error("Error fetching combined part counts:", err);
+    }
+}
