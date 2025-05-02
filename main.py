@@ -67,7 +67,6 @@ def get_file_version(path: str) -> int:
 @app.get('/', tags=["Pages"], response_class=HTMLResponse)
 async def index(request: Request):
     important_files = [
-        "templates/index.html",
         "templates/assembly_production.html",
         "templates/assemblyorderdashboard.html",
         "templates/defectdashboard.html",
