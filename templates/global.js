@@ -1110,8 +1110,8 @@ function updatePartsTable(parts) {
             const cncBarcode = part.CNC_BARCODE1 || 'N/A';
             const description = part.Description || 'N/A';
             const routing = part.Routing || 'N/A';
-            const lastresource = part.LastResource || 'N/A';
-            const timestamp = part.Timestamp ? formatLastScanDate(part.Timestamp) : 'N/A';
+            const lastresource = part.LastRESOURCE || 'N/A';
+            const timestamp = part.TIMESTAMP ? formatLastScanDate(part.TIMESTAMP) : 'N/A';
 
             const row = `<tr>
                             <td>${barcode}</td>
