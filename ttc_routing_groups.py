@@ -178,6 +178,7 @@ ttc_saw_routing_groups = {
         'Closet Upright Basenotch Right',
         'Closet Upright Basenotch Left',
         'HO LED Fixed Shelf',
+        'Closet Upright Right No Drill',
     ],
 
 
