@@ -317,30 +317,30 @@ async def update_recut_status(data: BarcodeRecutData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-# @app.get('/api/employee-areaparts-count', tags=["Part Counts"])
-# async def employee_areaparts_count(EmployeeID, Resource):
-#     try:
-#         count = get_employee_areaparts_count(EmployeeID, Resource)
-#         return {"area_count": count}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+@app.get('/api/employee-areaparts-count', tags=["Part Counts"])
+async def employee_areaparts_count(EmployeeID, Resource):
+    try:
+        count = get_employee_areaparts_count(EmployeeID, Resource)
+        return {"area_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
-# @app.get('/api/employee-totalparts-count', tags=["Part Counts"])
-# async def employee_totalparts_count(EmployeeID):
-#     try:
-#         count = get_employee_totalparts_count(EmployeeID)
-#         return {"total_count": count}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+@app.get('/api/employee-totalparts-count', tags=["Part Counts"])
+async def employee_totalparts_count(EmployeeID):
+    try:
+        count = get_employee_totalparts_count(EmployeeID)
+        return {"total_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 
-# @app.get('/api/order-area-scanned-count', tags=["Part Counts"])
-# async def order_area_scanned_count(OrderID, Resource, EmployeeID):
-#     try:
-#         count = get_order_area_scanned_count(OrderID, Resource, EmployeeID)
-#         return {"scanned_count": count}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+@app.get('/api/order-area-scanned-count', tags=["Part Counts"])
+async def order_area_scanned_count(OrderID, Resource, EmployeeID):
+    try:
+        count = get_order_area_scanned_count(OrderID, Resource, EmployeeID)
+        return {"scanned_count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get('/api/combined-part-counts', tags=["Part Counts"])
 async def get_combined_counts(OrderID: Optional[str] = None, Resource: Optional[str] = None, EmployeeID: str = None):
