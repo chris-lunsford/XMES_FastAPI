@@ -61,6 +61,7 @@ ttc_saw_routing_groups = {
     'PSZHRZSCZ': [        
         'Island Backing Panel',
         'Closet Corner Fixed Shelf',
+        'Drawer Lid',
 
     ],
 
