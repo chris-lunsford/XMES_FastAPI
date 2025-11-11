@@ -183,6 +183,7 @@ ttc_saw_routing_groups = {
         'HO Base Divider',
         'Closet LED Fixed Shelf',
         'Closet Upright Top Stacking Transition Right',
+        'Closet Upright Top Stacking Left No Drill',
     ],
 
 
