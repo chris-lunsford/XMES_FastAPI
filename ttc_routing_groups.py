@@ -184,6 +184,9 @@ ttc_saw_routing_groups = {
         'Closet LED Fixed Shelf',
         'Closet Upright Top Stacking Transition Right',
         'Closet Upright Top Stacking Left No Drill',
+        'Closet Upright Bottom Stacking Basenotch Thru',
+        'Closet Upright Hanging Square Thru No Drill',
+        
     ],
 
 
