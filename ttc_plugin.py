@@ -38,10 +38,10 @@ async def process_file(response: Response, file: UploadFile = File(...), order_i
             output = BytesIO()
             new_df.to_csv(output, index=False, header=True)
             output.seek(0)
-            upload_to_blob(output.getvalue(), "xmes/Tailor Closet/Buy Outs", f'{order_id}TTC-NonManuf.csv')
+            upload_to_blob(output.getvalue(), "xmes/Tailor Closet/Buy Outs", f'{order_id}-NonManuf.csv')
 
 
-            return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={order_id}TTC-Productlist-NonManuf.csv"})
+            return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={order_id}-Productlist-NonManuf.csv"})
 
         elif file.filename.endswith('.pnx'):
             # Process PNX file
@@ -53,9 +53,9 @@ async def process_file(response: Response, file: UploadFile = File(...), order_i
             output_csv = BytesIO()
             df.to_csv(output_csv, index=False, header=True, sep=',')
             output_csv.seek(0)
-            upload_to_blob(output_csv.getvalue(), "xmes/Tailor Closet/Parts List", f'{order_id}TTC.csv')
+            upload_to_blob(output_csv.getvalue(), "xmes/Tailor Closet/Parts List", f'{order_id}.csv')
 
-            return StreamingResponse(output_pnx, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={order_id}TTC.pnx"})
+            return StreamingResponse(output_pnx, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={order_id}.pnx"})
 
         else:
             raise HTTPException(status_code=400, detail="Unsupported file type")
@@ -145,8 +145,8 @@ def modify_csv_in_memory(order_id, csv_data):
         new_df.reset_index(drop=True, inplace=True)  # Reset index to avoid any duplicate index issues
 
         # Add ORDERID and BARCODE to the new DataFrame
-        new_df['ORDERID'] = f'{order_id}TTC'
-        new_df['BARCODE'] = [f'{order_id}TTC{5000 + i}' for i in range(len(new_df))]
+        new_df['ORDERID'] = f'{order_id}'
+        new_df['BARCODE'] = [f'{order_id}{5000 + i}' for i in range(len(new_df))]
         new_df['ROUTING'] = new_df.iloc[:, 2].apply(find_routing)
 
         return new_df
@@ -172,8 +172,8 @@ def modify_pnx_in_memory(order_id, file_content: bytes):
             df = df.iloc[:, :-1]  # Drop the last column if it is entirely NaN
 
         # Modify the DataFrame: Add ORDERID, BARCODE, and ROUTING columns
-        df['ORDERID'] = f'{order_id}TTC'
-        df['BARCODE'] = [f'{order_id}TTC{1000 + i}' for i in range(len(df))]
+        df['ORDERID'] = f'{order_id}'
+        df['BARCODE'] = [f'{order_id}{1000 + i}' for i in range(len(df))]
         df['ROUTING'] = df.iloc[:, 2].apply(find_routing)  # Assuming find_routing is defined
 
         return df  # Return the modified DataFrame
