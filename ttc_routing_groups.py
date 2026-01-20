@@ -188,6 +188,7 @@ ttc_saw_routing_groups = {
         'Closet Upright Hanging Square Thru No Drill',
         'Closet Upright Cubbie Divider Left No Drill',
         'Closet Upright Top Stacking LED Left No Drill',
+        'Closet Upright Bottom Stacking Left No Drill',
         
     ],
 
