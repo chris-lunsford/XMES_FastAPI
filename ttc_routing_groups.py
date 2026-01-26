@@ -189,6 +189,10 @@ ttc_saw_routing_groups = {
         'Closet Upright Cubbie Divider Left No Drill',
         'Closet Upright Top Stacking LED Left No Drill',
         'Closet Upright Bottom Stacking Left No Drill',
+        'Closet Upright LED Transition Right',
+        'Closet Upright LED Transition Left',
+        'HO Carcass Stretcher Front',
+        'HO Carcass Stretcher Rear',
         
     ],
 
