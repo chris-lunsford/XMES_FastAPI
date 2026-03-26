@@ -11,6 +11,8 @@ ttc_saw_routing_groups = {
         'Matrix Bottom',
         'Drawer Box Bottom', 
         'Moovit Bottom',
+        'HO  Murphy Queen Panel Stiffener',
+        'HO  Murphy Queen Headboard Stiffener',
         
     ],
 
@@ -34,6 +36,9 @@ ttc_saw_routing_groups = {
         'False Front Backer',
         'HO Murphy Full Toe Kick',
         'Moovit Filler',
+        'Closet LED Adjustable Shelf',
+        'HO Murphy Queen Front Apron',
+        'Closet LED Adjustable Shelf',
 
     ],
 
