@@ -199,6 +199,8 @@ ttc_saw_routing_groups = {
         'HO Carcass Stretcher Front',
         'HO Carcass Stretcher Rear',
         'Closet Upright Basenotch Transition Right',
+        'Closet Upright Bottom Stacking Transition Right',
+        'Closet Upright Basenotch Transition Left',
         
     ],
 
