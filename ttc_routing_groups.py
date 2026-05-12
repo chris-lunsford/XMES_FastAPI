@@ -201,6 +201,16 @@ ttc_saw_routing_groups = {
         'Closet Upright Basenotch Transition Right',
         'Closet Upright Bottom Stacking Transition Right',
         'Closet Upright Basenotch Transition Left',
+        'HO Stella Full Left Side',
+        'HO Stella Full Right Side',
+        'HO Stella Full Top',
+        'HO Stella Full Headboard',
+        'HO Stella Full Nailer Top',
+        'HO Stella Full Nailer Bottom',
+        'HO Stella Full Bottom',
+        'HO Stella Full Desk',
+        'HO Stella Full Front Panel Left',
+        'HO Stella Full Front Panel Right',
         
     ],
 
